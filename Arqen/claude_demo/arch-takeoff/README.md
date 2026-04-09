@@ -1,141 +1,153 @@
-# ArchTakeoff — CV Measurement Engine
+# ArchTakeoff — Wall Measurement Engine
 
-Automated architectural plan takeoff using Claude's vision API. Upload a floor plan,
-site plan, or elevation drawing and get back annotated measurements with room-by-room
-dimensions, area calculations, and exportable takeoff data.
+Extracts exterior wall measurements, facing directions, and total area from
+architectural plan drawings using Claude's vision API. Upload a floor plan
+(image or PDF), configure the scale, and get structured JSON takeoff data.
 
----
+## Quick Start
 
-## Quick Start (Local / Development)
+### 1. Install dependencies
 
-1. Open `index.html` in a browser — **no build step required**.
-2. Set your Anthropic API key in `js/config.js`:
-   ```js
-   ANTHROPIC_API_KEY: 'sk-ant-...',
-   ```
-3. Upload a plan image and click **Run Analysis**.
+```bash
+cd claude_demo/arch-takeoff
+npm install
+```
 
-> ⚠️ Embedding your API key in client-side JS is fine for local testing but **not safe
-> for production**. See the Proxy Server section below.
+### 2. Start the proxy server
 
----
+The app routes requests through a local Express proxy to avoid browser CORS
+restrictions. Pass your Anthropic API key as an environment variable:
+
+**PowerShell:**
+```powershell
+$env:ANTHROPIC_API_KEY="sk-ant-..."
+node server/proxy.js
+```
+
+**Bash / macOS / Linux:**
+```bash
+ANTHROPIC_API_KEY=sk-ant-... node server/proxy.js
+```
+
+You should see:
+```
+ArchTakeoff proxy running at http://localhost:3001
+Open http://localhost:3001/index.html in your browser
+API key: loaded from env
+```
+
+### 3. Open the app
+
+Go to **http://localhost:3001/index.html** in your browser.
+
+## Usage
+
+The app follows a 4-step workflow:
+
+### Step 1 — Upload Plan
+
+Drag and drop (or browse for) an architectural plan. Supported formats:
+
+- **Images:** PNG, JPG, GIF, WEBP
+- **PDFs:** Multi-page PDFs are supported — all pages are sent to the API;
+  page 1 is shown as the preview.
+
+### Step 2 — Configure Scale
+
+| Setting | Options | Notes |
+|---|---|---|
+| **Scale detection** | Auto Detect / Manual | Manual forces the model to use your exact scale |
+| **Drawing scale** | e.g. `1:100`, `1/4"=1'` | Only shown when Manual is selected |
+| **Units** | Metric (m) / Imperial (ft) | Controls the output unit system |
+| **Plan type** | Floor Plan, Site Plan, Elevation, Section, Auto-detect | Helps the model interpret the drawing |
+
+### Step 3 — Analyze
+
+Click **RUN ANALYSIS**. The app sends the plan to Claude Sonnet 4.6 and
+streams progress updates while waiting (~10–30 seconds depending on file size).
+
+### Step 4 — Results
+
+The results panel shows:
+
+- **Summary metrics:** walls detected, total area, detected scale, confidence
+- **Wall measurements:** each wall with its name, facing direction (N/S/E/W),
+  and length
+- **Analyst notes:** any observations the model flagged
+
+#### Detail levels
+
+| Level | What it extracts |
+|---|---|
+| Standard | Main exterior walls and total area |
+| Detailed | All walls including interior partitions |
+| Full | Every wall with facing direction and notes |
+
+#### Export
+
+- **CSV** — wall name, facing, length, and notes in spreadsheet format
+- **IMG** — the plan image with dimension line overlays as a PNG
 
 ## Project Structure
 
 ```
 arch-takeoff/
-├── index.html          # Main app shell & HTML
-├── css/
-│   └── styles.css      # All styles (blueprint dark theme)
+├── index.html              # App shell
+├── css/styles.css          # Blueprint dark theme
 ├── js/
-│   ├── config.js       # API key & endpoint configuration  ← edit this
-│   ├── state.js        # Shared app state & color constants
-│   ├── ui.js           # Step navigation, logging, controls
-│   ├── upload.js       # Drag-and-drop & file input
-│   ├── analysis.js     # Claude API call & results rendering
-│   ├── canvas.js       # Canvas overlay drawing
-│   └── export.js       # CSV & PNG export
-└── README.md
+│   ├── config.js           # API key, endpoint, model settings
+│   ├── state.js            # Shared app state
+│   ├── ui.js               # Step navigation, logging, controls
+│   ├── upload.js           # Drag-and-drop, PDF rendering (PDF.js)
+│   ├── analysis.js         # Claude API call, prompt, results rendering
+│   ├── canvas.js           # Dimension line overlays
+│   └── export.js           # CSV and PNG export
+├── server/
+│   └── proxy.js            # Express proxy (injects API key server-side)
+├── test_pdfs.py            # Batch test script for PDFs in data/
+└── package.json
 ```
 
----
+## Configuration
 
-## Production: Proxy Server Setup
+All settings live in `js/config.js`:
 
-Never expose an API key in client-side code in production. Instead, route requests
-through a lightweight server that injects the key server-side.
+```js
+const CONFIG = {
+  ANTHROPIC_API_KEY: null,    // null when using the proxy (recommended)
+  API_ENDPOINT: 'http://localhost:3001/api/analyze',
+  MODEL: 'claude-sonnet-4-6',
+  MAX_TOKENS: 8192,
+};
+```
 
-### Option A — Express proxy (Node.js)
+- **`ANTHROPIC_API_KEY`** — leave as `null` when using the proxy. The proxy
+  reads the key from the `ANTHROPIC_API_KEY` environment variable.
+- **`MODEL`** — `claude-sonnet-4-6` is the default. Switch to
+  `claude-opus-4-20250514` for higher accuracy on complex plans (higher cost).
+- **`MAX_TOKENS`** — increase if large plans produce truncated output.
 
-1. Install dependencies:
-   ```bash
-   npm install express cors node-fetch
-   ```
+## Batch Testing
 
-2. Create `server/proxy.js`:
-   ```js
-   const express = require('express');
-   const cors    = require('cors');
-   const fetch   = require('node-fetch');
+`test_pdfs.py` runs the first 10 PDFs from `../../data/` through the API and
+saves results:
 
-   const app = express();
-   app.use(cors());
-   app.use(express.json({ limit: '20mb' }));
+```bash
+set ANTHROPIC_API_KEY=sk-ant-...
+python test_pdfs.py
+```
 
-   app.post('/api/analyze', async (req, res) => {
-     try {
-       const response = await fetch('https://api.anthropic.com/v1/messages', {
-         method:  'POST',
-         headers: {
-           'Content-Type':      'application/json',
-           'x-api-key':         process.env.ANTHROPIC_API_KEY,
-           'anthropic-version': '2023-06-01',
-         },
-         body: JSON.stringify(req.body),
-       });
-       const data = await response.json();
-       res.json(data);
-     } catch (err) {
-       res.status(500).json({ error: { message: err.message } });
-     }
-   });
+Results are printed to stdout and saved to `test_results.json`.
 
-   app.listen(3001, () => console.log('Proxy running on http://localhost:3001'));
-   ```
+## Troubleshooting
 
-3. Run the server:
-   ```bash
-   ANTHROPIC_API_KEY=sk-ant-... node server/proxy.js
-   ```
-
-4. In `js/config.js`, update the endpoint and clear the key:
-   ```js
-   ANTHROPIC_API_KEY: null,
-   API_ENDPOINT: 'http://localhost:3001/api/analyze',
-   ```
-
-### Option B — Serverless (Vercel / Netlify)
-
-Create an API route (e.g. `api/analyze.js` for Vercel) that does the same fetch
-as the Express proxy above, reading `process.env.ANTHROPIC_API_KEY` from your
-deployment environment variables.
-
----
-
-## Features
-
-| Feature | Detail |
-|---|---|
-| **Scale detection** | Auto-reads scale bars, dimension strings, and title block annotations |
-| **Manual override** | Enter your own scale (e.g. 1:50, 1:100, 1/4"=1') |
-| **Room detection** | Bounding-box overlay per room with color coding |
-| **Dimension lines** | Overall building extents with amber annotation lines |
-| **Layer toggles** | Show/hide Rooms, Dims, and Labels independently |
-| **Room highlight** | Click any room in the list to highlight it on the plan |
-| **Export CSV** | Full takeoff spreadsheet — room names, dims, areas |
-| **Export image** | Annotated plan as a PNG at the original image resolution |
-| **Units** | Switch between metric (m/m²) and imperial (ft/ft²) |
-| **Plan types** | Floor plan, site plan, elevation, section |
-| **Detail levels** | Standard / Detailed (doors & windows) / Full |
-
----
-
-## Tips for Best Results
-
-- Use **clear, high-resolution** scanned plans or CAD exports (300 dpi+)
-- Plans with a **visible scale bar** yield the highest confidence measurements
-- **Title blocks** with a noted scale also work well for auto-detection
-- Avoid heavily overlaid or coloured plans — cleaner line work = better results
-- For hand-drawn sketches, use **manual scale** mode
-
----
-
-## Model
-
-Uses `claude-sonnet-4-20250514` by default. You can swap to `claude-opus-4-20250514`
-in `js/config.js` for higher accuracy on complex plans (higher cost).
-
----
+| Error | Cause | Fix |
+|---|---|---|
+| `Failed to fetch` | Proxy server not running | Start it with `node server/proxy.js` |
+| `CONFIG is not defined` | Syntax error in `config.js` | Check that the API key string has quotes |
+| `Could not parse AI response as JSON` | Model returned malformed JSON | Try again, or increase `MAX_TOKENS` |
+| `API error 401` | Invalid or missing API key | Check your `ANTHROPIC_API_KEY` env var |
+| PDF preview is blank | PDF.js failed to render | Check browser console; file may be corrupted |
 
 ## License
 

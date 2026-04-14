@@ -4,7 +4,7 @@ preprocess.py — Exterior wall measurement & facing from architectural plan PDF
 Pipeline:
   1. Rasterize PDF pages at 300 DPI
   2. Preprocess: grayscale → blur → binary threshold → morphological cleanup
-  3. Find the largest external contour (building footprint)
+  3. Find the largest external contour (building footprint)parse_scale
   4. Simplify to a clean polygon (approxPolyDP)
   5. Segment polygon edges into individual wall segments
   6. Compute wall direction (facing) relative to North = image-up
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 # pylint: disable=no-member
-import cv2
+import cv2 #what we use for image processing + computer vision
 import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
@@ -49,7 +49,13 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 
 # ─── Step 2: Preprocessing ──────────────────────────────────────────────────
 
+
 def preprocess(image: np.ndarray) -> np.ndarray:
+    '''
+    We sharpen the edges and lines on our images
+    using threshold (line below)
+    this helps cv2 better understand and pick out the walls 
+    '''
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
@@ -79,14 +85,14 @@ def preprocess(image: np.ndarray) -> np.ndarray:
 
 def find_footprint(binary: np.ndarry):
     '''
-New Plan:
-1. Finding connected components
-2. Filtering out junk
-3. Finding best contour from connected components
-4. Overall finding the plan component
+    New Plan:
+    1. Finding connected components
+    2. Filtering out junk
+    3. Finding best contour from connected components
+    4. Overall finding the plan component
 
-'''
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary)
+    '''
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary) #
 
     h, w = binary.shape
     image_area = h*w
@@ -133,6 +139,7 @@ def find_footprint_contour(mask: np.ndarray):
 
 # ─── Step 4: Simplify contour → clean polygon ──────────────────────────────
 
+#finding some parameteres to help us work with the shape of our building 
 def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.005) -> np.ndarray:
     perimeter = cv2.arcLength(contour, closed=True)
     epsilon = epsilon_factor * perimeter
@@ -211,9 +218,9 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
         return {"error": "No building footprint found"}
 
     polygon = simplify_polygon(contour)
-    segments = extract_wall_segments(polygon)
+    segments = extract_wall_segments(polygon) #see extract_wall_segments_class.py
         
-    cal = parse_scale(scale_str, dpi, output_unit="ft")
+    cal = parse_scale(scale_str, dpi, output_unit="ft") #see scale_parse.py
     px_per_unit = cal["px_per_unit"]
     unit_label = cal["unit_label"]
     is_metric = unit_label == "m"

@@ -17,6 +17,7 @@ def segment_angle_deg(seg: tuple[int, int, int, int]) -> float:
     return math.degrees(math.atan2(dy, dx)) % 180
 
 
+#converting our polygon into a list of segments
 def polygon_to_segments(polygon: np.ndarray) -> list[tuple[int, int, int, int]]:
     segments = []
     n = len(polygon)
@@ -27,6 +28,7 @@ def polygon_to_segments(polygon: np.ndarray) -> list[tuple[int, int, int, int]]:
     return segments
 
 
+#filtering out short segments -- making sure we're only working with the longest walls
 def filter_short_segments(
     segments: list[tuple[int, int, int, int]],
     min_length_px: float = 15.0
@@ -34,11 +36,15 @@ def filter_short_segments(
     return [seg for seg in segments if segment_length(seg) >= min_length_px]
 
 
+
+
 def angle_diff_deg(a: float, b: float) -> float:
     diff = abs(a - b) % 180
     return min(diff, 180 - diff)
 
 
+#for now, a 5 degree angle difference is good enough
+#might be useless
 def merge_collinear_segments(
     segments: list[tuple[int, int, int, int]],
     angle_threshold_deg: float = 8.0,
@@ -80,6 +86,7 @@ def merge_collinear_segments(
     return merged
 
 
+#puts all the above methods together
 def extract_wall_segments(polygon: np.ndarray, min_length_px: float = 15.0, angle_threshold_deg: float = 8.0, gap_threshold_px: float = 10.0) -> list[tuple[int, int, int, int]]:
     raw_segments = polygon_to_segments(polygon)
     filtered = filter_short_segments(raw_segments, min_length_px=min_length_px)

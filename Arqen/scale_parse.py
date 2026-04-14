@@ -6,6 +6,8 @@ Helper file to convert arch scale string to px_per_unit
 '''
 
 def _parse_fraction_or_float(s: str) -> float:
+
+    # "1/16" -> 0.0625
     s = s.strip()
     if "/" in s:
         num, den = s.split("/")
@@ -84,9 +86,9 @@ def _parse_real_length_to_feet(s: str) -> float:
         inches = float(s[:-1])
         return inches / 12.0
 
-    if s.endswith("m"):
-        meters = float(s[:-1])
-        return meters * 3.28084
+    # if s.endswith("m"): #revisit this; unsure
+    #     meters = float(s[:-1])
+    #     return meters * 3.28084
 
     if s.endswith("mm"):
         mm = float(s[:-2])
@@ -117,7 +119,7 @@ def parse_scale(scale_str: str, dpi: int, output_unit: str = "ft") -> dict:
         drawing_inches = _parse_arch_length_to_inches(left)
         real_feet = _parse_real_length_to_feet(right)
 
-        px_per_drawing_inch = dpi
+        px_per_drawing_inch = dpi #kept at 300 for now, assumed to be high resolution
         px_per_foot = (drawing_inches * px_per_drawing_inch) / real_feet
 
         if output_unit == "ft":
@@ -129,7 +131,7 @@ def parse_scale(scale_str: str, dpi: int, output_unit: str = "ft") -> dict:
 
         raise ValueError(f"Unsupported output unit: {output_unit}")
 
-    if ":" in s:
+    if ":" in s: #"1:100" -> 100
         left, right = [part.strip() for part in s.split(":", 1)]
         left_val = float(left)
         right_val = float(right)

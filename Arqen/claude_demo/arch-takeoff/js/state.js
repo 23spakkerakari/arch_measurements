@@ -9,6 +9,7 @@ const appState = {
   fileDataUrl: null,         // raw uploaded file data URL (used for API calls)
   fileType: null,            // 'image' or 'pdf'
   scaleMode: 'auto',
+  imageDpi: 300,
   units: 'metric',
   currentStep: 1,
   analysisResult: null,

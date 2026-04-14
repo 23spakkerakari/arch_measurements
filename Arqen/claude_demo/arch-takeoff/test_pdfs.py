@@ -85,7 +85,7 @@ def analyze_pdf(client: anthropic.Anthropic, pdf_path: Path) -> dict:
                 "content": [
                     {
                         "type": "document",
-                        "source": {
+                        "source": {x
                             "type": "base64",
                             "media_type": "application/pdf",
                             "data": pdf_b64,

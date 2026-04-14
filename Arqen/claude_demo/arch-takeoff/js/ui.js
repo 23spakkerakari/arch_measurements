@@ -49,7 +49,9 @@ function setScaleMode(m) {
   appState.scaleMode = m;
   document.getElementById('radio-auto').classList.toggle('selected', m === 'auto');
   document.getElementById('radio-manual').classList.toggle('selected', m === 'manual');
-  document.getElementById('manual-scale-field').style.display = m === 'manual' ? 'block' : 'none';
+  const isManual = m === 'manual';
+  document.getElementById('manual-scale-field').style.display = isManual ? 'block' : 'none';
+  document.getElementById('dpi-field').style.display = isManual ? 'block' : 'none';
 }
 
 function setUnits(u) {

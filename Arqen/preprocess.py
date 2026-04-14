@@ -24,6 +24,8 @@ from pathlib import Path
 import cv2
 import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
+from scale_parse import parse_scale
+from extract_wall_segments_class import extract_wall_segments
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -48,52 +50,94 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 # ─── Step 2: Preprocessing ──────────────────────────────────────────────────
 
 def preprocess(image: np.ndarray) -> np.ndarray:
-    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    # Morphological close to bridge small gaps in wall lines
-    kernel = np.ones((3, 3), np.uint8)
-    closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel, iterations=2)
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    cleaned = np.zeros_like(binary)
+
+    min_area = 40 #to be tuned
+
+    for label in range(1, num_labels):
+        area = stats[labels, cv2.CC_STAT_AREA]
+        if area >= min_area:
+            cleaned[labels == label] = 255
+    
+    # Here we're preserving long horizontal and vertical structure
+    horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
+    vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
+
+    horiz = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, horiz_kernel)
+    vert = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, vert_kernel)
+
+    structure = cv2.bitwise_or(horiz, vert)
+
+    # Bridge small gaps in wall lines
+    close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    closed = cv2.morphologyEx(structure, cv2.MORPH_CLOSE, close_kernel, iterations=1)
+
     return closed
 
+def find_footprint(binary: np.ndarry):
+    '''
+New Plan:
+1. Finding connected components
+2. Filtering out junk
+3. Finding best contour from connected components
+4. Overall finding the plan component
 
-# ─── Step 3: Find the building footprint (largest external contour) ─────────
+'''
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary)
 
-def find_footprint(binary: np.ndarray) -> np.ndarray | None:
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if not contours:
-        print("No contours found", file=sys.stderr)
+    h, w = binary.shape
+    image_area = h*w
+
+    best_label = None
+    best_score = -1
+
+    for label in range(1, num_labels):
+        x = stats[label, cv2.CC_STAT_LEFT] #leftmost x coordinate
+        y = stats[label, cv2.CC_STAT_TOP] #topmost y coordinate
+        width = stats[label, cv2.CC_STAT_WIDTH] #width of the component
+        height = stats[label, cv2.CC_STAT_HEIGHT] #height of the component
+        area = stats[label, cv2.CC_STAT_AREA] #area of the component
+
+        if area < image_area * 0.002: # we use this to reject tiny, random squares and stuff
+            continue
+        
+        bbox_area = width * height
+        fill_ratio = area / max(bbox_area, 1)
+
+        # Reject extremely thin note-like / line-like regions
+        aspect = width / max(height, 1)
+        if aspect > 12 or aspect < 1 / 12:
+            continue
+        
+        score = area * (0.5 + min(fill_ratio, 1))
+
+        if score > best_score:
+            best_score = score
+            best_label = label
+
+    if best_label is None:
         return None
+    
+    mask = np.zeros_like(binary) #empty mask
+    mask[labels == best_label] = 255 #set the mask to the best label
+    return mask
+
+def find_footprint_contour(mask: np.ndarray):
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     largest = max(contours, key=cv2.contourArea)
-
-    image_area = binary.shape[0] * binary.shape[1]
-    if cv2.contourArea(largest) < image_area * 0.01:
-        return None
-
     return largest
 
 
 # ─── Step 4: Simplify contour → clean polygon ──────────────────────────────
 
-def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.02) -> np.ndarray:
+def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.005) -> np.ndarray:
     perimeter = cv2.arcLength(contour, closed=True)
     epsilon = epsilon_factor * perimeter
     approx = cv2.approxPolyDP(contour, epsilon, closed=True)
     return approx.reshape(-1, 2)
-
-
-# ─── Step 5: Segment polygon into wall segments ────────────────────────────
-
-def extract_wall_segments(polygon: np.ndarray) -> list[tuple]:
-    """Returns list of (x1, y1, x2, y2) for each edge of the polygon."""
-    segments = []
-    n = len(polygon)
-    for i in range(n):
-        x1, y1 = polygon[i]
-        x2, y2 = polygon[(i + 1) % n]
-        segments.append((int(x1), int(y1), int(x2), int(y2)))
-    return segments
 
 
 # ─── Step 6: Wall direction (facing) ───────────────────────────────────────
@@ -132,49 +176,6 @@ def angle_to_facing(angle_deg: float) -> str:
         return "West"
 
 
-# ─── Step 7: Scale calibration & real-world measurement ────────────────────
-
-def parse_scale(scale_str: str, dpi: int) -> float:
-    """
-    Parse a scale string and return pixels-per-foot.
-
-    Supported formats:
-      "1/4in=1ft"   → 0.25 inches on paper = 1 foot real
-      "1:100"       → 1 unit on paper = 100 units real  (metric, returns px/m)
-      "1/8in=1ft"
-    """
-    scale_str = scale_str.strip().lower().replace(" ", "").replace("\"", "in").replace("'", "ft")
-
-    if "=" in scale_str:
-        left, right = scale_str.split("=")
-        paper_inches = _parse_length_inches(left)
-        real_feet = _parse_length_feet(right)
-        pixels_per_paper_inch = dpi
-        pixels_per_foot = (paper_inches * pixels_per_paper_inch) / real_feet
-        return pixels_per_foot
-
-    if ":" in scale_str:
-        parts = scale_str.split(":")
-        ratio = float(parts[1]) / float(parts[0])
-        pixels_per_unit = dpi / 25.4  # px per mm at this DPI
-        pixels_per_meter = pixels_per_unit * 1000 / ratio
-        return pixels_per_meter
-
-    raise ValueError(f"Cannot parse scale: {scale_str}")
-
-
-def _parse_length_inches(s: str) -> float:
-    s = s.replace("in", "").replace("inch", "")
-    if "/" in s:
-        num, den = s.split("/")
-        return float(num) / float(den)
-    return float(s)
-
-
-def _parse_length_feet(s: str) -> float:
-    s = s.replace("ft", "").replace("foot", "").replace("feet", "")
-    return float(s)
-
 
 def pixel_length(x1: int, y1: int, x2: int, y2: int) -> float:
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
@@ -211,16 +212,17 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
 
     polygon = simplify_polygon(contour)
     segments = extract_wall_segments(polygon)
-
-    is_metric = ":" in scale_str
-    unit_label = "m" if is_metric else "ft"
-    px_per_unit = parse_scale(scale_str, dpi)
+        
+    cal = parse_scale(scale_str, dpi, output_unit="ft")
+    px_per_unit = cal["px_per_unit"]
+    unit_label = cal["unit_label"]
+    is_metric = unit_label == "m"
+    area_unit = f"{unit_label}²"
 
     walls = measure_walls(segments, px_per_unit, unit_label)
 
     total_area_px = cv2.contourArea(contour)
     total_area_real = total_area_px / (px_per_unit ** 2)
-    area_unit = "m²" if is_metric else "ft²"
 
     return {
         "detected_scale": scale_str,
@@ -271,7 +273,8 @@ def main():
 
     if args.visualize and "walls" in result:
         binary = preprocess(image)
-        contour = find_footprint(binary)
+        component_mask = find_footprint(binary)
+        contour = find_footprint_contour(component_mask)
         polygon = simplify_polygon(contour)
         vis_path = str(pdf_path.with_suffix(".annotated.png"))
         visualize(image, polygon, vis_path)

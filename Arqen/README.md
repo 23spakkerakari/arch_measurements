@@ -1,3 +1,22 @@
+## UPDATED 4/17 RUN INSTRUCTIONS
+
+How to run this..
+
+Open your code editor. For this specific purpose, we will use Part I6 of the Fredonia Dorm Rooms. (Named "001 SUNY Fredonia 051030 HM-Series - Bid Set - Part I6.pdf") 
+
+For simplicity, I've renamed it to "test.pdf" (as in the command below)
+
+-- 
+
+First, run "python preprocess.py "test.pdf" --scale "1in=16ft" --visualize
+
+This will generate your measurements
+
+Now, for the visualizer, run the following...
+
+"python viewer.py --json out.json --pdf "test.pdf" --open"
+
+
 # ArchTakeoff — Wall Measurement Engine
 
 Extracts exterior wall measurements, facing directions, and total area from

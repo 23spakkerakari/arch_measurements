@@ -74,8 +74,8 @@ def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
             keep[label] = 255
     cleaned = keep[labels]
 
-    horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
-    vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
+    horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (35, 1))
+    vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 35))
     horiz = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, horiz_kernel)
     vert = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, vert_kernel)
     return cv2.bitwise_or(horiz, vert)
@@ -141,17 +141,27 @@ def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
 
 
 def find_footprint(binary: np.ndarray):
+    """
+    Pick the building footprint: the largest connected component that
+    is NOT the sheet border/title block.
+
+    Strategy:
+      - Reject components that touch the image edge (sheet border artifacts).
+      - Reject components that fill most of the image (the border itself).
+      - Reject components with extreme aspect ratios (title blocks, scale bars).
+      - Among survivors, pick the largest by area.
+    """
     filled = flood_fill_interior(binary)
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(filled)
 
     h, w = filled.shape
     image_area = h * w
 
-    edge_margin_x = w * 0.03
-    edge_margin_y = h * 0.03
+    edge_margin_x = w * 0.01
+    edge_margin_y = h * 0.01
 
     best_label = None
-    best_score = -1
+    best_area = -1
 
     for label in range(1, num_labels):
         x = stats[label, cv2.CC_STAT_LEFT]
@@ -160,41 +170,42 @@ def find_footprint(binary: np.ndarray):
         height = stats[label, cv2.CC_STAT_HEIGHT]
         area = stats[label, cv2.CC_STAT_AREA]
 
-        if area < image_area * 0.001:
+        if area < image_area * 0.005:
+            continue
+
+        if area > image_area * 0.85:
             continue
 
         aspect = width / max(height, 1)
-        if aspect > 12 or aspect < 1/12:
+        if aspect > 12 or aspect < 1 / 12:
             continue
 
-        touches_all_edges = (
-            x < edge_margin_x and
-            y < edge_margin_y and
-            (x + width) > (w - edge_margin_x) and
-            (y + height) > (h - edge_margin_y) 
+        touches_edge = (
+            x <= edge_margin_x
+            or y <= edge_margin_y
+            or (x + width) >= (w - edge_margin_x)
+            or (y + height) >= (h - edge_margin_y)
         )
-
-        if not touches_all_edges:
-            continue
-        
-        #or if this is the largest box, and it takes up a lot of the image
-        if width > w * 0.8 and height > h * 0.8:
+        if touches_edge:
             continue
 
-        score = height * width 
-        if score > best_score:
-            best_score = score
+        if area > best_area:
+            best_area = area
             best_label = label
 
     if best_label is None:
         return None
-    
+
     mask = np.zeros_like(filled)
     mask[labels == best_label] = 255
     return mask
 
 def find_footprint_contour(mask: np.ndarray):
+    if mask is None:
+        return None
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
     largest = max(contours, key=cv2.contourArea)
     return largest
 
@@ -280,6 +291,9 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
     t0 = time.time()
     component_mask = find_footprint(binary)
     print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    if component_mask is None:
+        return {"error": "No building footprint found"}
 
     contour = find_footprint_contour(component_mask)
     if contour is None:

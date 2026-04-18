@@ -17,7 +17,9 @@ Usage:
 import argparse
 import json
 import math
+import os
 import sys
+import time
 from pathlib import Path
 
 # pylint: disable=no-member
@@ -26,6 +28,20 @@ import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
 from extract_wall_segments_class import extract_wall_segments
+
+
+# ─── Debug helpers ───────────────────────────────────────────────────────────
+
+def _save_debug(debug_dir: str | None, name: str, image: np.ndarray):
+    """Save a grayscale or BGR image into the debug directory."""
+    if debug_dir is None:
+        return
+    path = os.path.join(debug_dir, name)
+    if image.ndim == 2:
+        cv2.imwrite(path, image)
+    else:
+        cv2.imwrite(path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    print(f"  [debug] saved {path}", file=sys.stderr)
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -50,75 +66,128 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 # ─── Step 2: Preprocessing ──────────────────────────────────────────────────
 
 
-def preprocess(image: np.ndarray) -> np.ndarray:
-    '''
-    We sharpen the edges and lines on our images
-    using threshold (line below)
-    this helps cv2 better understand and pick out the walls 
-    '''
+DOWNSCALE = 4  # heavy morphology runs on 1/4-res image for speed
+
+
+def _extract_wall_lines(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+    """Threshold → clean noise → extract horizontal/vertical structure."""
+    if image.ndim == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    _save_debug(debug_dir, "1_otsu_binary.png", binary)
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
-    cleaned = np.zeros_like(binary)
-
-    min_area = 40 #to be tuned
-
+    min_area = 40
+    keep = np.zeros(num_labels, dtype=np.uint8)
     for label in range(1, num_labels):
-        area = stats[labels, cv2.CC_STAT_AREA]
-        if area >= min_area:
-            cleaned[labels == label] = 255
-    
-    # Here we're preserving long horizontal and vertical structure
+        if stats[label, cv2.CC_STAT_AREA] >= min_area:
+            keep[label] = 255
+    cleaned = keep[labels]
+    _save_debug(debug_dir, "2_cleaned_components.png", cleaned)
+
     horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
     vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
-
     horiz = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, horiz_kernel)
     vert = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, vert_kernel)
+    wall_lines = cv2.bitwise_or(horiz, vert)
+    _save_debug(debug_dir, "3_wall_lines_hv.png", wall_lines)
+    return wall_lines
 
-    structure = cv2.bitwise_or(horiz, vert)
 
-    # Bridge small gaps in wall lines
-    close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    closed = cv2.morphologyEx(structure, cv2.MORPH_CLOSE, close_kernel, iterations=1)
+def preprocess(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+    """
+    Two-pass preprocessing:
+      1. Extract H/V wall lines at full resolution.
+      2. Downscale → heavy dilation+closing to bridge doorways →
+         upscale the solid footprint mask back to full resolution.
+    """
+    t0 = time.time()
+    walls = _extract_wall_lines(image, debug_dir=debug_dir)
+    print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
-    return closed
+    h, w = walls.shape
+    small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
 
-def find_footprint(binary: np.ndarry):
-    '''
-    New Plan:
-    1. Finding connected components
-    2. Filtering out junk
-    3. Finding best contour from connected components
-    4. Overall finding the plan component
+    t0 = time.time()
+    small = cv2.resize(walls, (small_w, small_h), interpolation=cv2.INTER_AREA)
+    _, small = cv2.threshold(small, 127, 255, cv2.THRESH_BINARY)
 
-    '''
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary) #
+    small = cv2.dilate(
+        small,
+        cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)),
+        iterations=2,
+    )
 
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
+    small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, close_k, iterations=1)
+    _save_debug(debug_dir, "4_morphology_small.png", small)
+
+    big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
+    _save_debug(debug_dir, "5_morphology_upscaled.png", big)
+    print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    return big
+
+def flood_fill_interior(binary: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+    """
+    Flood-fill from the image border to mark the exterior.
+    Everything NOT reached (and not a wall) is building interior.
+    Returns a solid building mask (walls + interior).
+    """
     h, w = binary.shape
-    image_area = h*w
+
+    # Pad so flood fill can reach all border-connected background
+    padded = np.zeros((h + 2, w + 2), np.uint8)
+    padded[1 : h + 1, 1 : w + 1] = binary
+
+    flood = padded.copy()
+    mask = np.zeros((h + 4, w + 4), np.uint8)
+    cv2.floodFill(flood, mask, (0, 0), 128)
+
+    # Interior = background pixels the flood couldn't reach
+    interior = np.zeros((h + 2, w + 2), np.uint8)
+    interior[flood == 0] = 255
+    interior = interior[1 : h + 1, 1 : w + 1]
+    _save_debug(debug_dir, "6_flood_interior.png", interior)
+
+    if cv2.countNonZero(interior) < 100:
+        _save_debug(debug_dir, "7_flood_result.png", binary)
+        return binary
+
+    result = cv2.bitwise_or(binary, interior)
+    _save_debug(debug_dir, "7_flood_result.png", result)
+    return result
+
+
+def find_footprint(binary: np.ndarray):
+    '''
+    1. Flood-fill to create solid building regions
+    2. Find connected components
+    3. Pick the component with the largest bounding box (the floor plan)
+    '''
+    filled = flood_fill_interior(binary)
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(filled)
+
+    h, w = filled.shape
+    image_area = h * w
 
     best_label = None
     best_score = -1
 
     for label in range(1, num_labels):
-        x = stats[label, cv2.CC_STAT_LEFT] #leftmost x coordinate
-        y = stats[label, cv2.CC_STAT_TOP] #topmost y coordinate
-        width = stats[label, cv2.CC_STAT_WIDTH] #width of the component
-        height = stats[label, cv2.CC_STAT_HEIGHT] #height of the component
-        area = stats[label, cv2.CC_STAT_AREA] #area of the component
+        width = stats[label, cv2.CC_STAT_WIDTH]
+        height = stats[label, cv2.CC_STAT_HEIGHT]
+        area = stats[label, cv2.CC_STAT_AREA]
 
-        if area < image_area * 0.002: # we use this to reject tiny, random squares and stuff
+        if area < image_area * 0.001:
             continue
-        
-        bbox_area = width * height
-        fill_ratio = area / max(bbox_area, 1)
 
-        # Reject extremely thin note-like / line-like regions
         aspect = width / max(height, 1)
         if aspect > 12 or aspect < 1 / 12:
             continue
-        
-        score = area * (0.5 + min(fill_ratio, 1))
+
+        score = width * height
 
         if score > best_score:
             best_score = score
@@ -126,9 +195,9 @@ def find_footprint(binary: np.ndarry):
 
     if best_label is None:
         return None
-    
-    mask = np.zeros_like(binary) #empty mask
-    mask[labels == best_label] = 255 #set the mask to the best label
+
+    mask = np.zeros_like(filled)
+    mask[labels == best_label] = 255
     return mask
 
 def find_footprint_contour(mask: np.ndarray):
@@ -211,13 +280,21 @@ def measure_walls(segments: list[tuple], px_per_unit: float, unit_label: str) ->
 # ─── Main pipeline ──────────────────────────────────────────────────────────
 
 def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
+    t0 = time.time()
     binary = preprocess(image)
+    print(f"  [pipeline] preprocess total: {time.time()-t0:.1f}s", file=sys.stderr)
 
-    contour = find_footprint(binary)
+    t0 = time.time()
+    component_mask = find_footprint(binary)
+    print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    contour = find_footprint_contour(component_mask)
     if contour is None:
         return {"error": "No building footprint found"}
 
     polygon = simplify_polygon(contour)
+    # Stash intermediates so --visualize doesn't re-run the pipeline
+    analyze_page._last_polygon = polygon
     segments = extract_wall_segments(polygon) #see extract_wall_segments_class.py
         
     cal = parse_scale(scale_str, dpi, output_unit="ft") #see scale_parse.py
@@ -231,11 +308,19 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
     total_area_px = cv2.contourArea(contour)
     total_area_real = total_area_px / (px_per_unit ** 2)
 
+    img_h, img_w = image.shape[:2]
+    xs = polygon[:, 0]
+    ys = polygon[:, 1]
+    fp_bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
+
     return {
         "detected_scale": scale_str,
         "total_area": f"{total_area_real:.1f} {area_unit}",
         "units": "metric" if is_metric else "imperial",
         "polygon_vertices": len(polygon),
+        "image_size_px": [img_w, img_h],
+        "footprint_bbox_px": fp_bbox,
+        "px_per_ft": round(px_per_unit, 2),
         "walls": walls,
     }
 
@@ -279,10 +364,7 @@ def main():
     result = analyze_page(image, args.scale, args.dpi)
 
     if args.visualize and "walls" in result:
-        binary = preprocess(image)
-        component_mask = find_footprint(binary)
-        contour = find_footprint_contour(component_mask)
-        polygon = simplify_polygon(contour)
+        polygon = analyze_page._last_polygon
         vis_path = str(pdf_path.with_suffix(".annotated.png"))
         visualize(image, polygon, vis_path)
         result["visualization"] = vis_path

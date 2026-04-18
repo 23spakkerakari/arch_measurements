@@ -17,7 +17,6 @@ Usage:
 import argparse
 import json
 import math
-import os
 import sys
 import time
 from pathlib import Path
@@ -28,20 +27,6 @@ import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
 from extract_wall_segments_class import extract_wall_segments
-
-
-# ─── Debug helpers ───────────────────────────────────────────────────────────
-
-def _save_debug(debug_dir: str | None, name: str, image: np.ndarray):
-    """Save a grayscale or BGR image into the debug directory."""
-    if debug_dir is None:
-        return
-    path = os.path.join(debug_dir, name)
-    if image.ndim == 2:
-        cv2.imwrite(path, image)
-    else:
-        cv2.imwrite(path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-    print(f"  [debug] saved {path}", file=sys.stderr)
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -69,13 +54,18 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 DOWNSCALE = 4  # heavy morphology runs on 1/4-res image for speed
 
 
-def _extract_wall_lines(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
     """Threshold → clean noise → extract horizontal/vertical structure."""
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    _save_debug(debug_dir, "1_otsu_binary.png", binary)
 
+    h, w = image.shape
+    image = image.copy()
+    image[:, int(w * 0.78):] = 255  # 255 = white (background) in grayscale
+
+    _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     min_area = 40
     keep = np.zeros(num_labels, dtype=np.uint8)
@@ -83,18 +73,15 @@ def _extract_wall_lines(image: np.ndarray, debug_dir: str | None = None) -> np.n
         if stats[label, cv2.CC_STAT_AREA] >= min_area:
             keep[label] = 255
     cleaned = keep[labels]
-    _save_debug(debug_dir, "2_cleaned_components.png", cleaned)
 
     horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 1))
     vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 25))
     horiz = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, horiz_kernel)
     vert = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, vert_kernel)
-    wall_lines = cv2.bitwise_or(horiz, vert)
-    _save_debug(debug_dir, "3_wall_lines_hv.png", wall_lines)
-    return wall_lines
+    return cv2.bitwise_or(horiz, vert)
 
 
-def preprocess(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+def preprocess(image: np.ndarray) -> np.ndarray:
     """
     Two-pass preprocessing:
       1. Extract H/V wall lines at full resolution.
@@ -102,7 +89,7 @@ def preprocess(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
          upscale the solid footprint mask back to full resolution.
     """
     t0 = time.time()
-    walls = _extract_wall_lines(image, debug_dir=debug_dir)
+    walls = _extract_wall_lines(image)
     print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
     h, w = walls.shape
@@ -120,15 +107,13 @@ def preprocess(image: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
 
     close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
     small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, close_k, iterations=1)
-    _save_debug(debug_dir, "4_morphology_small.png", small)
 
     big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
-    _save_debug(debug_dir, "5_morphology_upscaled.png", big)
     print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
 
     return big
 
-def flood_fill_interior(binary: np.ndarray, debug_dir: str | None = None) -> np.ndarray:
+def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
     """
     Flood-fill from the image border to mark the exterior.
     Everything NOT reached (and not a wall) is building interior.
@@ -148,34 +133,29 @@ def flood_fill_interior(binary: np.ndarray, debug_dir: str | None = None) -> np.
     interior = np.zeros((h + 2, w + 2), np.uint8)
     interior[flood == 0] = 255
     interior = interior[1 : h + 1, 1 : w + 1]
-    _save_debug(debug_dir, "6_flood_interior.png", interior)
 
     if cv2.countNonZero(interior) < 100:
-        _save_debug(debug_dir, "7_flood_result.png", binary)
         return binary
 
-    result = cv2.bitwise_or(binary, interior)
-    _save_debug(debug_dir, "7_flood_result.png", result)
-    return result
+    return cv2.bitwise_or(binary, interior)
 
 
 def find_footprint(binary: np.ndarray):
-    '''
-    1. Flood-fill to create solid building regions
-    2. Find connected components
-    3. Pick the component with the largest bounding box (the floor plan)
-    '''
     filled = flood_fill_interior(binary)
-
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(filled)
 
     h, w = filled.shape
     image_area = h * w
 
+    edge_margin_x = w * 0.03
+    edge_margin_y = h * 0.03
+
     best_label = None
     best_score = -1
 
     for label in range(1, num_labels):
+        x = stats[label, cv2.CC_STAT_LEFT]
+        y = stats[label, cv2.CC_STAT_TOP]
         width = stats[label, cv2.CC_STAT_WIDTH]
         height = stats[label, cv2.CC_STAT_HEIGHT]
         area = stats[label, cv2.CC_STAT_AREA]
@@ -184,18 +164,31 @@ def find_footprint(binary: np.ndarray):
             continue
 
         aspect = width / max(height, 1)
-        if aspect > 12 or aspect < 1 / 12:
+        if aspect > 12 or aspect < 1/12:
             continue
 
-        score = width * height
+        touches_all_edges = (
+            x < edge_margin_x and
+            y < edge_margin_y and
+            (x + width) > (w - edge_margin_x) and
+            (y + height) > (h - edge_margin_y) 
+        )
 
+        if not touches_all_edges:
+            continue
+        
+        #or if this is the largest box, and it takes up a lot of the image
+        if width > w * 0.8 and height > h * 0.8:
+            continue
+
+        score = height * width 
         if score > best_score:
             best_score = score
             best_label = label
 
     if best_label is None:
         return None
-
+    
     mask = np.zeros_like(filled)
     mask[labels == best_label] = 255
     return mask
@@ -371,11 +364,9 @@ def main():
         print(f"Saved annotated image to {vis_path}", file=sys.stderr)
 
     output = json.dumps(result, indent=2)
-    if args.output:
-        Path(args.output).write_text(output, encoding="utf-8")
-        print(f"Results written to {args.output}", file=sys.stderr)
-    else:
-        print(output)
+    with open("out.json", "w") as f:
+        f.write(output)
+    print(f"Results written to out.json", file=sys.stderr)
 
 
 if __name__ == "__main__":

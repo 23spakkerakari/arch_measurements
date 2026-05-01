@@ -35,7 +35,15 @@ def filter_short_segments(
 ) -> list[tuple[int, int, int, int]]:
     return [seg for seg in segments if segment_length(seg) >= min_length_px]
 
-
+def filter_non_orthogonal_segments(segments, angle_tolerance_deg: float = 20.0): #outputs a list of segments that either run 0deg or 90deg (with some room for error ofc)
+    result = []
+    for seg in segments:
+        angle = segment_angle_deg(seg)          # in [0, 180)
+        dist_to_horiz = min(angle, 180.0 - angle)   # deviation from 0°/180°
+        dist_to_vert  = abs(angle - 90.0)            # deviation from 90°
+        if min(dist_to_horiz, dist_to_vert) <= angle_tolerance_deg:
+            result.append(seg)
+    return result
 
 
 def angle_diff_deg(a: float, b: float) -> float:
@@ -90,6 +98,7 @@ def merge_collinear_segments(
 def extract_wall_segments(polygon: np.ndarray, min_length_px: float = 15.0, angle_threshold_deg: float = 8.0, gap_threshold_px: float = 10.0) -> list[tuple[int, int, int, int]]:
     raw_segments = polygon_to_segments(polygon)
     filtered = filter_short_segments(raw_segments, min_length_px=min_length_px)
+    filtered = filter_non_orthogonal_segments(filtered)
     merged = merge_collinear_segments(
         filtered,
         angle_threshold_deg=angle_threshold_deg,

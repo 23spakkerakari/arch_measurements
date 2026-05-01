@@ -54,18 +54,59 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 DOWNSCALE = 4  # heavy morphology runs on 1/4-res image for speed
 
 
+def _find_wall_pairs(
+    mask: np.ndarray,
+    scan_rows: bool,
+    min_gap_px: int = 2,
+    max_gap_px: int = 60,
+) -> np.ndarray:
+    """
+    Retain only pixels that belong to a double-line (wall) pair.
+
+    Walls are drawn as two parallel strokes separated by wall thickness
+    (typically 3.5"–8" at drawing scale → ~10–60 px at 300 DPI / 1:48 scale).
+    Single-stroke lines — dimension strings, title block borders, grid lines,
+    scale bars — have no parallel partner and are filtered out.
+
+    scan_rows=True  → horizontal lines: look for row pairs close in Y
+    scan_rows=False → vertical lines:   look for column pairs close in X
+    """
+    if scan_rows:
+        projection = (mask > 0).any(axis=1)   # (H,): True if row has any pixel
+    else:
+        projection = (mask > 0).any(axis=0)   # (W,): True if col has any pixel
+
+    active = np.where(projection)[0]
+    keep = np.zeros(len(projection), dtype=bool)
+
+    n = len(active)
+    i = 0
+    while i < n:
+        j = i + 1
+        while j < n and (active[j] - active[i]) <= max_gap_px:
+            if (active[j] - active[i]) >= min_gap_px:
+                keep[active[i]] = True
+                keep[active[j]] = True
+            j += 1
+        i += 1
+
+    if scan_rows:
+        return mask * keep[:, np.newaxis].astype(np.uint8)
+    else:
+        return mask * keep[np.newaxis, :].astype(np.uint8)
+
+
 def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
-    """Threshold → clean noise → extract horizontal/vertical structure."""
+    """Threshold → clean noise → extract H/V wall lines via double-line pairing."""
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     h, w = image.shape
     image = image.copy()
-    image[:, int(w * 0.78):] = 255  # 255 = white (background) in grayscale
+    image[:, int(w * 0.78):] = 255  # blank right-side title block strip
 
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     min_area = 40
     keep = np.zeros(num_labels, dtype=np.uint8)
@@ -78,7 +119,13 @@ def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
     vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 35))
     horiz = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, horiz_kernel)
     vert = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, vert_kernel)
-    return cv2.bitwise_or(horiz, vert)
+
+    # Keep only lines that have a close parallel partner — the two faces of a wall.
+    # Single-stroke annotation lines (dimensions, borders, grid) have no partner
+    # and are discarded here.
+    horiz_walls = _find_wall_pairs(horiz, scan_rows=True,  min_gap_px=2, max_gap_px=60)
+    vert_walls  = _find_wall_pairs(vert,  scan_rows=False, min_gap_px=2, max_gap_px=60)
+    return cv2.bitwise_or(horiz_walls, vert_walls)
 
 
 def preprocess(image: np.ndarray) -> np.ndarray:

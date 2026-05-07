@@ -96,14 +96,15 @@ def _find_wall_pairs(
         return mask * keep[np.newaxis, :].astype(np.uint8)
 
 
-def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
+def _extract_wall_lines(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
     """Threshold → clean noise → extract H/V wall lines via double-line pairing."""
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     h, w = image.shape
     image = image.copy()
-    image[:, int(w * 0.78):] = 255  # blank right-side title block strip
+    image[:int(h * 0.12), :] = 255        # blank top notes/header zone
+    image[:, int(w * blank_right_frac):] = 255  # blank right-side title block strip
 
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
@@ -128,65 +129,15 @@ def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
     return cv2.bitwise_or(horiz_walls, vert_walls)
 
 
-def _find_gaps_along_axis(
-    walls: np.ndarray,
-    axis: int,
-    min_gap_px: int = 20,
-    interior_low: float = 0.10,
-    interior_high: float = 0.90,
-) -> list[tuple[int, int]]:
-    """
-    Find runs of empty rows or columns separating floor-plan drawings.
-
-    axis=0 → scan columns (vertical gaps between side-by-side plans)
-    axis=1 → scan rows    (horizontal gaps between stacked plans)
-    """
-    h, w = walls.shape
-
-    if axis == 0:  # vertical gaps: look at columns, use middle 50% of rows
-        band = walls[h // 4 : 3 * h // 4, :]
-        has_wall = (band > 0).any(axis=0)
-        length = w
-    else:          # horizontal gaps: look at rows, use middle 50% of cols
-        band = walls[:, w // 4 : 3 * w // 4]
-        has_wall = (band > 0).any(axis=1)
-        length = h
-
-    lo = int(length * interior_low)
-    hi = int(length * interior_high)
-
-    gaps = []
-    in_gap = False
-    gap_start = 0
-    for i in range(lo, hi):
-        if not has_wall[i]:
-            if not in_gap:
-                gap_start = i
-                in_gap = True
-        else:
-            if in_gap:
-                if i - gap_start >= min_gap_px:
-                    gaps.append((gap_start, i - 1))
-                in_gap = False
-    return gaps
-
-
-def _find_floor_gaps(walls: np.ndarray, min_gap_px: int = 20) -> list[tuple[int, int]]:
-    """Backwards-compatible wrapper: returns vertical (column) gaps only."""
-    return _find_gaps_along_axis(walls, axis=0, min_gap_px=min_gap_px)
-
-
-def preprocess(image: np.ndarray) -> np.ndarray:
+def preprocess(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
     """
     Two-pass preprocessing:
       1. Extract H/V wall lines at full resolution.
-      2. Detect vertical gaps between floor plan drawings and protect them
-         so the morphological close can't bridge across separate plans.
-      3. Downscale → heavy dilation+closing to bridge doorways →
+      2. Downscale → heavy dilation+closing to bridge doorways →
          upscale the solid footprint mask back to full resolution.
     """
     t0 = time.time()
-    walls = _extract_wall_lines(image)
+    walls = _extract_wall_lines(image, blank_right_frac=blank_right_frac)
     print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
     h, w = walls.shape
@@ -196,36 +147,13 @@ def preprocess(image: np.ndarray) -> np.ndarray:
     small = cv2.resize(walls, (small_w, small_h), interpolation=cv2.INTER_AREA)
     _, small = cv2.threshold(small, 127, 255, cv2.THRESH_BINARY)
 
-    # Blank out inter-floor gaps so the closing kernel can't bridge them.
-    # Detect gaps on BOTH axes so vertically-stacked plans (First Floor over
-    # Second Floor) are protected, not just side-by-side plans.
-    CLOSE_KERNEL_SIZE = 25  # must match the kernel below
-    margin = CLOSE_KERNEL_SIZE + 4
-
-    col_gaps = _find_gaps_along_axis(walls, axis=0, min_gap_px=20)
-    for gap_start, gap_end in col_gaps:
-        s = max(0, gap_start // DOWNSCALE - margin)
-        e = min(small_w, gap_end // DOWNSCALE + margin + 1)
-        small[:, s:e] = 0
-
-    row_gaps = _find_gaps_along_axis(walls, axis=1, min_gap_px=20)
-    for gap_start, gap_end in row_gaps:
-        s = max(0, gap_start // DOWNSCALE - margin)
-        e = min(small_h, gap_end // DOWNSCALE + margin + 1)
-        small[s:e, :] = 0
-
-    if col_gaps or row_gaps:
-        print(f"  [preprocess] protected {len(col_gaps)} vertical + "
-              f"{len(row_gaps)} horizontal inter-plan gap(s)",
-              file=sys.stderr)
-
     small = cv2.dilate(
         small,
         cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)),
         iterations=2,
     )
 
-    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (CLOSE_KERNEL_SIZE, CLOSE_KERNEL_SIZE))
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
     small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, close_k, iterations=1)
 
     big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
@@ -260,17 +188,16 @@ def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
     return cv2.bitwise_or(binary, interior)
 
 
-def find_all_footprints(
-    binary: np.ndarray,
-    min_solidity: float = 0.20,
-) -> list[np.ndarray]:
+def find_footprint(binary: np.ndarray):
     """
-    Find ALL building footprints on the page (one per floor plan drawing).
+    Pick the building footprint: the largest connected component that
+    is NOT the sheet border/title block.
 
-    Same filters as the original find_footprint (edge, area, aspect ratio)
-    plus a solidity check (area / bbox_area >= 20%) to reject sparse blobs
-    that span across floor plans without being a real building.
-    Returns masks sorted left-to-right by x position on the sheet.
+    Strategy:
+      - Reject components that touch the image edge (sheet border artifacts).
+      - Reject components that fill most of the image (the border itself).
+      - Reject components with extreme aspect ratios (title blocks, scale bars).
+      - Among survivors, pick the largest by area.
     """
     filled = flood_fill_interior(binary)
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(filled)
@@ -281,7 +208,8 @@ def find_all_footprints(
     edge_margin_x = w * 0.01
     edge_margin_y = h * 0.01
 
-    footprints = []
+    best_label = None
+    best_area = -1
 
     for label in range(1, num_labels):
         x = stats[label, cv2.CC_STAT_LEFT]
@@ -309,87 +237,16 @@ def find_all_footprints(
         if touches_edge:
             continue
 
-        bbox_area = width * height
-        solidity = area / bbox_area
-        if solidity < min_solidity:
-            continue
+        if area > best_area:
+            best_area = area
+            best_label = label
 
-        mask = np.zeros_like(filled)
-        mask[labels == label] = 255
-        bbox = (int(x), int(y), int(x + width), int(y + height))  # x0,y0,x1,y1
-        footprints.append((bbox, mask))
-
-    footprints.sort(key=lambda t: (t[0][0], t[0][1]))
-
-    # Merge fragments only when the bounding boxes are spatially close on
-    # BOTH axes — i.e. they sit next to each other inside the same drawing,
-    # not stacked into a different floor plan elsewhere on the sheet.
-    # A single floor plan can fragment when a corridor's doorways don't
-    # close, but those fragments overlap in *both* x and y; vertically-
-    # stacked separate plans overlap in x but are far apart in y.
-    MAX_BRIDGE_PX = 80   # max gap between fragments of the *same* drawing
-    MIN_OVERLAP   = 0.30 # min relative bbox overlap on the shared axis
-
-    def _bbox_close(a, b) -> bool:
-        ax0, ay0, ax1, ay1 = a
-        bx0, by0, bx1, by1 = b
-        x_overlap = max(0, min(ax1, bx1) - max(ax0, bx0))
-        y_overlap = max(0, min(ay1, by1) - max(ay0, by0))
-        x_span = max(ax1 - ax0, bx1 - bx0, 1)
-        y_span = max(ay1 - ay0, by1 - by0, 1)
-        x_gap = max(0, max(ax0, bx0) - min(ax1, bx1))
-        y_gap = max(0, max(ay0, by0) - min(ay1, by1))
-        # Same-drawing fragments: overlap on at least one axis AND short gap on the other.
-        if x_overlap / x_span >= MIN_OVERLAP and y_gap <= MAX_BRIDGE_PX:
-            return True
-        if y_overlap / y_span >= MIN_OVERLAP and x_gap <= MAX_BRIDGE_PX:
-            return True
-        return False
-
-    merged: list[tuple[tuple[int, int, int, int], np.ndarray]] = []
-    for bbox, mask in footprints:
-        for j, (mbbox, mmask) in enumerate(merged):
-            if _bbox_close(bbox, mbbox):
-                new_bbox = (
-                    min(bbox[0], mbbox[0]), min(bbox[1], mbbox[1]),
-                    max(bbox[2], mbbox[2]), max(bbox[3], mbbox[3]),
-                )
-                merged[j] = (new_bbox, cv2.bitwise_or(mmask, mask))
-                break
-        else:
-            merged.append((bbox, mask))
-
-    merged.sort(key=lambda t: (t[0][1], t[0][0]))  # top-to-bottom, then left-to-right
-
-    # Bridge fragments inside one merged mask only if the gap is small —
-    # the legitimate "corridor doorway didn't close" case is <80 px.
-    # Anything larger is genuinely a different drawing and must not be fused.
-    result = []
-    for _, mask in merged:
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if len(contours) > 1:
-            ys = sorted(
-                (cv2.boundingRect(c)[1], cv2.boundingRect(c)[1] + cv2.boundingRect(c)[3])
-                for c in contours
-            )
-            max_v_gap = max(ys[i + 1][0] - ys[i][1] for i in range(len(ys) - 1))
-            if 0 < max_v_gap <= MAX_BRIDGE_PX:
-                k_h = max_v_gap + 10
-                mask = cv2.morphologyEx(
-                    mask, cv2.MORPH_CLOSE,
-                    cv2.getStructuringElement(cv2.MORPH_RECT, (1, k_h)),
-                    iterations=1,
-                )
-        result.append(mask)
-    return result
-
-
-def find_footprint(binary: np.ndarray):
-    """Return only the largest footprint (legacy single-floor behavior)."""
-    masks = find_all_footprints(binary)
-    if not masks:
+    if best_label is None:
         return None
-    return max(masks, key=lambda m: cv2.countNonZero(m))
+
+    mask = np.zeros_like(filled)
+    mask[labels == best_label] = 255
+    return mask
 
 def find_footprint_contour(mask: np.ndarray):
     if mask is None:
@@ -402,9 +259,7 @@ def find_footprint_contour(mask: np.ndarray):
 
 
 # ─── Step 4: Simplify contour → clean polygon ──────────────────────────────
-
-#finding some parameteres to help us work with the shape of our building 
-def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.005) -> np.ndarray:
+def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.001) -> np.ndarray:
     perimeter = cv2.arcLength(contour, closed=True)
     epsilon = epsilon_factor * perimeter
     approx = cv2.approxPolyDP(contour, epsilon, closed=True)
@@ -452,12 +307,7 @@ def pixel_length(x1: int, y1: int, x2: int, y2: int) -> float:
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def measure_walls(
-    segments: list[tuple],
-    px_per_unit: float,
-    unit_label: str,
-    floor_index: int = 1,
-) -> list[dict]:
+def measure_walls(segments: list[tuple], px_per_unit: float, unit_label: str) -> list[dict]:
     walls = []
     for i, (x1, y1, x2, y2) in enumerate(segments):
         px_len = pixel_length(x1, y1, x2, y2)
@@ -466,8 +316,8 @@ def measure_walls(
         facing = angle_to_facing(angle)
 
         walls.append({
-            "id": f"f{floor_index}.w{i + 1}",
-            "name": f"F{floor_index} {facing} Wall {i + 1}",
+            "id": f"w{i + 1}",
+            "name": f"{facing} Wall {i + 1}",
             "facing": facing,
             "length": f"{real_len:.2f} {unit_label}",
             "length_raw": round(real_len, 2),
@@ -485,85 +335,57 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int) -> dict:
     print(f"  [pipeline] preprocess total: {time.time()-t0:.1f}s", file=sys.stderr)
 
     t0 = time.time()
-    masks = find_all_footprints(binary)
-    print(f"  [pipeline] find_all_footprints: {len(masks)} floor(s) found ({time.time()-t0:.1f}s)",
-          file=sys.stderr)
+    component_mask = find_footprint(binary)
+    print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
 
-    if not masks:
+    if component_mask is None:
         return {"error": "No building footprint found"}
 
+    contour = find_footprint_contour(component_mask)
+    if contour is None:
+        return {"error": "No building footprint found"}
+
+    polygon = simplify_polygon(contour)
+    # Stash intermediates so --visualize doesn't re-run the pipeline
+    analyze_page._last_polygon = polygon
+    segments = extract_wall_segments(polygon) #see extract_wall_segments_class.py
+        
     cal = parse_scale(scale_str, dpi, output_unit="ft") #see scale_parse.py
     px_per_unit = cal["px_per_unit"]
     unit_label = cal["unit_label"]
     is_metric = unit_label == "m"
     area_unit = f"{unit_label}²"
 
+    walls = measure_walls(segments, px_per_unit, unit_label)
+
+    total_area_px = cv2.contourArea(contour)
+    total_area_real = total_area_px / (px_per_unit ** 2)
+
     img_h, img_w = image.shape[:2]
-
-    floors = []
-    all_polygons = []  # stash for --visualize
-
-    for floor_idx, mask in enumerate(masks):
-        contour = find_footprint_contour(mask)
-        if contour is None:
-            continue
-
-        polygon = simplify_polygon(contour)
-        all_polygons.append(polygon)
-
-        segments = extract_wall_segments(polygon) #see extract_wall_segments_class.py
-        walls = measure_walls(segments, px_per_unit, unit_label, floor_index=floor_idx + 1)
-
-        total_area_px = cv2.contourArea(contour)
-        total_area_real = total_area_px / (px_per_unit ** 2)
-
-        xs = polygon[:, 0]
-        ys = polygon[:, 1]
-        fp_bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
-
-        floors.append({
-            "floor_index": floor_idx + 1,
-            "total_area": f"{total_area_real:.1f} {area_unit}",
-            "polygon_vertices": len(polygon),
-            "footprint_bbox_px": fp_bbox,
-            "walls": walls,
-        })
-
-    # Stash for --visualize
-    analyze_page._last_polygons = all_polygons
+    xs = polygon[:, 0]
+    ys = polygon[:, 1]
+    fp_bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
 
     return {
         "detected_scale": scale_str,
+        "total_area": f"{total_area_real:.1f} {area_unit}",
         "units": "metric" if is_metric else "imperial",
+        "polygon_vertices": len(polygon),
         "image_size_px": [img_w, img_h],
+        "footprint_bbox_px": fp_bbox,
         "px_per_ft": round(px_per_unit, 2),
-        "floors": floors,
+        "walls": walls,
     }
 
 
-_FLOOR_COLORS = [
-    (0, 255, 0),    # green
-    (255, 128, 0),  # orange
-    (0, 128, 255),  # blue
-    (255, 0, 255),  # magenta
-    (0, 255, 255),  # yellow
-]
-
-
-def visualize(image: np.ndarray, polygons: list[np.ndarray], output_path: str):
+def visualize(image: np.ndarray, polygon: np.ndarray, output_path: str):
     vis = image.copy()
-    for idx, polygon in enumerate(polygons):
-        color = _FLOOR_COLORS[idx % len(_FLOOR_COLORS)]
-        pts = polygon.reshape(-1, 1, 2)
-        cv2.polylines(vis, [pts], isClosed=True, color=color, thickness=3)
-        for i, (x, y) in enumerate(polygon):
-            cv2.circle(vis, (x, y), 8, (0, 0, 255), -1)
-            cv2.putText(vis, str(i), (x + 10, y - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        cx = int(polygon[:, 0].mean())
-        cy = int(polygon[:, 1].mean()) - 30
-        cv2.putText(vis, f"Floor {idx + 1}", (cx - 60, cy),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, color, 3)
+    pts = polygon.reshape(-1, 1, 2)
+    cv2.polylines(vis, [pts], isClosed=True, color=(0, 255, 0), thickness=3)
+    for i, (x, y) in enumerate(polygon):
+        cv2.circle(vis, (x, y), 8, (0, 0, 255), -1)
+        cv2.putText(vis, str(i), (x + 10, y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
     cv2.imwrite(output_path, cv2.cvtColor(vis, cv2.COLOR_RGB2BGR))
 
 
@@ -594,10 +416,10 @@ def main():
     image = images[page_idx]
     result = analyze_page(image, args.scale, args.dpi)
 
-    if args.visualize and "floors" in result:
-        polygons = analyze_page._last_polygons
+    if args.visualize and "walls" in result:
+        polygon = analyze_page._last_polygon
         vis_path = str(pdf_path.with_suffix(".annotated.png"))
-        visualize(image, polygons, vis_path)
+        visualize(image, polygon, vis_path)
         result["visualization"] = vis_path
         print(f"Saved annotated image to {vis_path}", file=sys.stderr)
 

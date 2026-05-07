@@ -24,7 +24,7 @@ from pathlib import Path
 import fitz
 
 
-def _rasterize_page(pdf_path: str, page: int = 1, dpi: int = 150) -> bytes:
+def _rasterize_page(pdf_path: str, page: int = 1, dpi: int = 300) -> bytes:
     doc = fitz.open(pdf_path)
     idx = page - 1
     if idx < 0 or idx >= len(doc):
@@ -423,8 +423,8 @@ def main():
                         help="PDF path — rasterizes a clean (unannotated) image (optional)")
     parser.add_argument("--page",   type=int, default=1,
                         help="PDF page to rasterize (default: 1)")
-    parser.add_argument("--dpi",    type=int, default=150,
-                        help="DPI for PDF rasterization (default: 150)")
+    parser.add_argument("--dpi",    type=int, default=300,
+                        help="DPI for PDF rasterization (default: 300)")
     parser.add_argument("--output", default=None,
                         help="Output HTML path (default: <json>.html)")
     parser.add_argument("--open",   action="store_true",

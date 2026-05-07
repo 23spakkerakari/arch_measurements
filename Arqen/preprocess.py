@@ -96,14 +96,15 @@ def _find_wall_pairs(
         return mask * keep[np.newaxis, :].astype(np.uint8)
 
 
-def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
+def _extract_wall_lines(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
     """Threshold → clean noise → extract H/V wall lines via double-line pairing."""
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     h, w = image.shape
     image = image.copy()
-    image[:, int(w * 0.78):] = 255  # blank right-side title block strip
+    image[:int(h * 0.12), :] = 255        # blank top notes/header zone
+    image[:, int(w * blank_right_frac):] = 255  # blank right-side title block strip
 
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
@@ -128,7 +129,7 @@ def _extract_wall_lines(image: np.ndarray) -> np.ndarray:
     return cv2.bitwise_or(horiz_walls, vert_walls)
 
 
-def preprocess(image: np.ndarray) -> np.ndarray:
+def preprocess(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
     """
     Two-pass preprocessing:
       1. Extract H/V wall lines at full resolution.
@@ -136,7 +137,7 @@ def preprocess(image: np.ndarray) -> np.ndarray:
          upscale the solid footprint mask back to full resolution.
     """
     t0 = time.time()
-    walls = _extract_wall_lines(image)
+    walls = _extract_wall_lines(image, blank_right_frac=blank_right_frac)
     print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
     h, w = walls.shape
@@ -258,9 +259,7 @@ def find_footprint_contour(mask: np.ndarray):
 
 
 # ─── Step 4: Simplify contour → clean polygon ──────────────────────────────
-
-#finding some parameteres to help us work with the shape of our building 
-def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.005) -> np.ndarray:
+def simplify_polygon(contour: np.ndarray, epsilon_factor: float = 0.001) -> np.ndarray:
     perimeter = cv2.arcLength(contour, closed=True)
     epsilon = epsilon_factor * perimeter
     approx = cv2.approxPolyDP(contour, epsilon, closed=True)

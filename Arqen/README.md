@@ -2,11 +2,11 @@
 
 How to run this..
 
-Open your code editor. For this specific purpose, we will use Part I6 of the Fredonia Dorm Rooms. (Named "001 SUNY Fredonia 051030 HM-Series - Bid Set - Part I6.pdf") 
+Open your code editor. For this specific purpose, we will use Part I6 of the Fredonia Dorm Rooms. (Named "001 SUNY Fredonia 051030 HM-Series - Bid Set - Part I6.pdf")
 
 For simplicity, I've renamed it to "test.pdf" (as in the command below)
 
--- 
+--
 
 First, run "python preprocess.py "test.pdf" --scale "1in=16ft" --visualize
 
@@ -16,6 +16,9 @@ Now, for the visualizer, run the following...
 
 "python viewer.py --json out.json --pdf "test.pdf" --open"
 
+## Updates for 5/7
+
+1. Using a structured wall extraction (smth like DeepFloorplan, Floor-SP, RoomFormer), this outputs a clean wall graph, junctions, and openings end-to-end. Could replace find_footprint + simplify_polygon + extract_wall_segments in one shot.
 
 # ArchTakeoff — Wall Measurement Engine
 
@@ -38,17 +41,20 @@ The app routes requests through a local Express proxy to avoid browser CORS
 restrictions. Pass your Anthropic API key as an environment variable:
 
 **PowerShell:**
+
 ```powershell
 $env:ANTHROPIC_API_KEY="sk-ant-..."
 node server/proxy.js
 ```
 
 **Bash / macOS / Linux:**
+
 ```bash
 ANTHROPIC_API_KEY=sk-ant-... node server/proxy.js
 ```
 
 You should see:
+
 ```
 ArchTakeoff proxy running at http://localhost:3001
 Open http://localhost:3001/index.html in your browser
@@ -73,12 +79,12 @@ Drag and drop (or browse for) an architectural plan. Supported formats:
 
 ### Step 2 — Configure Scale
 
-| Setting | Options | Notes |
-|---|---|---|
-| **Scale detection** | Auto Detect / Manual | Manual forces the model to use your exact scale |
-| **Drawing scale** | e.g. `1:100`, `1/4"=1'` | Only shown when Manual is selected |
-| **Units** | Metric (m) / Imperial (ft) | Controls the output unit system |
-| **Plan type** | Floor Plan, Site Plan, Elevation, Section, Auto-detect | Helps the model interpret the drawing |
+| Setting             | Options                                                | Notes                                           |
+| ------------------- | ------------------------------------------------------ | ----------------------------------------------- |
+| **Scale detection** | Auto Detect / Manual                                   | Manual forces the model to use your exact scale |
+| **Drawing scale**   | e.g. `1:100`, `1/4"=1'`                                | Only shown when Manual is selected              |
+| **Units**           | Metric (m) / Imperial (ft)                             | Controls the output unit system                 |
+| **Plan type**       | Floor Plan, Site Plan, Elevation, Section, Auto-detect | Helps the model interpret the drawing           |
 
 ### Step 3 — Analyze
 
@@ -96,11 +102,11 @@ The results panel shows:
 
 #### Detail levels
 
-| Level | What it extracts |
-|---|---|
-| Standard | Main exterior walls and total area |
-| Detailed | All walls including interior partitions |
-| Full | Every wall with facing direction and notes |
+| Level    | What it extracts                           |
+| -------- | ------------------------------------------ |
+| Standard | Main exterior walls and total area         |
+| Detailed | All walls including interior partitions    |
+| Full     | Every wall with facing direction and notes |
 
 #### Export
 
@@ -133,9 +139,9 @@ All settings live in `js/config.js`:
 
 ```js
 const CONFIG = {
-  ANTHROPIC_API_KEY: null,    // null when using the proxy (recommended)
-  API_ENDPOINT: 'http://localhost:3001/api/analyze',
-  MODEL: 'claude-sonnet-4-6',
+  ANTHROPIC_API_KEY: null, // null when using the proxy (recommended)
+  API_ENDPOINT: "http://localhost:3001/api/analyze",
+  MODEL: "claude-sonnet-4-6",
   MAX_TOKENS: 8192,
 };
 ```
@@ -160,13 +166,13 @@ Results are printed to stdout and saved to `test_results.json`.
 
 ## Troubleshooting
 
-| Error | Cause | Fix |
-|---|---|---|
-| `Failed to fetch` | Proxy server not running | Start it with `node server/proxy.js` |
-| `CONFIG is not defined` | Syntax error in `config.js` | Check that the API key string has quotes |
-| `Could not parse AI response as JSON` | Model returned malformed JSON | Try again, or increase `MAX_TOKENS` |
-| `API error 401` | Invalid or missing API key | Check your `ANTHROPIC_API_KEY` env var |
-| PDF preview is blank | PDF.js failed to render | Check browser console; file may be corrupted |
+| Error                                 | Cause                         | Fix                                          |
+| ------------------------------------- | ----------------------------- | -------------------------------------------- |
+| `Failed to fetch`                     | Proxy server not running      | Start it with `node server/proxy.js`         |
+| `CONFIG is not defined`               | Syntax error in `config.js`   | Check that the API key string has quotes     |
+| `Could not parse AI response as JSON` | Model returned malformed JSON | Try again, or increase `MAX_TOKENS`          |
+| `API error 401`                       | Invalid or missing API key    | Check your `ANTHROPIC_API_KEY` env var       |
+| PDF preview is blank                  | PDF.js failed to render       | Check browser console; file may be corrupted |
 
 ## License
 

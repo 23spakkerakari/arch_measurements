@@ -35,7 +35,7 @@ def filter_short_segments(
 ) -> list[tuple[int, int, int, int]]:
     return [seg for seg in segments if segment_length(seg) >= min_length_px]
 
-def filter_non_orthogonal_segments(segments, angle_tolerance_deg: float = 20.0): #outputs a list of segments that either run 0deg or 90deg (with some room for error ofc)
+def filter_non_orthogonal_segments(segments, angle_tolerance_deg: float = 10.0): #outputs a list of segments that either run 0deg or 90deg (with some room for error ofc)
     result = []
     for seg in segments:
         angle = segment_angle_deg(seg)          # in [0, 180)

@@ -1,522 +1,624 @@
 {
   "detected_scale": "1in=16ft",
-  "total_area": "15858.4 ft\u00b2",
   "units": "imperial",
-  "polygon_vertices": 36,
   "image_size_px": [
     10200,
     6600
   ],
-  "footprint_bbox_px": [
-    620,
-    1436,
-    4515,
-    5779
-  ],
   "px_per_ft": 18.75,
-  "walls": [
+  "floors": [
     {
-      "id": "w1",
-      "name": "North Wall 1",
-      "facing": "North",
-      "length": "38.56 ft",
-      "length_raw": 38.56,
-      "angle_deg": 269.7,
-      "px_coords": [
-        4511,
+      "floor_index": 1,
+      "total_area": "14857.2 ft\u00b2",
+      "polygon_vertices": 34,
+      "footprint_bbox_px": [
+        620,
         1436,
-        3788,
-        1440
-      ]
-    },
-    {
-      "id": "w2",
-      "name": "West Wall 2",
-      "facing": "West",
-      "length": "79.52 ft",
-      "length_raw": 79.52,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3788,
-        1440,
-        3788,
-        2931
-      ]
-    },
-    {
-      "id": "w3",
-      "name": "North Wall 3",
-      "facing": "North",
-      "length": "21.33 ft",
-      "length_raw": 21.33,
-      "angle_deg": 269.9,
-      "px_coords": [
-        3788,
-        2931,
-        3388,
-        2932
-      ]
-    },
-    {
-      "id": "w4",
-      "name": "West Wall 4",
-      "facing": "West",
-      "length": "28.53 ft",
-      "length_raw": 28.53,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3388,
-        2932,
-        3388,
-        3467
-      ]
-    },
-    {
-      "id": "w5",
-      "name": "North Wall 5",
-      "facing": "North",
-      "length": "6.19 ft",
-      "length_raw": 6.19,
-      "angle_deg": 267.5,
-      "px_coords": [
-        3388,
-        3467,
-        3272,
-        3472
-      ]
-    },
-    {
-      "id": "w6",
-      "name": "West Wall 6",
-      "facing": "West",
-      "length": "14.45 ft",
-      "length_raw": 14.45,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3272,
-        3472,
-        3272,
-        3743
-      ]
-    },
-    {
-      "id": "w7",
-      "name": "South Wall 7",
-      "facing": "South",
-      "length": "6.19 ft",
-      "length_raw": 6.19,
-      "angle_deg": 90.5,
-      "px_coords": [
-        3272,
-        3743,
-        3388,
-        3744
-      ]
-    },
-    {
-      "id": "w8",
-      "name": "West Wall 8",
-      "facing": "West",
-      "length": "27.47 ft",
-      "length_raw": 27.47,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3388,
-        3744,
-        3388,
-        4259
-      ]
-    },
-    {
-      "id": "w9",
-      "name": "North Wall 9",
-      "facing": "North",
-      "length": "5.97 ft",
-      "length_raw": 5.97,
-      "angle_deg": 269.5,
-      "px_coords": [
-        3388,
-        4259,
-        3276,
-        4260
-      ]
-    },
-    {
-      "id": "w10",
-      "name": "West Wall 10",
-      "facing": "West",
-      "length": "3.37 ft",
-      "length_raw": 3.37,
-      "angle_deg": 183.6,
-      "px_coords": [
-        3276,
-        4260,
-        3272,
-        4323
-      ]
-    },
-    {
-      "id": "w11",
-      "name": "South Wall 11",
-      "facing": "South",
-      "length": "6.19 ft",
-      "length_raw": 6.19,
-      "angle_deg": 90.5,
-      "px_coords": [
-        3272,
-        4323,
-        3388,
-        4324
-      ]
-    },
-    {
-      "id": "w12",
-      "name": "West Wall 12",
-      "facing": "West",
-      "length": "7.41 ft",
-      "length_raw": 7.41,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3388,
-        4324,
-        3388,
-        4463
-      ]
-    },
-    {
-      "id": "w13",
-      "name": "North Wall 13",
-      "facing": "North",
-      "length": "13.01 ft",
-      "length_raw": 13.01,
-      "angle_deg": 269.8,
-      "px_coords": [
-        3388,
-        4463,
-        3144,
-        4464
-      ]
-    },
-    {
-      "id": "w14",
-      "name": "East Wall 14",
-      "facing": "East",
-      "length": "5.33 ft",
-      "length_raw": 5.33,
-      "angle_deg": 359.4,
-      "px_coords": [
-        3144,
-        4464,
-        3143,
-        4364
-      ]
-    },
-    {
-      "id": "w15",
-      "name": "North Wall 15",
-      "facing": "North",
-      "length": "9.12 ft",
-      "length_raw": 9.12,
-      "angle_deg": 271.3,
-      "px_coords": [
-        3143,
-        4364,
-        2972,
-        4360
-      ]
-    },
-    {
-      "id": "w16",
-      "name": "West Wall 16",
-      "facing": "West",
-      "length": "5.55 ft",
-      "length_raw": 5.55,
-      "angle_deg": 180.6,
-      "px_coords": [
-        2972,
-        4360,
-        2971,
-        4464
-      ]
-    },
-    {
-      "id": "w17",
-      "name": "North Wall 17",
-      "facing": "North",
-      "length": "47.52 ft",
-      "length_raw": 47.52,
-      "angle_deg": 270.0,
-      "px_coords": [
-        2971,
-        4464,
-        2080,
-        4464
-      ]
-    },
-    {
-      "id": "w18",
-      "name": "West Wall 18",
-      "facing": "West",
-      "length": "21.97 ft",
-      "length_raw": 21.97,
-      "angle_deg": 180.1,
-      "px_coords": [
-        2080,
-        4464,
-        2079,
-        4876
-      ]
-    },
-    {
-      "id": "w19",
-      "name": "North Wall 19",
-      "facing": "North",
-      "length": "77.81 ft",
-      "length_raw": 77.81,
-      "angle_deg": 270.0,
-      "px_coords": [
-        2079,
-        4876,
-        620,
-        4876
-      ]
-    },
-    {
-      "id": "w20",
-      "name": "West Wall 20",
-      "facing": "West",
-      "length": "38.35 ft",
-      "length_raw": 38.35,
-      "angle_deg": 180.0,
-      "px_coords": [
-        620,
-        4876,
-        620,
-        5595
-      ]
-    },
-    {
-      "id": "w21",
-      "name": "South Wall 21",
-      "facing": "South",
-      "length": "93.39 ft",
-      "length_raw": 93.39,
-      "angle_deg": 90.0,
-      "px_coords": [
-        620,
-        5595,
-        2371,
-        5595
-      ]
-    },
-    {
-      "id": "w22",
-      "name": "East Wall 22",
-      "facing": "East",
-      "length": "21.76 ft",
-      "length_raw": 21.76,
-      "angle_deg": 0.1,
-      "px_coords": [
-        2371,
-        5595,
-        2372,
-        5187
-      ]
-    },
-    {
-      "id": "w23",
-      "name": "South Wall 23",
-      "facing": "South",
-      "length": "68.21 ft",
-      "length_raw": 68.21,
-      "angle_deg": 90.0,
-      "px_coords": [
-        2372,
-        5187,
-        3651,
-        5187
-      ]
-    },
-    {
-      "id": "w24",
-      "name": "West Wall 24",
-      "facing": "West",
-      "length": "31.57 ft",
-      "length_raw": 31.57,
-      "angle_deg": 179.9,
-      "px_coords": [
-        3651,
-        5187,
-        3652,
+        4395,
         5779
+      ],
+      "walls": [
+        {
+          "id": "w1",
+          "name": "North Wall 1",
+          "facing": "North",
+          "length": "32.37 ft",
+          "length_raw": 32.37,
+          "angle_deg": 269.6,
+          "px_coords": [
+            4395,
+            1436,
+            3788,
+            1440
+          ]
+        },
+        {
+          "id": "w2",
+          "name": "West Wall 2",
+          "facing": "West",
+          "length": "79.52 ft",
+          "length_raw": 79.52,
+          "angle_deg": 180.0,
+          "px_coords": [
+            3788,
+            1440,
+            3788,
+            2931
+          ]
+        },
+        {
+          "id": "w3",
+          "name": "North Wall 3",
+          "facing": "North",
+          "length": "21.33 ft",
+          "length_raw": 21.33,
+          "angle_deg": 269.9,
+          "px_coords": [
+            3788,
+            2931,
+            3388,
+            2932
+          ]
+        },
+        {
+          "id": "w4",
+          "name": "West Wall 4",
+          "facing": "West",
+          "length": "28.53 ft",
+          "length_raw": 28.53,
+          "angle_deg": 180.0,
+          "px_coords": [
+            3388,
+            2932,
+            3388,
+            3467
+          ]
+        },
+        {
+          "id": "w5",
+          "name": "North Wall 5",
+          "facing": "North",
+          "length": "6.19 ft",
+          "length_raw": 6.19,
+          "angle_deg": 267.5,
+          "px_coords": [
+            3388,
+            3467,
+            3272,
+            3472
+          ]
+        },
+        {
+          "id": "w6",
+          "name": "West Wall 6",
+          "facing": "West",
+          "length": "53.21 ft",
+          "length_raw": 53.21,
+          "angle_deg": 173.3,
+          "px_coords": [
+            3272,
+            3472,
+            3388,
+            4463
+          ]
+        },
+        {
+          "id": "w7",
+          "name": "West Wall 7",
+          "facing": "West",
+          "length": "5.55 ft",
+          "length_raw": 5.55,
+          "angle_deg": 180.6,
+          "px_coords": [
+            2972,
+            4360,
+            2971,
+            4464
+          ]
+        },
+        {
+          "id": "w8",
+          "name": "North Wall 8",
+          "facing": "North",
+          "length": "47.52 ft",
+          "length_raw": 47.52,
+          "angle_deg": 270.0,
+          "px_coords": [
+            2971,
+            4464,
+            2080,
+            4464
+          ]
+        },
+        {
+          "id": "w9",
+          "name": "West Wall 9",
+          "facing": "West",
+          "length": "21.97 ft",
+          "length_raw": 21.97,
+          "angle_deg": 180.1,
+          "px_coords": [
+            2080,
+            4464,
+            2079,
+            4876
+          ]
+        },
+        {
+          "id": "w10",
+          "name": "North Wall 10",
+          "facing": "North",
+          "length": "77.81 ft",
+          "length_raw": 77.81,
+          "angle_deg": 270.0,
+          "px_coords": [
+            2079,
+            4876,
+            620,
+            4876
+          ]
+        },
+        {
+          "id": "w11",
+          "name": "West Wall 11",
+          "facing": "West",
+          "length": "38.35 ft",
+          "length_raw": 38.35,
+          "angle_deg": 180.0,
+          "px_coords": [
+            620,
+            4876,
+            620,
+            5595
+          ]
+        },
+        {
+          "id": "w12",
+          "name": "South Wall 12",
+          "facing": "South",
+          "length": "93.39 ft",
+          "length_raw": 93.39,
+          "angle_deg": 90.0,
+          "px_coords": [
+            620,
+            5595,
+            2371,
+            5595
+          ]
+        },
+        {
+          "id": "w13",
+          "name": "East Wall 13",
+          "facing": "East",
+          "length": "21.76 ft",
+          "length_raw": 21.76,
+          "angle_deg": 0.1,
+          "px_coords": [
+            2371,
+            5595,
+            2372,
+            5187
+          ]
+        },
+        {
+          "id": "w14",
+          "name": "South Wall 14",
+          "facing": "South",
+          "length": "68.21 ft",
+          "length_raw": 68.21,
+          "angle_deg": 90.0,
+          "px_coords": [
+            2372,
+            5187,
+            3651,
+            5187
+          ]
+        },
+        {
+          "id": "w15",
+          "name": "West Wall 15",
+          "facing": "West",
+          "length": "31.57 ft",
+          "length_raw": 31.57,
+          "angle_deg": 179.9,
+          "px_coords": [
+            3651,
+            5187,
+            3652,
+            5779
+          ]
+        },
+        {
+          "id": "w16",
+          "name": "South Wall 16",
+          "facing": "South",
+          "length": "38.13 ft",
+          "length_raw": 38.13,
+          "angle_deg": 90.0,
+          "px_coords": [
+            3652,
+            5779,
+            4367,
+            5779
+          ]
+        },
+        {
+          "id": "w17",
+          "name": "East Wall 17",
+          "facing": "East",
+          "length": "60.13 ft",
+          "length_raw": 60.13,
+          "angle_deg": 1.4,
+          "px_coords": [
+            4367,
+            5779,
+            4395,
+            4652
+          ]
+        },
+        {
+          "id": "w18",
+          "name": "North Wall 18",
+          "facing": "North",
+          "length": "16.21 ft",
+          "length_raw": 16.21,
+          "angle_deg": 270.2,
+          "px_coords": [
+            4395,
+            4652,
+            4091,
+            4651
+          ]
+        },
+        {
+          "id": "w19",
+          "name": "East Wall 19",
+          "facing": "East",
+          "length": "76.11 ft",
+          "length_raw": 76.11,
+          "angle_deg": 0.0,
+          "px_coords": [
+            4091,
+            4651,
+            4091,
+            3224
+          ]
+        }
       ]
     },
     {
-      "id": "w25",
-      "name": "South Wall 25",
-      "facing": "South",
-      "length": "38.13 ft",
-      "length_raw": 38.13,
-      "angle_deg": 90.0,
-      "px_coords": [
-        3652,
-        5779,
-        4367,
-        5779
-      ]
-    },
-    {
-      "id": "w26",
-      "name": "East Wall 26",
-      "facing": "East",
-      "length": "46.03 ft",
-      "length_raw": 46.03,
-      "angle_deg": 0.0,
-      "px_coords": [
-        4367,
-        5779,
-        4367,
-        4916
-      ]
-    },
-    {
-      "id": "w27",
-      "name": "South Wall 27",
-      "facing": "South",
-      "length": "4.91 ft",
-      "length_raw": 4.91,
-      "angle_deg": 89.4,
-      "px_coords": [
-        4367,
-        4916,
-        4459,
-        4915
-      ]
-    },
-    {
-      "id": "w28",
-      "name": "East Wall 28",
-      "facing": "East",
-      "length": "14.03 ft",
-      "length_raw": 14.03,
-      "angle_deg": 0.0,
-      "px_coords": [
-        4459,
-        4915,
-        4459,
-        4652
-      ]
-    },
-    {
-      "id": "w29",
-      "name": "North Wall 29",
-      "facing": "North",
-      "length": "19.63 ft",
-      "length_raw": 19.63,
-      "angle_deg": 270.2,
-      "px_coords": [
-        4459,
-        4652,
-        4091,
-        4651
-      ]
-    },
-    {
-      "id": "w30",
-      "name": "East Wall 30",
-      "facing": "East",
-      "length": "76.11 ft",
-      "length_raw": 76.11,
-      "angle_deg": 0.0,
-      "px_coords": [
-        4091,
-        4651,
-        4091,
-        3224
-      ]
-    },
-    {
-      "id": "w31",
-      "name": "South Wall 31",
-      "facing": "South",
-      "length": "10.24 ft",
-      "length_raw": 10.24,
-      "angle_deg": 89.7,
-      "px_coords": [
-        4091,
-        3224,
-        4283,
-        3223
-      ]
-    },
-    {
-      "id": "w32",
-      "name": "West Wall 32",
-      "facing": "West",
-      "length": "8.75 ft",
-      "length_raw": 8.75,
-      "angle_deg": 179.7,
-      "px_coords": [
-        4283,
-        3223,
-        4284,
-        3387
-      ]
-    },
-    {
-      "id": "w33",
-      "name": "South Wall 33",
-      "facing": "South",
-      "length": "4.21 ft",
-      "length_raw": 4.21,
-      "angle_deg": 90.0,
-      "px_coords": [
-        4284,
-        3387,
-        4363,
-        3387
-      ]
-    },
-    {
-      "id": "w34",
-      "name": "East Wall 34",
-      "facing": "East",
-      "length": "8.69 ft",
-      "length_raw": 8.69,
-      "angle_deg": 0.0,
-      "px_coords": [
-        4363,
-        3387,
-        4363,
-        3224
-      ]
-    },
-    {
-      "id": "w35",
-      "name": "South Wall 35",
-      "facing": "South",
-      "length": "8.11 ft",
-      "length_raw": 8.11,
-      "angle_deg": 88.1,
-      "px_coords": [
-        4363,
-        3224,
-        4515,
-        3219
-      ]
-    },
-    {
-      "id": "w36",
-      "name": "East Wall 36",
-      "facing": "East",
-      "length": "95.09 ft",
-      "length_raw": 95.09,
-      "angle_deg": 359.9,
-      "px_coords": [
-        4515,
-        3219,
-        4511,
-        1436
+      "floor_index": 2,
+      "total_area": "6480.6 ft\u00b2",
+      "polygon_vertices": 40,
+      "footprint_bbox_px": [
+        6156,
+        1672,
+        7963,
+        5683
+      ],
+      "walls": [
+        {
+          "id": "w1",
+          "name": "North Wall 1",
+          "facing": "North",
+          "length": "14.67 ft",
+          "length_raw": 14.67,
+          "angle_deg": 269.2,
+          "px_coords": [
+            7963,
+            1672,
+            7688,
+            1676
+          ]
+        },
+        {
+          "id": "w2",
+          "name": "West Wall 2",
+          "facing": "West",
+          "length": "77.17 ft",
+          "length_raw": 77.17,
+          "angle_deg": 180.0,
+          "px_coords": [
+            7688,
+            1676,
+            7688,
+            3123
+          ]
+        },
+        {
+          "id": "w3",
+          "name": "North Wall 3",
+          "facing": "North",
+          "length": "21.57 ft",
+          "length_raw": 21.57,
+          "angle_deg": 272.7,
+          "px_coords": [
+            7688,
+            3123,
+            7284,
+            3104
+          ]
+        },
+        {
+          "id": "w4",
+          "name": "West Wall 4",
+          "facing": "West",
+          "length": "78.88 ft",
+          "length_raw": 78.88,
+          "angle_deg": 180.0,
+          "px_coords": [
+            7284,
+            3104,
+            7284,
+            4583
+          ]
+        },
+        {
+          "id": "w5",
+          "name": "North Wall 5",
+          "facing": "North",
+          "length": "60.16 ft",
+          "length_raw": 60.16,
+          "angle_deg": 269.9,
+          "px_coords": [
+            7284,
+            4583,
+            6156,
+            4584
+          ]
+        },
+        {
+          "id": "w6",
+          "name": "West Wall 6",
+          "facing": "West",
+          "length": "11.25 ft",
+          "length_raw": 11.25,
+          "angle_deg": 180.0,
+          "px_coords": [
+            6292,
+            4624,
+            6292,
+            4835
+          ]
+        },
+        {
+          "id": "w7",
+          "name": "West Wall 7",
+          "facing": "West",
+          "length": "27.47 ft",
+          "length_raw": 27.47,
+          "angle_deg": 180.0,
+          "px_coords": [
+            6156,
+            4876,
+            6156,
+            5391
+          ]
+        },
+        {
+          "id": "w8",
+          "name": "South Wall 8",
+          "facing": "South",
+          "length": "7.04 ft",
+          "length_raw": 7.04,
+          "angle_deg": 90.4,
+          "px_coords": [
+            6156,
+            5391,
+            6288,
+            5392
+          ]
+        },
+        {
+          "id": "w9",
+          "name": "West Wall 9",
+          "facing": "West",
+          "length": "13.39 ft",
+          "length_raw": 13.39,
+          "angle_deg": 180.0,
+          "px_coords": [
+            6288,
+            5392,
+            6288,
+            5643
+          ]
+        },
+        {
+          "id": "w10",
+          "name": "South Wall 10",
+          "facing": "South",
+          "length": "8.91 ft",
+          "length_raw": 8.91,
+          "angle_deg": 90.0,
+          "px_coords": [
+            6156,
+            5683,
+            6323,
+            5683
+          ]
+        },
+        {
+          "id": "w11",
+          "name": "East Wall 11",
+          "facing": "East",
+          "length": "21.12 ft",
+          "length_raw": 21.12,
+          "angle_deg": 0.1,
+          "px_coords": [
+            6323,
+            5683,
+            6324,
+            5287
+          ]
+        },
+        {
+          "id": "w12",
+          "name": "South Wall 12",
+          "facing": "South",
+          "length": "87.41 ft",
+          "length_raw": 87.41,
+          "angle_deg": 90.0,
+          "px_coords": [
+            6324,
+            5287,
+            7963,
+            5287
+          ]
+        },
+        {
+          "id": "w13",
+          "name": "North Wall 13",
+          "facing": "North",
+          "length": "11.68 ft",
+          "length_raw": 11.68,
+          "angle_deg": 279.5,
+          "px_coords": [
+            7963,
+            5287,
+            7747,
+            5251
+          ]
+        },
+        {
+          "id": "w14",
+          "name": "East Wall 14",
+          "facing": "East",
+          "length": "10.88 ft",
+          "length_raw": 10.88,
+          "angle_deg": 0.3,
+          "px_coords": [
+            7747,
+            5251,
+            7748,
+            5047
+          ]
+        },
+        {
+          "id": "w15",
+          "name": "East Wall 15",
+          "facing": "East",
+          "length": "12.59 ft",
+          "length_raw": 12.59,
+          "angle_deg": 0.0,
+          "px_coords": [
+            7748,
+            5047,
+            7748,
+            4811
+          ]
+        },
+        {
+          "id": "w16",
+          "name": "East Wall 16",
+          "facing": "East",
+          "length": "12.59 ft",
+          "length_raw": 12.59,
+          "angle_deg": 0.0,
+          "px_coords": [
+            7748,
+            4811,
+            7748,
+            4575
+          ]
+        },
+        {
+          "id": "w17",
+          "name": "East Wall 17",
+          "facing": "East",
+          "length": "12.75 ft",
+          "length_raw": 12.75,
+          "angle_deg": 359.8,
+          "px_coords": [
+            7748,
+            4575,
+            7747,
+            4336
+          ]
+        },
+        {
+          "id": "w18",
+          "name": "East Wall 18",
+          "facing": "East",
+          "length": "12.85 ft",
+          "length_raw": 12.85,
+          "angle_deg": 0.2,
+          "px_coords": [
+            7747,
+            4336,
+            7748,
+            4095
+          ]
+        },
+        {
+          "id": "w19",
+          "name": "East Wall 19",
+          "facing": "East",
+          "length": "12.59 ft",
+          "length_raw": 12.59,
+          "angle_deg": 0.0,
+          "px_coords": [
+            7748,
+            4095,
+            7748,
+            3859
+          ]
+        },
+        {
+          "id": "w20",
+          "name": "East Wall 20",
+          "facing": "East",
+          "length": "12.80 ft",
+          "length_raw": 12.8,
+          "angle_deg": 0.0,
+          "px_coords": [
+            7748,
+            3859,
+            7748,
+            3619
+          ]
+        },
+        {
+          "id": "w21",
+          "name": "East Wall 21",
+          "facing": "East",
+          "length": "13.17 ft",
+          "length_raw": 13.17,
+          "angle_deg": 359.8,
+          "px_coords": [
+            7748,
+            3619,
+            7747,
+            3372
+          ]
+        },
+        {
+          "id": "w22",
+          "name": "South Wall 22",
+          "facing": "South",
+          "length": "11.52 ft",
+          "length_raw": 11.52,
+          "angle_deg": 89.7,
+          "px_coords": [
+            7747,
+            3372,
+            7963,
+            3371
+          ]
+        },
+        {
+          "id": "w23",
+          "name": "East Wall 23",
+          "facing": "East",
+          "length": "90.61 ft",
+          "length_raw": 90.61,
+          "angle_deg": 0.0,
+          "px_coords": [
+            7963,
+            3371,
+            7963,
+            1672
+          ]
+        }
       ]
     }
   ]

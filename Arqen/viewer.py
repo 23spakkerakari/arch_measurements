@@ -24,7 +24,7 @@ from pathlib import Path
 import fitz
 
 
-def _rasterize_page(pdf_path: str, page: int = 1, dpi: int = 300) -> bytes:
+def _rasterize_page(pdf_path: str, page: int = 1, dpi: int = 150) -> bytes:
     doc = fitz.open(pdf_path)
     idx = page - 1
     if idx < 0 or idx >= len(doc):
@@ -45,18 +45,30 @@ def _file_to_b64(path: str) -> tuple[str, str]:
 # ── HTML template ────────────────────────────────────────────────────────────
 
 def _generate_html(data: dict, img_b64: str, img_mime: str) -> str:
-    walls       = data["walls"]
+    floors      = data["floors"]
     img_w, img_h = data["image_size_px"]
-    total_area  = data.get("total_area", "")
     scale_str   = data.get("detected_scale", "")
-    walls_json  = json.dumps(walls)
-    n_walls     = len(walls)
+
+    # Flatten all floors' walls into one list, tagging each wall with its
+    # floor index and area so the JS can insert section headers.
+    all_walls = []
+    for floor in floors:
+        fi = floor["floor_index"]
+        fa = floor.get("total_area", "")
+        for wall in floor["walls"]:
+            wall_copy = dict(wall)
+            wall_copy["_floor_index"] = fi
+            wall_copy["_floor_area"]  = fa
+            all_walls.append(wall_copy)
+
+    walls_json  = json.dumps(all_walls)
+    n_walls     = len(all_walls)
+    n_floors    = len(floors)
 
     meta_parts = []
     if scale_str:
         meta_parts.append(f"Scale: {scale_str}")
-    if total_area:
-        meta_parts.append(f"Total area: {total_area}")
+    meta_parts.append(f"{n_floors} floor{'s' if n_floors != 1 else ''}")
     meta_html = "  &nbsp;·&nbsp;  ".join(meta_parts)
 
     return f"""<!DOCTYPE html>
@@ -236,6 +248,31 @@ body {{
   letter-spacing: 0.03em;
 }}
 
+/* ── Floor section header ──────────────────────── */
+.floor-header {{
+  padding: 12px 18px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555;
+  border-top: 1px solid #1f1f1f;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}}
+
+.floor-header:first-child {{
+  border-top: none;
+}}
+
+.floor-header .floor-area {{
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #3d3d3d;
+}}
+
 /* ── Tooltip label that follows the highlighted wall ── */
 #wall-label {{
   position: fixed;
@@ -308,7 +345,18 @@ function arrowSVG(facing) {{
 }}
 
 // ── Build wall list ────────────────────────────────────────────────────────
+let prevFloor = null;
 WALLS.forEach((wall, i) => {{
+  // Insert a floor section header when the floor changes
+  if (wall._floor_index !== prevFloor) {{
+    prevFloor = wall._floor_index;
+    const hdr = document.createElement('div');
+    hdr.className = 'floor-header';
+    hdr.innerHTML = `Floor ${{wall._floor_index}}`
+      + (wall._floor_area ? `<span class="floor-area">${{wall._floor_area}}</span>` : '');
+    wallList.appendChild(hdr);
+  }}
+
   const item = document.createElement('div');
   item.className = 'wall-item';
   item.style.setProperty('--accent', COLORS[wall.facing] ?? '#4a9eff');
@@ -423,8 +471,8 @@ def main():
                         help="PDF path — rasterizes a clean (unannotated) image (optional)")
     parser.add_argument("--page",   type=int, default=1,
                         help="PDF page to rasterize (default: 1)")
-    parser.add_argument("--dpi",    type=int, default=300,
-                        help="DPI for PDF rasterization (default: 300)")
+    parser.add_argument("--dpi",    type=int, default=150,
+                        help="DPI for PDF rasterization (default: 150)")
     parser.add_argument("--output", default=None,
                         help="Output HTML path (default: <json>.html)")
     parser.add_argument("--open",   action="store_true",
@@ -439,8 +487,8 @@ def main():
     with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    if "walls" not in data:
-        print("Error: JSON does not contain wall data. Run preprocess.py first.", file=sys.stderr)
+    if "floors" not in data:
+        print("Error: JSON does not contain floor data. Run preprocess.py first.", file=sys.stderr)
         sys.exit(1)
 
     # ── Get image ─────────────────────────────────────────────────────────────

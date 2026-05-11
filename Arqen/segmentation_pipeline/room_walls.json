@@ -1,0 +1,2435 @@
+{
+  "detected_scale": "1in=16ft",
+  "units": "imperial",
+  "image_size_px": [
+    10200,
+    6600
+  ],
+  "footprint_bbox_px": [
+    620,
+    1436,
+    4515,
+    5779
+  ],
+  "px_per_ft": 18.75,
+  "rooms": [
+    {
+      "id": "R1",
+      "area_px": 11770,
+      "centroid_px": [
+        4367,
+        1511
+      ],
+      "bbox_px": [
+        4313,
+        1449,
+        4418,
+        1578
+      ],
+      "area": "33.5 ft\u00b2",
+      "area_raw": 33.48
+    },
+    {
+      "id": "R2",
+      "area_px": 57940,
+      "centroid_px": [
+        3944,
+        1585
+      ],
+      "bbox_px": [
+        3821,
+        1467,
+        4101,
+        1704
+      ],
+      "area": "164.8 ft\u00b2",
+      "area_raw": 164.81
+    },
+    {
+      "id": "R3",
+      "area_px": 574548,
+      "centroid_px": [
+        3901,
+        3651
+      ],
+      "bbox_px": [
+        3340,
+        1467,
+        4302,
+        4927
+      ],
+      "area": "1634.3 ft\u00b2",
+      "area_raw": 1634.27
+    },
+    {
+      "id": "R4",
+      "area_px": 14693,
+      "centroid_px": [
+        4294,
+        1664
+      ],
+      "bbox_px": [
+        4202,
+        1612,
+        4385,
+        1706
+      ],
+      "area": "41.8 ft\u00b2",
+      "area_raw": 41.79
+    },
+    {
+      "id": "R5",
+      "area_px": 55818,
+      "centroid_px": [
+        3943,
+        1834
+      ],
+      "bbox_px": [
+        3821,
+        1717,
+        4101,
+        1952
+      ],
+      "area": "158.8 ft\u00b2",
+      "area_raw": 158.77
+    },
+    {
+      "id": "R6",
+      "area_px": 57268,
+      "centroid_px": [
+        4357,
+        1835
+      ],
+      "bbox_px": [
+        4210,
+        1716,
+        4480,
+        1955
+      ],
+      "area": "162.9 ft\u00b2",
+      "area_raw": 162.9
+    },
+    {
+      "id": "R7",
+      "area_px": 56278,
+      "centroid_px": [
+        4356,
+        2081
+      ],
+      "bbox_px": [
+        4202,
+        1965,
+        4480,
+        2199
+      ],
+      "area": "160.1 ft\u00b2",
+      "area_raw": 160.08
+    },
+    {
+      "id": "R8",
+      "area_px": 55428,
+      "centroid_px": [
+        3943,
+        2081
+      ],
+      "bbox_px": [
+        3821,
+        1966,
+        4101,
+        2197
+      ],
+      "area": "157.7 ft\u00b2",
+      "area_raw": 157.66
+    },
+    {
+      "id": "R9",
+      "area_px": 56551,
+      "centroid_px": [
+        4355,
+        2328
+      ],
+      "bbox_px": [
+        4202,
+        2209,
+        4480,
+        2446
+      ],
+      "area": "160.9 ft\u00b2",
+      "area_raw": 160.86
+    },
+    {
+      "id": "R10",
+      "area_px": 54365,
+      "centroid_px": [
+        3944,
+        2328
+      ],
+      "bbox_px": [
+        3821,
+        2216,
+        4099,
+        2442
+      ],
+      "area": "154.6 ft\u00b2",
+      "area_raw": 154.64
+    },
+    {
+      "id": "R11",
+      "area_px": 58948,
+      "centroid_px": [
+        4356,
+        2578
+      ],
+      "bbox_px": [
+        4202,
+        2456,
+        4480,
+        2702
+      ],
+      "area": "167.7 ft\u00b2",
+      "area_raw": 167.67
+    },
+    {
+      "id": "R12",
+      "area_px": 55921,
+      "centroid_px": [
+        3944,
+        2577
+      ],
+      "bbox_px": [
+        3822,
+        2462,
+        4099,
+        2695
+      ],
+      "area": "159.1 ft\u00b2",
+      "area_raw": 159.06
+    },
+    {
+      "id": "R13",
+      "area_px": 55530,
+      "centroid_px": [
+        4357,
+        2830
+      ],
+      "bbox_px": [
+        4205,
+        2714,
+        4480,
+        2947
+      ],
+      "area": "158.0 ft\u00b2",
+      "area_raw": 157.95
+    },
+    {
+      "id": "R14",
+      "area_px": 45515,
+      "centroid_px": [
+        3939,
+        2822
+      ],
+      "bbox_px": [
+        3823,
+        2727,
+        4100,
+        2943
+      ],
+      "area": "129.5 ft\u00b2",
+      "area_raw": 129.46
+    },
+    {
+      "id": "R15",
+      "area_px": 21601,
+      "centroid_px": [
+        3970,
+        3016
+      ],
+      "bbox_px": [
+        3886,
+        2955,
+        4067,
+        3086
+      ],
+      "area": "61.4 ft\u00b2",
+      "area_raw": 61.44
+    },
+    {
+      "id": "R16",
+      "area_px": 54169,
+      "centroid_px": [
+        4357,
+        3072
+      ],
+      "bbox_px": [
+        4205,
+        2958,
+        4480,
+        3190
+      ],
+      "area": "154.1 ft\u00b2",
+      "area_raw": 154.08
+    },
+    {
+      "id": "R17",
+      "area_px": 64069,
+      "centroid_px": [
+        3552,
+        3085
+      ],
+      "bbox_px": [
+        3419,
+        2964,
+        3684,
+        3215
+      ],
+      "area": "182.2 ft\u00b2",
+      "area_raw": 182.24
+    },
+    {
+      "id": "R18",
+      "area_px": 106691,
+      "centroid_px": [
+        3934,
+        3413
+      ],
+      "bbox_px": [
+        3806,
+        3203,
+        4063,
+        3623
+      ],
+      "area": "303.5 ft\u00b2",
+      "area_raw": 303.48
+    },
+    {
+      "id": "R19",
+      "area_px": 45596,
+      "centroid_px": [
+        3503,
+        3352
+      ],
+      "bbox_px": [
+        3420,
+        3218,
+        3599,
+        3505
+      ],
+      "area": "129.7 ft\u00b2",
+      "area_raw": 129.7
+    },
+    {
+      "id": "R20",
+      "area_px": 191485,
+      "centroid_px": [
+        3558,
+        3787
+      ],
+      "bbox_px": [
+        3399,
+        3218,
+        3692,
+        4160
+      ],
+      "area": "544.7 ft\u00b2",
+      "area_raw": 544.67
+    },
+    {
+      "id": "R21",
+      "area_px": 22770,
+      "centroid_px": [
+        3340,
+        3585
+      ],
+      "bbox_px": [
+        3286,
+        3482,
+        3396,
+        3689
+      ],
+      "area": "64.8 ft\u00b2",
+      "area_raw": 64.77
+    },
+    {
+      "id": "R22",
+      "area_px": 117657,
+      "centroid_px": [
+        3939,
+        3917
+      ],
+      "bbox_px": [
+        3800,
+        3655,
+        4061,
+        4164
+      ],
+      "area": "334.7 ft\u00b2",
+      "area_raw": 334.67
+    },
+    {
+      "id": "R23",
+      "area_px": 42162,
+      "centroid_px": [
+        3929,
+        4254
+      ],
+      "bbox_px": [
+        3807,
+        4146,
+        4061,
+        4349
+      ],
+      "area": "119.9 ft\u00b2",
+      "area_raw": 119.93
+    },
+    {
+      "id": "R24",
+      "area_px": 27328,
+      "centroid_px": [
+        3489,
+        4267
+      ],
+      "bbox_px": [
+        3418,
+        4163,
+        3557,
+        4367
+      ],
+      "area": "77.7 ft\u00b2",
+      "area_raw": 77.73
+    },
+    {
+      "id": "R25",
+      "area_px": 20196,
+      "centroid_px": [
+        3629,
+        4264
+      ],
+      "bbox_px": [
+        3580,
+        4163,
+        3679,
+        4367
+      ],
+      "area": "57.4 ft\u00b2",
+      "area_raw": 57.45
+    },
+    {
+      "id": "R26",
+      "area_px": 10177,
+      "centroid_px": [
+        3057,
+        4429
+      ],
+      "bbox_px": [
+        2998,
+        4386,
+        3118,
+        4472
+      ],
+      "area": "28.9 ft\u00b2",
+      "area_raw": 28.95
+    },
+    {
+      "id": "R27",
+      "area_px": 19213,
+      "centroid_px": [
+        3537,
+        4442
+      ],
+      "bbox_px": [
+        3420,
+        4401,
+        3654,
+        4486
+      ],
+      "area": "54.7 ft\u00b2",
+      "area_raw": 54.65
+    },
+    {
+      "id": "R28",
+      "area_px": 66076,
+      "centroid_px": [
+        2235,
+        4631
+      ],
+      "bbox_px": [
+        2113,
+        4494,
+        2360,
+        4772
+      ],
+      "area": "187.9 ft\u00b2",
+      "area_raw": 187.95
+    },
+    {
+      "id": "R29",
+      "area_px": 116492,
+      "centroid_px": [
+        2588,
+        4633
+      ],
+      "bbox_px": [
+        2373,
+        4497,
+        2804,
+        4772
+      ],
+      "area": "331.4 ft\u00b2",
+      "area_raw": 331.36
+    },
+    {
+      "id": "R30",
+      "area_px": 74807,
+      "centroid_px": [
+        2955,
+        4633
+      ],
+      "bbox_px": [
+        2817,
+        4497,
+        3097,
+        4772
+      ],
+      "area": "212.8 ft\u00b2",
+      "area_raw": 212.78
+    },
+    {
+      "id": "R31",
+      "area_px": 12756,
+      "centroid_px": [
+        3307,
+        4678
+      ],
+      "bbox_px": [
+        3263,
+        4576,
+        3346,
+        4772
+      ],
+      "area": "36.3 ft\u00b2",
+      "area_raw": 36.28
+    },
+    {
+      "id": "R32",
+      "area_px": 22266,
+      "centroid_px": [
+        3585,
+        4671
+      ],
+      "bbox_px": [
+        3522,
+        4586,
+        3655,
+        4772
+      ],
+      "area": "63.3 ft\u00b2",
+      "area_raw": 63.33
+    },
+    {
+      "id": "R33",
+      "area_px": 13974,
+      "centroid_px": [
+        3411,
+        4707
+      ],
+      "bbox_px": [
+        3356,
+        4639,
+        3467,
+        4772
+      ],
+      "area": "39.7 ft\u00b2",
+      "area_raw": 39.75
+    },
+    {
+      "id": "R34",
+      "area_px": 23932,
+      "centroid_px": [
+        4398,
+        4788
+      ],
+      "bbox_px": [
+        4338,
+        4665,
+        4450,
+        4905
+      ],
+      "area": "68.1 ft\u00b2",
+      "area_raw": 68.07
+    },
+    {
+      "id": "R35",
+      "area_px": 12039,
+      "centroid_px": [
+        3174,
+        4723
+      ],
+      "bbox_px": [
+        3107,
+        4679,
+        3245,
+        4772
+      ],
+      "area": "34.2 ft\u00b2",
+      "area_raw": 34.24
+    },
+    {
+      "id": "R36",
+      "area_px": 18479,
+      "centroid_px": [
+        4129,
+        4788
+      ],
+      "bbox_px": [
+        4078,
+        4691,
+        4177,
+        4885
+      ],
+      "area": "52.6 ft\u00b2",
+      "area_raw": 52.56
+    },
+    {
+      "id": "R37",
+      "area_px": 13060,
+      "centroid_px": [
+        4292,
+        4787
+      ],
+      "bbox_px": [
+        4259,
+        4691,
+        4327,
+        4885
+      ],
+      "area": "37.1 ft\u00b2",
+      "area_raw": 37.15
+    },
+    {
+      "id": "R38",
+      "area_px": 307227,
+      "centroid_px": [
+        1988,
+        5075
+      ],
+      "bbox_px": [
+        651,
+        4785,
+        3328,
+        5384
+      ],
+      "area": "873.9 ft\u00b2",
+      "area_raw": 873.89
+    },
+    {
+      "id": "R39",
+      "area_px": 113606,
+      "centroid_px": [
+        2570,
+        5022
+      ],
+      "bbox_px": [
+        2361,
+        4885,
+        2777,
+        5160
+      ],
+      "area": "323.1 ft\u00b2",
+      "area_raw": 323.15
+    },
+    {
+      "id": "R40",
+      "area_px": 54498,
+      "centroid_px": [
+        2925,
+        5057
+      ],
+      "bbox_px": [
+        2798,
+        4885,
+        3083,
+        5160
+      ],
+      "area": "155.0 ft\u00b2",
+      "area_raw": 155.02
+    },
+    {
+      "id": "R41",
+      "area_px": 12047,
+      "centroid_px": [
+        2945,
+        4928
+      ],
+      "bbox_px": [
+        2877,
+        4885,
+        3017,
+        4974
+      ],
+      "area": "34.3 ft\u00b2",
+      "area_raw": 34.27
+    },
+    {
+      "id": "R42",
+      "area_px": 50374,
+      "centroid_px": [
+        2023,
+        4992
+      ],
+      "bbox_px": [
+        1890,
+        4887,
+        2242,
+        5132
+      ],
+      "area": "143.3 ft\u00b2",
+      "area_raw": 143.29
+    },
+    {
+      "id": "R43",
+      "area_px": 71960,
+      "centroid_px": [
+        3213,
+        5007
+      ],
+      "bbox_px": [
+        3037,
+        4888,
+        3434,
+        5160
+      ],
+      "area": "204.7 ft\u00b2",
+      "area_raw": 204.69
+    },
+    {
+      "id": "R44",
+      "area_px": 45499,
+      "centroid_px": [
+        3437,
+        5049
+      ],
+      "bbox_px": [
+        3311,
+        4888,
+        3549,
+        5160
+      ],
+      "area": "129.4 ft\u00b2",
+      "area_raw": 129.42
+    },
+    {
+      "id": "R45",
+      "area_px": 10219,
+      "centroid_px": [
+        3611,
+        4952
+      ],
+      "bbox_px": [
+        3573,
+        4888,
+        3653,
+        5022
+      ],
+      "area": "29.1 ft\u00b2",
+      "area_raw": 29.07
+    },
+    {
+      "id": "R46",
+      "area_px": 534569,
+      "centroid_px": [
+        4009,
+        5340
+      ],
+      "bbox_px": [
+        3675,
+        4897,
+        4356,
+        5755
+      ],
+      "area": "1520.6 ft\u00b2",
+      "area_raw": 1520.55
+    },
+    {
+      "id": "R47",
+      "area_px": 54843,
+      "centroid_px": [
+        763,
+        5028
+      ],
+      "bbox_px": [
+        651,
+        4905,
+        876,
+        5185
+      ],
+      "area": "156.0 ft\u00b2",
+      "area_raw": 156.0
+    },
+    {
+      "id": "R48",
+      "area_px": 55230,
+      "centroid_px": [
+        1008,
+        5029
+      ],
+      "bbox_px": [
+        896,
+        4905,
+        1120,
+        5185
+      ],
+      "area": "157.1 ft\u00b2",
+      "area_raw": 157.1
+    },
+    {
+      "id": "R49",
+      "area_px": 55997,
+      "centroid_px": [
+        1256,
+        5027
+      ],
+      "bbox_px": [
+        1141,
+        4905,
+        1373,
+        5185
+      ],
+      "area": "159.3 ft\u00b2",
+      "area_raw": 159.28
+    },
+    {
+      "id": "R50",
+      "area_px": 55054,
+      "centroid_px": [
+        1502,
+        5027
+      ],
+      "bbox_px": [
+        1389,
+        4905,
+        1615,
+        5185
+      ],
+      "area": "156.6 ft\u00b2",
+      "area_raw": 156.6
+    },
+    {
+      "id": "R51",
+      "area_px": 55465,
+      "centroid_px": [
+        1746,
+        5028
+      ],
+      "bbox_px": [
+        1633,
+        4905,
+        1860,
+        5185
+      ],
+      "area": "157.8 ft\u00b2",
+      "area_raw": 157.77
+    },
+    {
+      "id": "R52",
+      "area_px": 22661,
+      "centroid_px": [
+        2168,
+        5059
+      ],
+      "bbox_px": [
+        2104,
+        4975,
+        2242,
+        5157
+      ],
+      "area": "64.5 ft\u00b2",
+      "area_raw": 64.46
+    },
+    {
+      "id": "R53",
+      "area_px": 10776,
+      "centroid_px": [
+        3586,
+        5100
+      ],
+      "bbox_px": [
+        3538,
+        5037,
+        3631,
+        5160
+      ],
+      "area": "30.7 ft\u00b2",
+      "area_raw": 30.65
+    },
+    {
+      "id": "R54",
+      "area_px": 14117,
+      "centroid_px": [
+        836,
+        5374
+      ],
+      "bbox_px": [
+        786,
+        5288,
+        881,
+        5468
+      ],
+      "area": "40.2 ft\u00b2",
+      "area_raw": 40.16
+    },
+    {
+      "id": "R55",
+      "area_px": 58549,
+      "centroid_px": [
+        1254,
+        5442
+      ],
+      "bbox_px": [
+        1135,
+        5288,
+        1373,
+        5567
+      ],
+      "area": "166.5 ft\u00b2",
+      "area_raw": 166.54
+    },
+    {
+      "id": "R56",
+      "area_px": 58459,
+      "centroid_px": [
+        1501,
+        5442
+      ],
+      "bbox_px": [
+        1383,
+        5288,
+        1620,
+        5567
+      ],
+      "area": "166.3 ft\u00b2",
+      "area_raw": 166.28
+    },
+    {
+      "id": "R57",
+      "area_px": 58089,
+      "centroid_px": [
+        1746,
+        5442
+      ],
+      "bbox_px": [
+        1629,
+        5288,
+        1864,
+        5567
+      ],
+      "area": "165.2 ft\u00b2",
+      "area_raw": 165.23
+    },
+    {
+      "id": "R58",
+      "area_px": 58044,
+      "centroid_px": [
+        1991,
+        5442
+      ],
+      "bbox_px": [
+        1874,
+        5288,
+        2109,
+        5567
+      ],
+      "area": "165.1 ft\u00b2",
+      "area_raw": 165.1
+    },
+    {
+      "id": "R59",
+      "area_px": 55541,
+      "centroid_px": [
+        2233,
+        5441
+      ],
+      "bbox_px": [
+        2119,
+        5288,
+        2347,
+        5567
+      ],
+      "area": "158.0 ft\u00b2",
+      "area_raw": 157.98
+    },
+    {
+      "id": "R60",
+      "area_px": 57700,
+      "centroid_px": [
+        1008,
+        5443
+      ],
+      "bbox_px": [
+        889,
+        5295,
+        1126,
+        5567
+      ],
+      "area": "164.1 ft\u00b2",
+      "area_raw": 164.12
+    },
+    {
+      "id": "R61",
+      "area_px": 14152,
+      "centroid_px": [
+        710,
+        5456
+      ],
+      "bbox_px": [
+        634,
+        5393,
+        813,
+        5503
+      ],
+      "area": "40.3 ft\u00b2",
+      "area_raw": 40.25
+    }
+  ],
+  "walls": [
+    {
+      "id": "w1.s1",
+      "name": "North Wall 1 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "5.12 ft",
+      "length_raw": 5.12,
+      "angle_deg": 269.4,
+      "px_coords": [
+        4511,
+        1436,
+        4415,
+        1437
+      ],
+      "room_id": null,
+      "parent_wall_id": "w1",
+      "segment_index": 1,
+      "segment_count": 4
+    },
+    {
+      "id": "w1.s2",
+      "name": "North Wall 1 part 2 \u2192 R1",
+      "facing": "North",
+      "length": "5.60 ft",
+      "length_raw": 5.6,
+      "angle_deg": 270.0,
+      "px_coords": [
+        4415,
+        1437,
+        4310,
+        1437
+      ],
+      "room_id": "R1",
+      "parent_wall_id": "w1",
+      "segment_index": 2,
+      "segment_count": 4
+    },
+    {
+      "id": "w1.s3",
+      "name": "North Wall 1 part 3 \u2192 R3",
+      "facing": "North",
+      "length": "11.04 ft",
+      "length_raw": 11.04,
+      "angle_deg": 269.7,
+      "px_coords": [
+        4310,
+        1437,
+        4103,
+        1438
+      ],
+      "room_id": "R3",
+      "parent_wall_id": "w1",
+      "segment_index": 3,
+      "segment_count": 4
+    },
+    {
+      "id": "w1.s4",
+      "name": "North Wall 1 part 4 \u2192 R2",
+      "facing": "North",
+      "length": "16.80 ft",
+      "length_raw": 16.8,
+      "angle_deg": 269.6,
+      "px_coords": [
+        4103,
+        1438,
+        3788,
+        1440
+      ],
+      "room_id": "R2",
+      "parent_wall_id": "w1",
+      "segment_index": 4,
+      "segment_count": 4
+    },
+    {
+      "id": "w2.s1",
+      "name": "West Wall 2 part 1 \u2192 R2",
+      "facing": "West",
+      "length": "14.88 ft",
+      "length_raw": 14.88,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        1440,
+        3788,
+        1719
+      ],
+      "room_id": "R2",
+      "parent_wall_id": "w2",
+      "segment_index": 1,
+      "segment_count": 6
+    },
+    {
+      "id": "w2.s2",
+      "name": "West Wall 2 part 2 \u2192 R5",
+      "facing": "West",
+      "length": "13.28 ft",
+      "length_raw": 13.28,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        1719,
+        3788,
+        1968
+      ],
+      "room_id": "R5",
+      "parent_wall_id": "w2",
+      "segment_index": 2,
+      "segment_count": 6
+    },
+    {
+      "id": "w2.s3",
+      "name": "West Wall 2 part 3 \u2192 R8",
+      "facing": "West",
+      "length": "13.28 ft",
+      "length_raw": 13.28,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        1968,
+        3788,
+        2217
+      ],
+      "room_id": "R8",
+      "parent_wall_id": "w2",
+      "segment_index": 3,
+      "segment_count": 6
+    },
+    {
+      "id": "w2.s4",
+      "name": "West Wall 2 part 4 \u2192 R10",
+      "facing": "West",
+      "length": "12.00 ft",
+      "length_raw": 12.0,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        2217,
+        3788,
+        2442
+      ],
+      "room_id": "R10",
+      "parent_wall_id": "w2",
+      "segment_index": 4,
+      "segment_count": 6
+    },
+    {
+      "id": "w2.s5",
+      "name": "West Wall 2 part 5 \u2192 R12",
+      "facing": "West",
+      "length": "15.20 ft",
+      "length_raw": 15.2,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        2442,
+        3788,
+        2727
+      ],
+      "room_id": "R12",
+      "parent_wall_id": "w2",
+      "segment_index": 5,
+      "segment_count": 6
+    },
+    {
+      "id": "w2.s6",
+      "name": "West Wall 2 part 6 \u2192 R14",
+      "facing": "West",
+      "length": "10.88 ft",
+      "length_raw": 10.88,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3788,
+        2727,
+        3788,
+        2931
+      ],
+      "room_id": "R14",
+      "parent_wall_id": "w2",
+      "segment_index": 6,
+      "segment_count": 6
+    },
+    {
+      "id": "w3.s1",
+      "name": "North Wall 3 part 1 \u2192 R3",
+      "facing": "North",
+      "length": "5.12 ft",
+      "length_raw": 5.12,
+      "angle_deg": 270.0,
+      "px_coords": [
+        3788,
+        2931,
+        3692,
+        2931
+      ],
+      "room_id": "R3",
+      "parent_wall_id": "w3",
+      "segment_index": 1,
+      "segment_count": 2
+    },
+    {
+      "id": "w3.s2",
+      "name": "North Wall 3 part 2 \u2192 R17",
+      "facing": "North",
+      "length": "16.21 ft",
+      "length_raw": 16.21,
+      "angle_deg": 269.8,
+      "px_coords": [
+        3692,
+        2931,
+        3388,
+        2932
+      ],
+      "room_id": "R17",
+      "parent_wall_id": "w3",
+      "segment_index": 2,
+      "segment_count": 2
+    },
+    {
+      "id": "w4.s1",
+      "name": "West Wall 4 part 1 \u2192 R17",
+      "facing": "West",
+      "length": "15.25 ft",
+      "length_raw": 15.25,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3388,
+        2932,
+        3388,
+        3218
+      ],
+      "room_id": "R17",
+      "parent_wall_id": "w4",
+      "segment_index": 1,
+      "segment_count": 2
+    },
+    {
+      "id": "w4.s2",
+      "name": "West Wall 4 part 2 \u2192 R19",
+      "facing": "West",
+      "length": "13.28 ft",
+      "length_raw": 13.28,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3388,
+        3218,
+        3388,
+        3467
+      ],
+      "room_id": "R19",
+      "parent_wall_id": "w4",
+      "segment_index": 2,
+      "segment_count": 2
+    },
+    {
+      "id": "w5.s1",
+      "name": "North Wall 5 part 1 \u2192 R21",
+      "facing": "North",
+      "length": "6.19 ft",
+      "length_raw": 6.19,
+      "angle_deg": 267.5,
+      "px_coords": [
+        3388,
+        3467,
+        3272,
+        3472
+      ],
+      "room_id": "R21",
+      "parent_wall_id": "w5",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w6.s1",
+      "name": "West Wall 6 part 1 \u2192 R21",
+      "facing": "West",
+      "length": "14.45 ft",
+      "length_raw": 14.45,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3272,
+        3472,
+        3272,
+        3743
+      ],
+      "room_id": "R21",
+      "parent_wall_id": "w6",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w7.s1",
+      "name": "South Wall 7 part 1 \u2192 (no room)",
+      "facing": "South",
+      "length": "6.19 ft",
+      "length_raw": 6.19,
+      "angle_deg": 90.5,
+      "px_coords": [
+        3272,
+        3743,
+        3388,
+        3744
+      ],
+      "room_id": null,
+      "parent_wall_id": "w7",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w8.s1",
+      "name": "West Wall 8 part 1 \u2192 R20",
+      "facing": "West",
+      "length": "22.99 ft",
+      "length_raw": 22.99,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3388,
+        3744,
+        3388,
+        4175
+      ],
+      "room_id": "R20",
+      "parent_wall_id": "w8",
+      "segment_index": 1,
+      "segment_count": 2
+    },
+    {
+      "id": "w8.s2",
+      "name": "West Wall 8 part 2 \u2192 R24",
+      "facing": "West",
+      "length": "4.48 ft",
+      "length_raw": 4.48,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3388,
+        4175,
+        3388,
+        4259
+      ],
+      "room_id": "R24",
+      "parent_wall_id": "w8",
+      "segment_index": 2,
+      "segment_count": 2
+    },
+    {
+      "id": "w9.s1",
+      "name": "North Wall 9 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "5.97 ft",
+      "length_raw": 5.97,
+      "angle_deg": 269.5,
+      "px_coords": [
+        3388,
+        4259,
+        3276,
+        4260
+      ],
+      "room_id": null,
+      "parent_wall_id": "w9",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w10.s1",
+      "name": "West Wall 10 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "3.37 ft",
+      "length_raw": 3.37,
+      "angle_deg": 183.6,
+      "px_coords": [
+        3276,
+        4260,
+        3272,
+        4323
+      ],
+      "room_id": null,
+      "parent_wall_id": "w10",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w11.s1",
+      "name": "South Wall 11 part 1 \u2192 (no room)",
+      "facing": "South",
+      "length": "6.19 ft",
+      "length_raw": 6.19,
+      "angle_deg": 90.5,
+      "px_coords": [
+        3272,
+        4323,
+        3388,
+        4324
+      ],
+      "room_id": null,
+      "parent_wall_id": "w11",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w12.s1",
+      "name": "West Wall 12 part 1 \u2192 R27",
+      "facing": "West",
+      "length": "7.41 ft",
+      "length_raw": 7.41,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3388,
+        4324,
+        3388,
+        4463
+      ],
+      "room_id": "R27",
+      "parent_wall_id": "w12",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w13.s1",
+      "name": "North Wall 13 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "13.01 ft",
+      "length_raw": 13.01,
+      "angle_deg": 269.8,
+      "px_coords": [
+        3388,
+        4463,
+        3144,
+        4464
+      ],
+      "room_id": null,
+      "parent_wall_id": "w13",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w14.s1",
+      "name": "East Wall 14 part 1 \u2192 (no room)",
+      "facing": "East",
+      "length": "5.33 ft",
+      "length_raw": 5.33,
+      "angle_deg": 359.4,
+      "px_coords": [
+        3144,
+        4464,
+        3143,
+        4364
+      ],
+      "room_id": null,
+      "parent_wall_id": "w14",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w15.s1",
+      "name": "North Wall 15 part 1 \u2192 R26",
+      "facing": "North",
+      "length": "9.12 ft",
+      "length_raw": 9.12,
+      "angle_deg": 271.3,
+      "px_coords": [
+        3143,
+        4364,
+        2972,
+        4360
+      ],
+      "room_id": "R26",
+      "parent_wall_id": "w15",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w16.s1",
+      "name": "West Wall 16 part 1 \u2192 R26",
+      "facing": "West",
+      "length": "5.55 ft",
+      "length_raw": 5.55,
+      "angle_deg": 180.6,
+      "px_coords": [
+        2972,
+        4360,
+        2971,
+        4464
+      ],
+      "room_id": "R26",
+      "parent_wall_id": "w16",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w17.s1",
+      "name": "North Wall 17 part 1 \u2192 R30",
+      "facing": "North",
+      "length": "8.32 ft",
+      "length_raw": 8.32,
+      "angle_deg": 270.0,
+      "px_coords": [
+        2971,
+        4464,
+        2815,
+        4464
+      ],
+      "room_id": "R30",
+      "parent_wall_id": "w17",
+      "segment_index": 1,
+      "segment_count": 3
+    },
+    {
+      "id": "w17.s2",
+      "name": "North Wall 17 part 2 \u2192 R29",
+      "facing": "North",
+      "length": "24.32 ft",
+      "length_raw": 24.32,
+      "angle_deg": 270.0,
+      "px_coords": [
+        2815,
+        4464,
+        2359,
+        4464
+      ],
+      "room_id": "R29",
+      "parent_wall_id": "w17",
+      "segment_index": 2,
+      "segment_count": 3
+    },
+    {
+      "id": "w17.s3",
+      "name": "North Wall 17 part 3 \u2192 R28",
+      "facing": "North",
+      "length": "14.88 ft",
+      "length_raw": 14.88,
+      "angle_deg": 270.0,
+      "px_coords": [
+        2359,
+        4464,
+        2080,
+        4464
+      ],
+      "room_id": "R28",
+      "parent_wall_id": "w17",
+      "segment_index": 3,
+      "segment_count": 3
+    },
+    {
+      "id": "w18.s1",
+      "name": "West Wall 18 part 1 \u2192 R28",
+      "facing": "West",
+      "length": "17.17 ft",
+      "length_raw": 17.17,
+      "angle_deg": 180.2,
+      "px_coords": [
+        2080,
+        4464,
+        2079,
+        4786
+      ],
+      "room_id": "R28",
+      "parent_wall_id": "w18",
+      "segment_index": 1,
+      "segment_count": 2
+    },
+    {
+      "id": "w18.s2",
+      "name": "West Wall 18 part 2 \u2192 R38",
+      "facing": "West",
+      "length": "4.80 ft",
+      "length_raw": 4.8,
+      "angle_deg": 180.0,
+      "px_coords": [
+        2079,
+        4786,
+        2079,
+        4876
+      ],
+      "room_id": "R38",
+      "parent_wall_id": "w18",
+      "segment_index": 2,
+      "segment_count": 2
+    },
+    {
+      "id": "w19.s1",
+      "name": "North Wall 19 part 1 \u2192 R42",
+      "facing": "North",
+      "length": "10.24 ft",
+      "length_raw": 10.24,
+      "angle_deg": 270.0,
+      "px_coords": [
+        2079,
+        4876,
+        1887,
+        4876
+      ],
+      "room_id": "R42",
+      "parent_wall_id": "w19",
+      "segment_index": 1,
+      "segment_count": 6
+    },
+    {
+      "id": "w19.s2",
+      "name": "North Wall 19 part 2 \u2192 R51",
+      "facing": "North",
+      "length": "14.56 ft",
+      "length_raw": 14.56,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1887,
+        4876,
+        1614,
+        4876
+      ],
+      "room_id": "R51",
+      "parent_wall_id": "w19",
+      "segment_index": 2,
+      "segment_count": 6
+    },
+    {
+      "id": "w19.s3",
+      "name": "North Wall 19 part 3 \u2192 R50",
+      "facing": "North",
+      "length": "12.16 ft",
+      "length_raw": 12.16,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1614,
+        4876,
+        1386,
+        4876
+      ],
+      "room_id": "R50",
+      "parent_wall_id": "w19",
+      "segment_index": 3,
+      "segment_count": 6
+    },
+    {
+      "id": "w19.s4",
+      "name": "North Wall 19 part 4 \u2192 R49",
+      "facing": "North",
+      "length": "14.29 ft",
+      "length_raw": 14.29,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1386,
+        4876,
+        1118,
+        4876
+      ],
+      "room_id": "R49",
+      "parent_wall_id": "w19",
+      "segment_index": 4,
+      "segment_count": 6
+    },
+    {
+      "id": "w19.s5",
+      "name": "North Wall 19 part 5 \u2192 R48",
+      "facing": "North",
+      "length": "12.96 ft",
+      "length_raw": 12.96,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1118,
+        4876,
+        875,
+        4876
+      ],
+      "room_id": "R48",
+      "parent_wall_id": "w19",
+      "segment_index": 5,
+      "segment_count": 6
+    },
+    {
+      "id": "w19.s6",
+      "name": "North Wall 19 part 6 \u2192 R47",
+      "facing": "North",
+      "length": "13.60 ft",
+      "length_raw": 13.6,
+      "angle_deg": 270.0,
+      "px_coords": [
+        875,
+        4876,
+        620,
+        4876
+      ],
+      "room_id": "R47",
+      "parent_wall_id": "w19",
+      "segment_index": 6,
+      "segment_count": 6
+    },
+    {
+      "id": "w20.s1",
+      "name": "West Wall 20 part 1 \u2192 R47",
+      "facing": "West",
+      "length": "16.64 ft",
+      "length_raw": 16.64,
+      "angle_deg": 180.0,
+      "px_coords": [
+        620,
+        4876,
+        620,
+        5188
+      ],
+      "room_id": "R47",
+      "parent_wall_id": "w20",
+      "segment_index": 1,
+      "segment_count": 4
+    },
+    {
+      "id": "w20.s2",
+      "name": "West Wall 20 part 2 \u2192 R38",
+      "facing": "West",
+      "length": "10.99 ft",
+      "length_raw": 10.99,
+      "angle_deg": 180.0,
+      "px_coords": [
+        620,
+        5188,
+        620,
+        5394
+      ],
+      "room_id": "R38",
+      "parent_wall_id": "w20",
+      "segment_index": 2,
+      "segment_count": 4
+    },
+    {
+      "id": "w20.s3",
+      "name": "West Wall 20 part 3 \u2192 R61",
+      "facing": "West",
+      "length": "5.92 ft",
+      "length_raw": 5.92,
+      "angle_deg": 180.0,
+      "px_coords": [
+        620,
+        5394,
+        620,
+        5505
+      ],
+      "room_id": "R61",
+      "parent_wall_id": "w20",
+      "segment_index": 3,
+      "segment_count": 4
+    },
+    {
+      "id": "w20.s4",
+      "name": "West Wall 20 part 4 \u2192 (no room)",
+      "facing": "West",
+      "length": "4.80 ft",
+      "length_raw": 4.8,
+      "angle_deg": 180.0,
+      "px_coords": [
+        620,
+        5505,
+        620,
+        5595
+      ],
+      "room_id": null,
+      "parent_wall_id": "w20",
+      "segment_index": 4,
+      "segment_count": 4
+    },
+    {
+      "id": "w21.s1",
+      "name": "South Wall 21 part 1 \u2192 (no room)",
+      "facing": "South",
+      "length": "14.40 ft",
+      "length_raw": 14.4,
+      "angle_deg": 90.0,
+      "px_coords": [
+        620,
+        5595,
+        890,
+        5595
+      ],
+      "room_id": null,
+      "parent_wall_id": "w21",
+      "segment_index": 1,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s2",
+      "name": "South Wall 21 part 2 \u2192 R60",
+      "facing": "South",
+      "length": "13.12 ft",
+      "length_raw": 13.12,
+      "angle_deg": 90.0,
+      "px_coords": [
+        890,
+        5595,
+        1136,
+        5595
+      ],
+      "room_id": "R60",
+      "parent_wall_id": "w21",
+      "segment_index": 2,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s3",
+      "name": "South Wall 21 part 3 \u2192 R55",
+      "facing": "South",
+      "length": "13.28 ft",
+      "length_raw": 13.28,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1136,
+        5595,
+        1385,
+        5595
+      ],
+      "room_id": "R55",
+      "parent_wall_id": "w21",
+      "segment_index": 3,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s4",
+      "name": "South Wall 21 part 4 \u2192 R56",
+      "facing": "South",
+      "length": "13.07 ft",
+      "length_raw": 13.07,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1385,
+        5595,
+        1630,
+        5595
+      ],
+      "room_id": "R56",
+      "parent_wall_id": "w21",
+      "segment_index": 4,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s5",
+      "name": "South Wall 21 part 5 \u2192 R57",
+      "facing": "South",
+      "length": "13.12 ft",
+      "length_raw": 13.12,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1630,
+        5595,
+        1876,
+        5595
+      ],
+      "room_id": "R57",
+      "parent_wall_id": "w21",
+      "segment_index": 5,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s6",
+      "name": "South Wall 21 part 6 \u2192 R58",
+      "facing": "South",
+      "length": "12.96 ft",
+      "length_raw": 12.96,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1876,
+        5595,
+        2119,
+        5595
+      ],
+      "room_id": "R58",
+      "parent_wall_id": "w21",
+      "segment_index": 6,
+      "segment_count": 7
+    },
+    {
+      "id": "w21.s7",
+      "name": "South Wall 21 part 7 \u2192 R59",
+      "facing": "South",
+      "length": "13.44 ft",
+      "length_raw": 13.44,
+      "angle_deg": 90.0,
+      "px_coords": [
+        2119,
+        5595,
+        2371,
+        5595
+      ],
+      "room_id": "R59",
+      "parent_wall_id": "w21",
+      "segment_index": 7,
+      "segment_count": 7
+    },
+    {
+      "id": "w22.s1",
+      "name": "East Wall 22 part 1 \u2192 R59",
+      "facing": "East",
+      "length": "16.64 ft",
+      "length_raw": 16.64,
+      "angle_deg": 0.2,
+      "px_coords": [
+        2371,
+        5595,
+        2372,
+        5283
+      ],
+      "room_id": "R59",
+      "parent_wall_id": "w22",
+      "segment_index": 1,
+      "segment_count": 2
+    },
+    {
+      "id": "w22.s2",
+      "name": "East Wall 22 part 2 \u2192 R38",
+      "facing": "East",
+      "length": "5.12 ft",
+      "length_raw": 5.12,
+      "angle_deg": 0.0,
+      "px_coords": [
+        2372,
+        5283,
+        2372,
+        5187
+      ],
+      "room_id": "R38",
+      "parent_wall_id": "w22",
+      "segment_index": 2,
+      "segment_count": 2
+    },
+    {
+      "id": "w23.s1",
+      "name": "South Wall 23 part 1 \u2192 R39",
+      "facing": "South",
+      "length": "22.72 ft",
+      "length_raw": 22.72,
+      "angle_deg": 90.0,
+      "px_coords": [
+        2372,
+        5187,
+        2798,
+        5187
+      ],
+      "room_id": "R39",
+      "parent_wall_id": "w23",
+      "segment_index": 1,
+      "segment_count": 5
+    },
+    {
+      "id": "w23.s2",
+      "name": "South Wall 23 part 2 \u2192 R40",
+      "facing": "South",
+      "length": "15.41 ft",
+      "length_raw": 15.41,
+      "angle_deg": 90.0,
+      "px_coords": [
+        2798,
+        5187,
+        3087,
+        5187
+      ],
+      "room_id": "R40",
+      "parent_wall_id": "w23",
+      "segment_index": 2,
+      "segment_count": 5
+    },
+    {
+      "id": "w23.s3",
+      "name": "South Wall 23 part 3 \u2192 R43",
+      "facing": "South",
+      "length": "11.52 ft",
+      "length_raw": 11.52,
+      "angle_deg": 90.0,
+      "px_coords": [
+        3087,
+        5187,
+        3303,
+        5187
+      ],
+      "room_id": "R43",
+      "parent_wall_id": "w23",
+      "segment_index": 3,
+      "segment_count": 5
+    },
+    {
+      "id": "w23.s4",
+      "name": "South Wall 23 part 4 \u2192 R44",
+      "facing": "South",
+      "length": "12.64 ft",
+      "length_raw": 12.64,
+      "angle_deg": 90.0,
+      "px_coords": [
+        3303,
+        5187,
+        3540,
+        5187
+      ],
+      "room_id": "R44",
+      "parent_wall_id": "w23",
+      "segment_index": 4,
+      "segment_count": 5
+    },
+    {
+      "id": "w23.s5",
+      "name": "South Wall 23 part 5 \u2192 R53",
+      "facing": "South",
+      "length": "5.92 ft",
+      "length_raw": 5.92,
+      "angle_deg": 90.0,
+      "px_coords": [
+        3540,
+        5187,
+        3651,
+        5187
+      ],
+      "room_id": "R53",
+      "parent_wall_id": "w23",
+      "segment_index": 5,
+      "segment_count": 5
+    },
+    {
+      "id": "w24.s1",
+      "name": "West Wall 24 part 1 \u2192 R46",
+      "facing": "West",
+      "length": "31.57 ft",
+      "length_raw": 31.57,
+      "angle_deg": 179.9,
+      "px_coords": [
+        3651,
+        5187,
+        3652,
+        5779
+      ],
+      "room_id": "R46",
+      "parent_wall_id": "w24",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w25.s1",
+      "name": "South Wall 25 part 1 \u2192 R46",
+      "facing": "South",
+      "length": "38.13 ft",
+      "length_raw": 38.13,
+      "angle_deg": 90.0,
+      "px_coords": [
+        3652,
+        5779,
+        4367,
+        5779
+      ],
+      "room_id": "R46",
+      "parent_wall_id": "w25",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w26.s1",
+      "name": "East Wall 26 part 1 \u2192 R46",
+      "facing": "East",
+      "length": "46.03 ft",
+      "length_raw": 46.03,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4367,
+        5779,
+        4367,
+        4916
+      ],
+      "room_id": "R46",
+      "parent_wall_id": "w26",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w27.s1",
+      "name": "South Wall 27 part 1 \u2192 R34",
+      "facing": "South",
+      "length": "4.91 ft",
+      "length_raw": 4.91,
+      "angle_deg": 89.4,
+      "px_coords": [
+        4367,
+        4916,
+        4459,
+        4915
+      ],
+      "room_id": "R34",
+      "parent_wall_id": "w27",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w28.s1",
+      "name": "East Wall 28 part 1 \u2192 R34",
+      "facing": "East",
+      "length": "14.03 ft",
+      "length_raw": 14.03,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4459,
+        4915,
+        4459,
+        4652
+      ],
+      "room_id": "R34",
+      "parent_wall_id": "w28",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w29.s1",
+      "name": "North Wall 29 part 1 \u2192 R34",
+      "facing": "North",
+      "length": "10.67 ft",
+      "length_raw": 10.67,
+      "angle_deg": 270.3,
+      "px_coords": [
+        4459,
+        4652,
+        4259,
+        4651
+      ],
+      "room_id": "R34",
+      "parent_wall_id": "w29",
+      "segment_index": 1,
+      "segment_count": 3
+    },
+    {
+      "id": "w29.s2",
+      "name": "North Wall 29 part 2 \u2192 (no room)",
+      "facing": "North",
+      "length": "4.48 ft",
+      "length_raw": 4.48,
+      "angle_deg": 270.0,
+      "px_coords": [
+        4259,
+        4651,
+        4175,
+        4651
+      ],
+      "room_id": null,
+      "parent_wall_id": "w29",
+      "segment_index": 2,
+      "segment_count": 3
+    },
+    {
+      "id": "w29.s3",
+      "name": "North Wall 29 part 3 \u2192 R36",
+      "facing": "North",
+      "length": "4.48 ft",
+      "length_raw": 4.48,
+      "angle_deg": 270.0,
+      "px_coords": [
+        4175,
+        4651,
+        4091,
+        4651
+      ],
+      "room_id": "R36",
+      "parent_wall_id": "w29",
+      "segment_index": 3,
+      "segment_count": 3
+    },
+    {
+      "id": "w30.s1",
+      "name": "East Wall 30 part 1 \u2192 R3",
+      "facing": "East",
+      "length": "16.80 ft",
+      "length_raw": 16.8,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4091,
+        4651,
+        4091,
+        4336
+      ],
+      "room_id": "R3",
+      "parent_wall_id": "w30",
+      "segment_index": 1,
+      "segment_count": 4
+    },
+    {
+      "id": "w30.s2",
+      "name": "East Wall 30 part 2 \u2192 R23",
+      "facing": "East",
+      "length": "8.64 ft",
+      "length_raw": 8.64,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4091,
+        4336,
+        4091,
+        4174
+      ],
+      "room_id": "R23",
+      "parent_wall_id": "w30",
+      "segment_index": 2,
+      "segment_count": 4
+    },
+    {
+      "id": "w30.s3",
+      "name": "East Wall 30 part 3 \u2192 R22",
+      "facing": "East",
+      "length": "29.55 ft",
+      "length_raw": 29.55,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4091,
+        4174,
+        4091,
+        3620
+      ],
+      "room_id": "R22",
+      "parent_wall_id": "w30",
+      "segment_index": 3,
+      "segment_count": 4
+    },
+    {
+      "id": "w30.s4",
+      "name": "East Wall 30 part 4 \u2192 R18",
+      "facing": "East",
+      "length": "21.12 ft",
+      "length_raw": 21.12,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4091,
+        3620,
+        4091,
+        3224
+      ],
+      "room_id": "R18",
+      "parent_wall_id": "w30",
+      "segment_index": 4,
+      "segment_count": 4
+    },
+    {
+      "id": "w31.s1",
+      "name": "South Wall 31 part 1 \u2192 R3",
+      "facing": "South",
+      "length": "10.24 ft",
+      "length_raw": 10.24,
+      "angle_deg": 89.7,
+      "px_coords": [
+        4091,
+        3224,
+        4283,
+        3223
+      ],
+      "room_id": "R3",
+      "parent_wall_id": "w31",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w32.s1",
+      "name": "West Wall 32 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "8.75 ft",
+      "length_raw": 8.75,
+      "angle_deg": 179.7,
+      "px_coords": [
+        4283,
+        3223,
+        4284,
+        3387
+      ],
+      "room_id": null,
+      "parent_wall_id": "w32",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w33.s1",
+      "name": "South Wall 33 part 1 \u2192 (no room)",
+      "facing": "South",
+      "length": "4.21 ft",
+      "length_raw": 4.21,
+      "angle_deg": 90.0,
+      "px_coords": [
+        4284,
+        3387,
+        4363,
+        3387
+      ],
+      "room_id": null,
+      "parent_wall_id": "w33",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w34.s1",
+      "name": "East Wall 34 part 1 \u2192 (no room)",
+      "facing": "East",
+      "length": "8.69 ft",
+      "length_raw": 8.69,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4363,
+        3387,
+        4363,
+        3224
+      ],
+      "room_id": null,
+      "parent_wall_id": "w34",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w35.s1",
+      "name": "South Wall 35 part 1 \u2192 R16",
+      "facing": "South",
+      "length": "8.11 ft",
+      "length_raw": 8.11,
+      "angle_deg": 88.1,
+      "px_coords": [
+        4363,
+        3224,
+        4515,
+        3219
+      ],
+      "room_id": "R16",
+      "parent_wall_id": "w35",
+      "segment_index": 1,
+      "segment_count": 1
+    },
+    {
+      "id": "w36.s1",
+      "name": "East Wall 36 part 1 \u2192 R16",
+      "facing": "East",
+      "length": "14.56 ft",
+      "length_raw": 14.56,
+      "angle_deg": 359.8,
+      "px_coords": [
+        4515,
+        3219,
+        4514,
+        2946
+      ],
+      "room_id": "R16",
+      "parent_wall_id": "w36",
+      "segment_index": 1,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s2",
+      "name": "East Wall 36 part 2 \u2192 R13",
+      "facing": "East",
+      "length": "12.48 ft",
+      "length_raw": 12.48,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4514,
+        2946,
+        4514,
+        2712
+      ],
+      "room_id": "R13",
+      "parent_wall_id": "w36",
+      "segment_index": 2,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s3",
+      "name": "East Wall 36 part 3 \u2192 R11",
+      "facing": "East",
+      "length": "14.24 ft",
+      "length_raw": 14.24,
+      "angle_deg": 359.8,
+      "px_coords": [
+        4514,
+        2712,
+        4513,
+        2445
+      ],
+      "room_id": "R11",
+      "parent_wall_id": "w36",
+      "segment_index": 3,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s4",
+      "name": "East Wall 36 part 4 \u2192 R9",
+      "facing": "East",
+      "length": "13.33 ft",
+      "length_raw": 13.33,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4513,
+        2445,
+        4513,
+        2195
+      ],
+      "room_id": "R9",
+      "parent_wall_id": "w36",
+      "segment_index": 4,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s5",
+      "name": "East Wall 36 part 5 \u2192 R7",
+      "facing": "East",
+      "length": "12.32 ft",
+      "length_raw": 12.32,
+      "angle_deg": 359.8,
+      "px_coords": [
+        4513,
+        2195,
+        4512,
+        1964
+      ],
+      "room_id": "R7",
+      "parent_wall_id": "w36",
+      "segment_index": 5,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s6",
+      "name": "East Wall 36 part 6 \u2192 R6",
+      "facing": "East",
+      "length": "13.28 ft",
+      "length_raw": 13.28,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4512,
+        1964,
+        4512,
+        1715
+      ],
+      "room_id": "R6",
+      "parent_wall_id": "w36",
+      "segment_index": 6,
+      "segment_count": 7
+    },
+    {
+      "id": "w36.s7",
+      "name": "East Wall 36 part 7 \u2192 (no room)",
+      "facing": "East",
+      "length": "14.88 ft",
+      "length_raw": 14.88,
+      "angle_deg": 359.8,
+      "px_coords": [
+        4512,
+        1715,
+        4511,
+        1436
+      ],
+      "room_id": null,
+      "parent_wall_id": "w36",
+      "segment_index": 7,
+      "segment_count": 7
+    }
+  ]
+}

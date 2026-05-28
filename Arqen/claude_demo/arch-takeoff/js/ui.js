@@ -54,11 +54,6 @@ function setScaleMode(m) {
   document.getElementById('dpi-field').style.display = isManual ? 'block' : 'none';
 }
 
-function setUnits(u) {
-  appState.units = u;
-  document.getElementById('radio-metric').classList.toggle('selected', u === 'metric');
-  document.getElementById('radio-imperial').classList.toggle('selected', u === 'imperial');
-}
 
 function toggleLayer(layer, btn) {
   appState.layers[layer] = !appState.layers[layer];

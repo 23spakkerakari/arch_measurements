@@ -24,9 +24,8 @@ async function startAnalysis() {
 
   const scaleMode   = appState.scaleMode;
   const manualScale = document.getElementById('manual-scale').value;
-  const units       = appState.units;
-  const planType    = document.getElementById('plan-type').value;
-  const detail      = document.getElementById('detail-level').value;
+  const units  = appState.units;
+  const detail = document.getElementById('detail-level').value;
 
   if (scaleMode === 'manual') {
     appState.imageDpi = parseInt(document.getElementById('image-dpi').value, 10) || 300;
@@ -45,7 +44,7 @@ async function startAnalysis() {
     ? 'Identify all walls including interior partitions. For each wall provide its name and facing direction.'
     : 'Identify the main exterior walls. For each wall provide its name and facing direction.';
 
-  const prompt = buildPrompt(scaleInstruction, detailInstr, units, planType, isManual);
+  const prompt = buildPrompt(scaleInstruction, detailInstr, units, isManual);
 
   try {
     const sourceUrl = appState.fileDataUrl || appState.imageDataUrl;
@@ -252,7 +251,7 @@ function computeWallLengths(data, scaleStr, dpi, units) {
 }
 
 // ── Prompt builder ──────────────────────────────────────
-function buildPrompt(scaleInstruction, detailInstr, units, planType, isManual) {
+function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
   const unitLabel = units === 'metric'
     ? 'metres (m) and square metres (m²)'
     : 'feet (ft) and square feet (ft²)';
@@ -281,7 +280,7 @@ bounding box of the overall building footprint.\n`
     : '';
 
   return `You are an expert architectural drawing analyst and quantity surveyor.
-Analyze this architectural ${planType === 'auto' ? 'drawing' : planType}.
+Analyze this architectural floor plan.
 
 SCALE INSTRUCTIONS: ${scaleInstruction}
 

@@ -10,7 +10,7 @@ const appState = {
   fileType: null,            // 'image' or 'pdf'
   scaleMode: 'auto',
   imageDpi: 300,
-  units: 'metric',
+  units: 'imperial',
   currentStep: 1,
   analysisResult: null,
   layers: { dims: true, labels: true },

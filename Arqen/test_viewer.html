@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arqen — Wall Viewer</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #0e0e0e;
+  color: #d8d8d8;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Left: plan ─────────────────────────────────── */
+#plan-panel {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background: #090909;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#plan-container {
+  position: relative;
+  line-height: 0;
+  max-width: 100%;
+  max-height: 100vh;
+}
+
+#plan-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+  user-select: none;
+}
+
+#overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Right: wall list ───────────────────────────── */
+#wall-panel {
+  width: 296px;
+  min-width: 296px;
+  background: #141414;
+  border-left: 1px solid #1f1f1f;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#panel-header {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #1f1f1f;
+  flex-shrink: 0;
+}
+
+#panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#panel-title span.count {
+  background: #222;
+  color: #888;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 10px;
+  letter-spacing: 0;
+}
+
+#panel-meta {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #3d3d3d;
+  line-height: 1.6;
+}
+
+#wall-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0 8px;
+}
+
+#wall-list::-webkit-scrollbar { width: 3px; }
+#wall-list::-webkit-scrollbar-track { background: transparent; }
+#wall-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+/* ── Wall item ──────────────────────────────────── */
+.wall-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 18px;
+  cursor: default;
+  border-left: 2px solid transparent;
+  transition: background 60ms, border-color 60ms;
+}
+
+.wall-item:hover,
+.wall-item.active {
+  background: #1c1c1c;
+}
+
+.wall-item.active  { border-left-color: var(--accent); }
+.wall-item:hover   { border-left-color: #333; }
+
+.wall-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #1e1e1e;
+  border: 1px solid #272727;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wall-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.wall-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wall-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #c8c8c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wall-item.active .wall-name {
+  color: #e8e8e8;
+}
+
+.wall-length {
+  font-size: 11px;
+  color: #555;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-chip {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+.wall-id {
+  font-size: 10px;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+/* ── Tooltip label that follows the highlighted wall ── */
+#wall-label {
+  position: fixed;
+  background: #111;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  display: none;
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+
+<div id="plan-panel">
+  <div id="plan-container">
+    <img id="plan-img"
+         src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEDCAIAAACUL8V2AAADZ0lEQVR4nO3UMQ0AMAzAsPLHU4Cj0G+KZCPIlVmAiPkdAHBlWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVhAhmEBGYYFZBgWkGFYQIZhARmGBWQYFpBhWECGYQEZhgVkGBaQYVjAVjxT0NU8zjOdwgAAAABJRU5ErkJggg=="
+         alt="Architectural Plan">
+    <canvas id="overlay-canvas"></canvas>
+  </div>
+</div>
+
+<div id="wall-panel">
+  <div id="panel-header">
+    <div id="panel-title">
+      Walls <span class="count">80</span>
+    </div>
+    <div id="panel-meta">Scale: 1in=16ft</div>
+  </div>
+  <div id="wall-list"></div>
+</div>
+
+<div id="wall-label"></div>
+
+<script>
+const WALLS       = [{"id": "w1.s1", "name": "North Wall 1 part 1 \u2192 (no room)", "facing": "North", "length": "5.12 ft", "length_raw": 5.12, "angle_deg": 269.4, "px_coords": [176, 56, 173, 56], "room_id": null, "parent_wall_id": "w1", "segment_index": 1, "segment_count": 4}, {"id": "w1.s2", "name": "North Wall 1 part 2 \u2192 R1", "facing": "North", "length": "5.60 ft", "length_raw": 5.6, "angle_deg": 270.0, "px_coords": [173, 56, 169, 56], "room_id": "R1", "parent_wall_id": "w1", "segment_index": 2, "segment_count": 4}, {"id": "w1.s3", "name": "North Wall 1 part 3 \u2192 R3", "facing": "North", "length": "11.04 ft", "length_raw": 11.04, "angle_deg": 269.7, "px_coords": [169, 56, 160, 56], "room_id": "R3", "parent_wall_id": "w1", "segment_index": 3, "segment_count": 4}, {"id": "w1.s4", "name": "North Wall 1 part 4 \u2192 R2", "facing": "North", "length": "16.80 ft", "length_raw": 16.8, "angle_deg": 269.6, "px_coords": [160, 56, 148, 56], "room_id": "R2", "parent_wall_id": "w1", "segment_index": 4, "segment_count": 4}, {"id": "w2.s1", "name": "West Wall 2 part 1 \u2192 R2", "facing": "West", "length": "14.88 ft", "length_raw": 14.88, "angle_deg": 180.0, "px_coords": [148, 56, 148, 67], "room_id": "R2", "parent_wall_id": "w2", "segment_index": 1, "segment_count": 6}, {"id": "w2.s2", "name": "West Wall 2 part 2 \u2192 R5", "facing": "West", "length": "13.28 ft", "length_raw": 13.28, "angle_deg": 180.0, "px_coords": [148, 67, 148, 77], "room_id": "R5", "parent_wall_id": "w2", "segment_index": 2, "segment_count": 6}, {"id": "w2.s3", "name": "West Wall 2 part 3 \u2192 R8", "facing": "West", "length": "13.28 ft", "length_raw": 13.28, "angle_deg": 180.0, "px_coords": [148, 77, 148, 87], "room_id": "R8", "parent_wall_id": "w2", "segment_index": 3, "segment_count": 6}, {"id": "w2.s4", "name": "West Wall 2 part 4 \u2192 R10", "facing": "West", "length": "12.00 ft", "length_raw": 12.0, "angle_deg": 180.0, "px_coords": [148, 87, 148, 95], "room_id": "R10", "parent_wall_id": "w2", "segment_index": 4, "segment_count": 6}, {"id": "w2.s5", "name": "West Wall 2 part 5 \u2192 R12", "facing": "West", "length": "15.20 ft", "length_raw": 15.2, "angle_deg": 180.0, "px_coords": [148, 95, 148, 107], "room_id": "R12", "parent_wall_id": "w2", "segment_index": 5, "segment_count": 6}, {"id": "w2.s6", "name": "West Wall 2 part 6 \u2192 R14", "facing": "West", "length": "10.88 ft", "length_raw": 10.88, "angle_deg": 180.0, "px_coords": [148, 107, 148, 115], "room_id": "R14", "parent_wall_id": "w2", "segment_index": 6, "segment_count": 6}, {"id": "w3.s1", "name": "North Wall 3 part 1 \u2192 R3", "facing": "North", "length": "5.12 ft", "length_raw": 5.12, "angle_deg": 270.0, "px_coords": [148, 115, 144, 115], "room_id": "R3", "parent_wall_id": "w3", "segment_index": 1, "segment_count": 2}, {"id": "w3.s2", "name": "North Wall 3 part 2 \u2192 R17", "facing": "North", "length": "16.21 ft", "length_raw": 16.21, "angle_deg": 269.8, "px_coords": [144, 115, 132, 115], "room_id": "R17", "parent_wall_id": "w3", "segment_index": 2, "segment_count": 2}, {"id": "w4.s1", "name": "West Wall 4 part 1 \u2192 R17", "facing": "West", "length": "15.25 ft", "length_raw": 15.25, "angle_deg": 180.0, "px_coords": [132, 115, 132, 126], "room_id": "R17", "parent_wall_id": "w4", "segment_index": 1, "segment_count": 2}, {"id": "w4.s2", "name": "West Wall 4 part 2 \u2192 R19", "facing": "West", "length": "13.28 ft", "length_raw": 13.28, "angle_deg": 180.0, "px_coords": [132, 126, 132, 136], "room_id": "R19", "parent_wall_id": "w4", "segment_index": 2, "segment_count": 2}, {"id": "w5.s1", "name": "North Wall 5 part 1 \u2192 R21", "facing": "North", "length": "6.19 ft", "length_raw": 6.19, "angle_deg": 267.5, "px_coords": [132, 136, 128, 136], "room_id": "R21", "parent_wall_id": "w5", "segment_index": 1, "segment_count": 1}, {"id": "w6.s1", "name": "West Wall 6 part 1 \u2192 R21", "facing": "West", "length": "14.45 ft", "length_raw": 14.45, "angle_deg": 180.0, "px_coords": [128, 136, 128, 146], "room_id": "R21", "parent_wall_id": "w6", "segment_index": 1, "segment_count": 1}, {"id": "w7.s1", "name": "South Wall 7 part 1 \u2192 (no room)", "facing": "South", "length": "6.19 ft", "length_raw": 6.19, "angle_deg": 90.5, "px_coords": [128, 146, 132, 146], "room_id": null, "parent_wall_id": "w7", "segment_index": 1, "segment_count": 1}, {"id": "w8.s1", "name": "West Wall 8 part 1 \u2192 R20", "facing": "West", "length": "22.99 ft", "length_raw": 22.99, "angle_deg": 180.0, "px_coords": [132, 146, 132, 163], "room_id": "R20", "parent_wall_id": "w8", "segment_index": 1, "segment_count": 2}, {"id": "w8.s2", "name": "West Wall 8 part 2 \u2192 R24", "facing": "West", "length": "4.48 ft", "length_raw": 4.48, "angle_deg": 180.0, "px_coords": [132, 163, 132, 167], "room_id": "R24", "parent_wall_id": "w8", "segment_index": 2, "segment_count": 2}, {"id": "w9.s1", "name": "North Wall 9 part 1 \u2192 (no room)", "facing": "North", "length": "5.97 ft", "length_raw": 5.97, "angle_deg": 269.5, "px_coords": [132, 167, 128, 167], "room_id": null, "parent_wall_id": "w9", "segment_index": 1, "segment_count": 1}, {"id": "w10.s1", "name": "West Wall 10 part 1 \u2192 (no room)", "facing": "West", "length": "3.37 ft", "length_raw": 3.37, "angle_deg": 183.6, "px_coords": [128, 167, 128, 169], "room_id": null, "parent_wall_id": "w10", "segment_index": 1, "segment_count": 1}, {"id": "w11.s1", "name": "South Wall 11 part 1 \u2192 (no room)", "facing": "South", "length": "6.19 ft", "length_raw": 6.19, "angle_deg": 90.5, "px_coords": [128, 169, 132, 169], "room_id": null, "parent_wall_id": "w11", "segment_index": 1, "segment_count": 1}, {"id": "w12.s1", "name": "West Wall 12 part 1 \u2192 R27", "facing": "West", "length": "7.41 ft", "length_raw": 7.41, "angle_deg": 180.0, "px_coords": [132, 169, 132, 175], "room_id": "R27", "parent_wall_id": "w12", "segment_index": 1, "segment_count": 1}, {"id": "w13.s1", "name": "North Wall 13 part 1 \u2192 (no room)", "facing": "North", "length": "13.01 ft", "length_raw": 13.01, "angle_deg": 269.8, "px_coords": [132, 175, 123, 175], "room_id": null, "parent_wall_id": "w13", "segment_index": 1, "segment_count": 1}, {"id": "w14.s1", "name": "East Wall 14 part 1 \u2192 (no room)", "facing": "East", "length": "5.33 ft", "length_raw": 5.33, "angle_deg": 359.4, "px_coords": [123, 175, 123, 171], "room_id": null, "parent_wall_id": "w14", "segment_index": 1, "segment_count": 1}, {"id": "w15.s1", "name": "North Wall 15 part 1 \u2192 R26", "facing": "North", "length": "9.12 ft", "length_raw": 9.12, "angle_deg": 271.3, "px_coords": [123, 171, 116, 171], "room_id": "R26", "parent_wall_id": "w15", "segment_index": 1, "segment_count": 1}, {"id": "w16.s1", "name": "West Wall 16 part 1 \u2192 R26", "facing": "West", "length": "5.55 ft", "length_raw": 5.55, "angle_deg": 180.6, "px_coords": [116, 171, 116, 175], "room_id": "R26", "parent_wall_id": "w16", "segment_index": 1, "segment_count": 1}, {"id": "w17.s1", "name": "North Wall 17 part 1 \u2192 R30", "facing": "North", "length": "8.32 ft", "length_raw": 8.32, "angle_deg": 270.0, "px_coords": [116, 175, 110, 175], "room_id": "R30", "parent_wall_id": "w17", "segment_index": 1, "segment_count": 3}, {"id": "w17.s2", "name": "North Wall 17 part 2 \u2192 R29", "facing": "North", "length": "24.32 ft", "length_raw": 24.32, "angle_deg": 270.0, "px_coords": [110, 175, 92, 175], "room_id": "R29", "parent_wall_id": "w17", "segment_index": 2, "segment_count": 3}, {"id": "w17.s3", "name": "North Wall 17 part 3 \u2192 R28", "facing": "North", "length": "14.88 ft", "length_raw": 14.88, "angle_deg": 270.0, "px_coords": [92, 175, 81, 175], "room_id": "R28", "parent_wall_id": "w17", "segment_index": 3, "segment_count": 3}, {"id": "w18.s1", "name": "West Wall 18 part 1 \u2192 R28", "facing": "West", "length": "17.17 ft", "length_raw": 17.17, "angle_deg": 180.2, "px_coords": [81, 175, 81, 187], "room_id": "R28", "parent_wall_id": "w18", "segment_index": 1, "segment_count": 2}, {"id": "w18.s2", "name": "West Wall 18 part 2 \u2192 R38", "facing": "West", "length": "4.80 ft", "length_raw": 4.8, "angle_deg": 180.0, "px_coords": [81, 187, 81, 191], "room_id": "R38", "parent_wall_id": "w18", "segment_index": 2, "segment_count": 2}, {"id": "w19.s1", "name": "North Wall 19 part 1 \u2192 R42", "facing": "North", "length": "10.24 ft", "length_raw": 10.24, "angle_deg": 270.0, "px_coords": [81, 191, 74, 191], "room_id": "R42", "parent_wall_id": "w19", "segment_index": 1, "segment_count": 6}, {"id": "w19.s2", "name": "North Wall 19 part 2 \u2192 R51", "facing": "North", "length": "14.56 ft", "length_raw": 14.56, "angle_deg": 270.0, "px_coords": [74, 191, 63, 191], "room_id": "R51", "parent_wall_id": "w19", "segment_index": 2, "segment_count": 6}, {"id": "w19.s3", "name": "North Wall 19 part 3 \u2192 R50", "facing": "North", "length": "12.16 ft", "length_raw": 12.16, "angle_deg": 270.0, "px_coords": [63, 191, 54, 191], "room_id": "R50", "parent_wall_id": "w19", "segment_index": 3, "segment_count": 6}, {"id": "w19.s4", "name": "North Wall 19 part 4 \u2192 R49", "facing": "North", "length": "14.29 ft", "length_raw": 14.29, "angle_deg": 270.0, "px_coords": [54, 191, 43, 191], "room_id": "R49", "parent_wall_id": "w19", "segment_index": 4, "segment_count": 6}, {"id": "w19.s5", "name": "North Wall 19 part 5 \u2192 R48", "facing": "North", "length": "12.96 ft", "length_raw": 12.96, "angle_deg": 270.0, "px_coords": [43, 191, 34, 191], "room_id": "R48", "parent_wall_id": "w19", "segment_index": 5, "segment_count": 6}, {"id": "w19.s6", "name": "North Wall 19 part 6 \u2192 R47", "facing": "North", "length": "13.60 ft", "length_raw": 13.6, "angle_deg": 270.0, "px_coords": [34, 191, 24, 191], "room_id": "R47", "parent_wall_id": "w19", "segment_index": 6, "segment_count": 6}, {"id": "w20.s1", "name": "West Wall 20 part 1 \u2192 R47", "facing": "West", "length": "16.64 ft", "length_raw": 16.64, "angle_deg": 180.0, "px_coords": [24, 191, 24, 203], "room_id": "R47", "parent_wall_id": "w20", "segment_index": 1, "segment_count": 4}, {"id": "w20.s2", "name": "West Wall 20 part 2 \u2192 R38", "facing": "West", "length": "10.99 ft", "length_raw": 10.99, "angle_deg": 180.0, "px_coords": [24, 203, 24, 211], "room_id": "R38", "parent_wall_id": "w20", "segment_index": 2, "segment_count": 4}, {"id": "w20.s3", "name": "West Wall 20 part 3 \u2192 R61", "facing": "West", "length": "5.92 ft", "length_raw": 5.92, "angle_deg": 180.0, "px_coords": [24, 211, 24, 216], "room_id": "R61", "parent_wall_id": "w20", "segment_index": 3, "segment_count": 4}, {"id": "w20.s4", "name": "West Wall 20 part 4 \u2192 (no room)", "facing": "West", "length": "4.80 ft", "length_raw": 4.8, "angle_deg": 180.0, "px_coords": [24, 216, 24, 219], "room_id": null, "parent_wall_id": "w20", "segment_index": 4, "segment_count": 4}, {"id": "w21.s1", "name": "South Wall 21 part 1 \u2192 (no room)", "facing": "South", "length": "14.40 ft", "length_raw": 14.4, "angle_deg": 90.0, "px_coords": [24, 219, 34, 219], "room_id": null, "parent_wall_id": "w21", "segment_index": 1, "segment_count": 7}, {"id": "w21.s2", "name": "South Wall 21 part 2 \u2192 R60", "facing": "South", "length": "13.12 ft", "length_raw": 13.12, "angle_deg": 90.0, "px_coords": [34, 219, 44, 219], "room_id": "R60", "parent_wall_id": "w21", "segment_index": 2, "segment_count": 7}, {"id": "w21.s3", "name": "South Wall 21 part 3 \u2192 R55", "facing": "South", "length": "13.28 ft", "length_raw": 13.28, "angle_deg": 90.0, "px_coords": [44, 219, 54, 219], "room_id": "R55", "parent_wall_id": "w21", "segment_index": 3, "segment_count": 7}, {"id": "w21.s4", "name": "South Wall 21 part 4 \u2192 R56", "facing": "South", "length": "13.07 ft", "length_raw": 13.07, "angle_deg": 90.0, "px_coords": [54, 219, 63, 219], "room_id": "R56", "parent_wall_id": "w21", "segment_index": 4, "segment_count": 7}, {"id": "w21.s5", "name": "South Wall 21 part 5 \u2192 R57", "facing": "South", "length": "13.12 ft", "length_raw": 13.12, "angle_deg": 90.0, "px_coords": [63, 219, 73, 219], "room_id": "R57", "parent_wall_id": "w21", "segment_index": 5, "segment_count": 7}, {"id": "w21.s6", "name": "South Wall 21 part 6 \u2192 R58", "facing": "South", "length": "12.96 ft", "length_raw": 12.96, "angle_deg": 90.0, "px_coords": [73, 219, 83, 219], "room_id": "R58", "parent_wall_id": "w21", "segment_index": 6, "segment_count": 7}, {"id": "w21.s7", "name": "South Wall 21 part 7 \u2192 R59", "facing": "South", "length": "13.44 ft", "length_raw": 13.44, "angle_deg": 90.0, "px_coords": [83, 219, 92, 219], "room_id": "R59", "parent_wall_id": "w21", "segment_index": 7, "segment_count": 7}, {"id": "w22.s1", "name": "East Wall 22 part 1 \u2192 R59", "facing": "East", "length": "16.64 ft", "length_raw": 16.64, "angle_deg": 0.2, "px_coords": [92, 219, 93, 207], "room_id": "R59", "parent_wall_id": "w22", "segment_index": 1, "segment_count": 2}, {"id": "w22.s2", "name": "East Wall 22 part 2 \u2192 R38", "facing": "East", "length": "5.12 ft", "length_raw": 5.12, "angle_deg": 0.0, "px_coords": [93, 207, 93, 203], "room_id": "R38", "parent_wall_id": "w22", "segment_index": 2, "segment_count": 2}, {"id": "w23.s1", "name": "South Wall 23 part 1 \u2192 R39", "facing": "South", "length": "22.72 ft", "length_raw": 22.72, "angle_deg": 90.0, "px_coords": [93, 203, 109, 203], "room_id": "R39", "parent_wall_id": "w23", "segment_index": 1, "segment_count": 5}, {"id": "w23.s2", "name": "South Wall 23 part 2 \u2192 R40", "facing": "South", "length": "15.41 ft", "length_raw": 15.41, "angle_deg": 90.0, "px_coords": [109, 203, 121, 203], "room_id": "R40", "parent_wall_id": "w23", "segment_index": 2, "segment_count": 5}, {"id": "w23.s3", "name": "South Wall 23 part 3 \u2192 R43", "facing": "South", "length": "11.52 ft", "length_raw": 11.52, "angle_deg": 90.0, "px_coords": [121, 203, 129, 203], "room_id": "R43", "parent_wall_id": "w23", "segment_index": 3, "segment_count": 5}, {"id": "w23.s4", "name": "South Wall 23 part 4 \u2192 R44", "facing": "South", "length": "12.64 ft", "length_raw": 12.64, "angle_deg": 90.0, "px_coords": [129, 203, 138, 203], "room_id": "R44", "parent_wall_id": "w23", "segment_index": 4, "segment_count": 5}, {"id": "w23.s5", "name": "South Wall 23 part 5 \u2192 R53", "facing": "South", "length": "5.92 ft", "length_raw": 5.92, "angle_deg": 90.0, "px_coords": [138, 203, 143, 203], "room_id": "R53", "parent_wall_id": "w23", "segment_index": 5, "segment_count": 5}, {"id": "w24.s1", "name": "West Wall 24 part 1 \u2192 R46", "facing": "West", "length": "31.57 ft", "length_raw": 31.57, "angle_deg": 179.9, "px_coords": [143, 203, 143, 226], "room_id": "R46", "parent_wall_id": "w24", "segment_index": 1, "segment_count": 1}, {"id": "w25.s1", "name": "South Wall 25 part 1 \u2192 R46", "facing": "South", "length": "38.13 ft", "length_raw": 38.13, "angle_deg": 90.0, "px_coords": [143, 226, 171, 226], "room_id": "R46", "parent_wall_id": "w25", "segment_index": 1, "segment_count": 1}, {"id": "w26.s1", "name": "East Wall 26 part 1 \u2192 R46", "facing": "East", "length": "46.03 ft", "length_raw": 46.03, "angle_deg": 0.0, "px_coords": [171, 226, 171, 192], "room_id": "R46", "parent_wall_id": "w26", "segment_index": 1, "segment_count": 1}, {"id": "w27.s1", "name": "South Wall 27 part 1 \u2192 R34", "facing": "South", "length": "4.91 ft", "length_raw": 4.91, "angle_deg": 89.4, "px_coords": [171, 192, 174, 192], "room_id": "R34", "parent_wall_id": "w27", "segment_index": 1, "segment_count": 1}, {"id": "w28.s1", "name": "East Wall 28 part 1 \u2192 R34", "facing": "East", "length": "14.03 ft", "length_raw": 14.03, "angle_deg": 0.0, "px_coords": [174, 192, 174, 182], "room_id": "R34", "parent_wall_id": "w28", "segment_index": 1, "segment_count": 1}, {"id": "w29.s1", "name": "North Wall 29 part 1 \u2192 R34", "facing": "North", "length": "10.67 ft", "length_raw": 10.67, "angle_deg": 270.3, "px_coords": [174, 182, 167, 182], "room_id": "R34", "parent_wall_id": "w29", "segment_index": 1, "segment_count": 3}, {"id": "w29.s2", "name": "North Wall 29 part 2 \u2192 (no room)", "facing": "North", "length": "4.48 ft", "length_raw": 4.48, "angle_deg": 270.0, "px_coords": [167, 182, 163, 182], "room_id": null, "parent_wall_id": "w29", "segment_index": 2, "segment_count": 3}, {"id": "w29.s3", "name": "North Wall 29 part 3 \u2192 R36", "facing": "North", "length": "4.48 ft", "length_raw": 4.48, "angle_deg": 270.0, "px_coords": [163, 182, 160, 182], "room_id": "R36", "parent_wall_id": "w29", "segment_index": 3, "segment_count": 3}, {"id": "w30.s1", "name": "East Wall 30 part 1 \u2192 R3", "facing": "East", "length": "16.80 ft", "length_raw": 16.8, "angle_deg": 0.0, "px_coords": [160, 182, 160, 170], "room_id": "R3", "parent_wall_id": "w30", "segment_index": 1, "segment_count": 4}, {"id": "w30.s2", "name": "East Wall 30 part 2 \u2192 R23", "facing": "East", "length": "8.64 ft", "length_raw": 8.64, "angle_deg": 0.0, "px_coords": [160, 170, 160, 163], "room_id": "R23", "parent_wall_id": "w30", "segment_index": 2, "segment_count": 4}, {"id": "w30.s3", "name": "East Wall 30 part 3 \u2192 R22", "facing": "East", "length": "29.55 ft", "length_raw": 29.55, "angle_deg": 0.0, "px_coords": [160, 163, 160, 142], "room_id": "R22", "parent_wall_id": "w30", "segment_index": 3, "segment_count": 4}, {"id": "w30.s4", "name": "East Wall 30 part 4 \u2192 R18", "facing": "East", "length": "21.12 ft", "length_raw": 21.12, "angle_deg": 0.0, "px_coords": [160, 142, 160, 126], "room_id": "R18", "parent_wall_id": "w30", "segment_index": 4, "segment_count": 4}, {"id": "w31.s1", "name": "South Wall 31 part 1 \u2192 R3", "facing": "South", "length": "10.24 ft", "length_raw": 10.24, "angle_deg": 89.7, "px_coords": [160, 126, 167, 126], "room_id": "R3", "parent_wall_id": "w31", "segment_index": 1, "segment_count": 1}, {"id": "w32.s1", "name": "West Wall 32 part 1 \u2192 (no room)", "facing": "West", "length": "8.75 ft", "length_raw": 8.75, "angle_deg": 179.7, "px_coords": [167, 126, 168, 132], "room_id": null, "parent_wall_id": "w32", "segment_index": 1, "segment_count": 1}, {"id": "w33.s1", "name": "South Wall 33 part 1 \u2192 (no room)", "facing": "South", "length": "4.21 ft", "length_raw": 4.21, "angle_deg": 90.0, "px_coords": [168, 132, 171, 132], "room_id": null, "parent_wall_id": "w33", "segment_index": 1, "segment_count": 1}, {"id": "w34.s1", "name": "East Wall 34 part 1 \u2192 (no room)", "facing": "East", "length": "8.69 ft", "length_raw": 8.69, "angle_deg": 0.0, "px_coords": [171, 132, 171, 126], "room_id": null, "parent_wall_id": "w34", "segment_index": 1, "segment_count": 1}, {"id": "w35.s1", "name": "South Wall 35 part 1 \u2192 R16", "facing": "South", "length": "8.11 ft", "length_raw": 8.11, "angle_deg": 88.1, "px_coords": [171, 126, 177, 126], "room_id": "R16", "parent_wall_id": "w35", "segment_index": 1, "segment_count": 1}, {"id": "w36.s1", "name": "East Wall 36 part 1 \u2192 R16", "facing": "East", "length": "14.56 ft", "length_raw": 14.56, "angle_deg": 359.8, "px_coords": [177, 126, 177, 115], "room_id": "R16", "parent_wall_id": "w36", "segment_index": 1, "segment_count": 7}, {"id": "w36.s2", "name": "East Wall 36 part 2 \u2192 R13", "facing": "East", "length": "12.48 ft", "length_raw": 12.48, "angle_deg": 0.0, "px_coords": [177, 115, 177, 106], "room_id": "R13", "parent_wall_id": "w36", "segment_index": 2, "segment_count": 7}, {"id": "w36.s3", "name": "East Wall 36 part 3 \u2192 R11", "facing": "East", "length": "14.24 ft", "length_raw": 14.24, "angle_deg": 359.8, "px_coords": [177, 106, 176, 95], "room_id": "R11", "parent_wall_id": "w36", "segment_index": 3, "segment_count": 7}, {"id": "w36.s4", "name": "East Wall 36 part 4 \u2192 R9", "facing": "East", "length": "13.33 ft", "length_raw": 13.33, "angle_deg": 0.0, "px_coords": [176, 95, 176, 86], "room_id": "R9", "parent_wall_id": "w36", "segment_index": 4, "segment_count": 7}, {"id": "w36.s5", "name": "East Wall 36 part 5 \u2192 R7", "facing": "East", "length": "12.32 ft", "length_raw": 12.32, "angle_deg": 359.8, "px_coords": [176, 86, 176, 77], "room_id": "R7", "parent_wall_id": "w36", "segment_index": 5, "segment_count": 7}, {"id": "w36.s6", "name": "East Wall 36 part 6 \u2192 R6", "facing": "East", "length": "13.28 ft", "length_raw": 13.28, "angle_deg": 0.0, "px_coords": [176, 77, 176, 67], "room_id": "R6", "parent_wall_id": "w36", "segment_index": 6, "segment_count": 7}, {"id": "w36.s7", "name": "East Wall 36 part 7 \u2192 (no room)", "facing": "East", "length": "14.88 ft", "length_raw": 14.88, "angle_deg": 359.8, "px_coords": [176, 67, 176, 56], "room_id": null, "parent_wall_id": "w36", "segment_index": 7, "segment_count": 7}];
+const ROOMS       = [{"id": "R1", "area_px": 11770, "centroid_px": [171, 59], "bbox_px": [4313, 1449, 4418, 1578], "area": "33.5 ft\u00b2", "area_raw": 33.48}, {"id": "R2", "area_px": 57940, "centroid_px": [154, 62], "bbox_px": [3821, 1467, 4101, 1704], "area": "164.8 ft\u00b2", "area_raw": 164.81}, {"id": "R3", "area_px": 574548, "centroid_px": [152, 143], "bbox_px": [3340, 1467, 4302, 4927], "area": "1634.3 ft\u00b2", "area_raw": 1634.27}, {"id": "R4", "area_px": 14693, "centroid_px": [168, 65], "bbox_px": [4202, 1612, 4385, 1706], "area": "41.8 ft\u00b2", "area_raw": 41.79}, {"id": "R5", "area_px": 55818, "centroid_px": [154, 71], "bbox_px": [3821, 1717, 4101, 1952], "area": "158.8 ft\u00b2", "area_raw": 158.77}, {"id": "R6", "area_px": 57268, "centroid_px": [170, 72], "bbox_px": [4210, 1716, 4480, 1955], "area": "162.9 ft\u00b2", "area_raw": 162.9}, {"id": "R7", "area_px": 56278, "centroid_px": [170, 81], "bbox_px": [4202, 1965, 4480, 2199], "area": "160.1 ft\u00b2", "area_raw": 160.08}, {"id": "R8", "area_px": 55428, "centroid_px": [154, 81], "bbox_px": [3821, 1966, 4101, 2197], "area": "157.7 ft\u00b2", "area_raw": 157.66}, {"id": "R9", "area_px": 56551, "centroid_px": [170, 91], "bbox_px": [4202, 2209, 4480, 2446], "area": "160.9 ft\u00b2", "area_raw": 160.86}, {"id": "R10", "area_px": 54365, "centroid_px": [154, 91], "bbox_px": [3821, 2216, 4099, 2442], "area": "154.6 ft\u00b2", "area_raw": 154.64}, {"id": "R11", "area_px": 58948, "centroid_px": [170, 101], "bbox_px": [4202, 2456, 4480, 2702], "area": "167.7 ft\u00b2", "area_raw": 167.67}, {"id": "R12", "area_px": 55921, "centroid_px": [154, 101], "bbox_px": [3822, 2462, 4099, 2695], "area": "159.1 ft\u00b2", "area_raw": 159.06}, {"id": "R13", "area_px": 55530, "centroid_px": [170, 111], "bbox_px": [4205, 2714, 4480, 2947], "area": "158.0 ft\u00b2", "area_raw": 157.95}, {"id": "R14", "area_px": 45515, "centroid_px": [154, 110], "bbox_px": [3823, 2727, 4100, 2943], "area": "129.5 ft\u00b2", "area_raw": 129.46}, {"id": "R15", "area_px": 21601, "centroid_px": [155, 118], "bbox_px": [3886, 2955, 4067, 3086], "area": "61.4 ft\u00b2", "area_raw": 61.44}, {"id": "R16", "area_px": 54169, "centroid_px": [170, 120], "bbox_px": [4205, 2958, 4480, 3190], "area": "154.1 ft\u00b2", "area_raw": 154.08}, {"id": "R17", "area_px": 64069, "centroid_px": [139, 121], "bbox_px": [3419, 2964, 3684, 3215], "area": "182.2 ft\u00b2", "area_raw": 182.24}, {"id": "R18", "area_px": 106691, "centroid_px": [154, 133], "bbox_px": [3806, 3203, 4063, 3623], "area": "303.5 ft\u00b2", "area_raw": 303.48}, {"id": "R19", "area_px": 45596, "centroid_px": [137, 131], "bbox_px": [3420, 3218, 3599, 3505], "area": "129.7 ft\u00b2", "area_raw": 129.7}, {"id": "R20", "area_px": 191485, "centroid_px": [139, 148], "bbox_px": [3399, 3218, 3692, 4160], "area": "544.7 ft\u00b2", "area_raw": 544.67}, {"id": "R21", "area_px": 22770, "centroid_px": [130, 140], "bbox_px": [3286, 3482, 3396, 3689], "area": "64.8 ft\u00b2", "area_raw": 64.77}, {"id": "R22", "area_px": 117657, "centroid_px": [154, 153], "bbox_px": [3800, 3655, 4061, 4164], "area": "334.7 ft\u00b2", "area_raw": 334.67}, {"id": "R23", "area_px": 42162, "centroid_px": [154, 166], "bbox_px": [3807, 4146, 4061, 4349], "area": "119.9 ft\u00b2", "area_raw": 119.93}, {"id": "R24", "area_px": 27328, "centroid_px": [136, 167], "bbox_px": [3418, 4163, 3557, 4367], "area": "77.7 ft\u00b2", "area_raw": 77.73}, {"id": "R25", "area_px": 20196, "centroid_px": [142, 167], "bbox_px": [3580, 4163, 3679, 4367], "area": "57.4 ft\u00b2", "area_raw": 57.45}, {"id": "R26", "area_px": 10177, "centroid_px": [119, 173], "bbox_px": [2998, 4386, 3118, 4472], "area": "28.9 ft\u00b2", "area_raw": 28.95}, {"id": "R27", "area_px": 19213, "centroid_px": [138, 174], "bbox_px": [3420, 4401, 3654, 4486], "area": "54.7 ft\u00b2", "area_raw": 54.65}, {"id": "R28", "area_px": 66076, "centroid_px": [87, 181], "bbox_px": [2113, 4494, 2360, 4772], "area": "187.9 ft\u00b2", "area_raw": 187.95}, {"id": "R29", "area_px": 116492, "centroid_px": [101, 181], "bbox_px": [2373, 4497, 2804, 4772], "area": "331.4 ft\u00b2", "area_raw": 331.36}, {"id": "R30", "area_px": 74807, "centroid_px": [115, 181], "bbox_px": [2817, 4497, 3097, 4772], "area": "212.8 ft\u00b2", "area_raw": 212.78}, {"id": "R31", "area_px": 12756, "centroid_px": [129, 183], "bbox_px": [3263, 4576, 3346, 4772], "area": "36.3 ft\u00b2", "area_raw": 36.28}, {"id": "R32", "area_px": 22266, "centroid_px": [140, 183], "bbox_px": [3522, 4586, 3655, 4772], "area": "63.3 ft\u00b2", "area_raw": 63.33}, {"id": "R33", "area_px": 13974, "centroid_px": [133, 184], "bbox_px": [3356, 4639, 3467, 4772], "area": "39.7 ft\u00b2", "area_raw": 39.75}, {"id": "R34", "area_px": 23932, "centroid_px": [172, 187], "bbox_px": [4338, 4665, 4450, 4905], "area": "68.1 ft\u00b2", "area_raw": 68.07}, {"id": "R35", "area_px": 12039, "centroid_px": [124, 185], "bbox_px": [3107, 4679, 3245, 4772], "area": "34.2 ft\u00b2", "area_raw": 34.24}, {"id": "R36", "area_px": 18479, "centroid_px": [161, 187], "bbox_px": [4078, 4691, 4177, 4885], "area": "52.6 ft\u00b2", "area_raw": 52.56}, {"id": "R37", "area_px": 13060, "centroid_px": [168, 187], "bbox_px": [4259, 4691, 4327, 4885], "area": "37.1 ft\u00b2", "area_raw": 37.15}, {"id": "R38", "area_px": 307227, "centroid_px": [77, 199], "bbox_px": [651, 4785, 3328, 5384], "area": "873.9 ft\u00b2", "area_raw": 873.89}, {"id": "R39", "area_px": 113606, "centroid_px": [100, 197], "bbox_px": [2361, 4885, 2777, 5160], "area": "323.1 ft\u00b2", "area_raw": 323.15}, {"id": "R40", "area_px": 54498, "centroid_px": [114, 198], "bbox_px": [2798, 4885, 3083, 5160], "area": "155.0 ft\u00b2", "area_raw": 155.02}, {"id": "R41", "area_px": 12047, "centroid_px": [115, 193], "bbox_px": [2877, 4885, 3017, 4974], "area": "34.3 ft\u00b2", "area_raw": 34.27}, {"id": "R42", "area_px": 50374, "centroid_px": [79, 195], "bbox_px": [1890, 4887, 2242, 5132], "area": "143.3 ft\u00b2", "area_raw": 143.29}, {"id": "R43", "area_px": 71960, "centroid_px": [126, 196], "bbox_px": [3037, 4888, 3434, 5160], "area": "204.7 ft\u00b2", "area_raw": 204.69}, {"id": "R44", "area_px": 45499, "centroid_px": [134, 198], "bbox_px": [3311, 4888, 3549, 5160], "area": "129.4 ft\u00b2", "area_raw": 129.42}, {"id": "R45", "area_px": 10219, "centroid_px": [141, 194], "bbox_px": [3573, 4888, 3653, 5022], "area": "29.1 ft\u00b2", "area_raw": 29.07}, {"id": "R46", "area_px": 534569, "centroid_px": [157, 209], "bbox_px": [3675, 4897, 4356, 5755], "area": "1520.6 ft\u00b2", "area_raw": 1520.55}, {"id": "R47", "area_px": 54843, "centroid_px": [29, 197], "bbox_px": [651, 4905, 876, 5185], "area": "156.0 ft\u00b2", "area_raw": 156.0}, {"id": "R48", "area_px": 55230, "centroid_px": [39, 197], "bbox_px": [896, 4905, 1120, 5185], "area": "157.1 ft\u00b2", "area_raw": 157.1}, {"id": "R49", "area_px": 55997, "centroid_px": [49, 197], "bbox_px": [1141, 4905, 1373, 5185], "area": "159.3 ft\u00b2", "area_raw": 159.28}, {"id": "R50", "area_px": 55054, "centroid_px": [58, 197], "bbox_px": [1389, 4905, 1615, 5185], "area": "156.6 ft\u00b2", "area_raw": 156.6}, {"id": "R51", "area_px": 55465, "centroid_px": [68, 197], "bbox_px": [1633, 4905, 1860, 5185], "area": "157.8 ft\u00b2", "area_raw": 157.77}, {"id": "R52", "area_px": 22661, "centroid_px": [85, 198], "bbox_px": [2104, 4975, 2242, 5157], "area": "64.5 ft\u00b2", "area_raw": 64.46}, {"id": "R53", "area_px": 10776, "centroid_px": [140, 200], "bbox_px": [3538, 5037, 3631, 5160], "area": "30.7 ft\u00b2", "area_raw": 30.65}, {"id": "R54", "area_px": 14117, "centroid_px": [32, 210], "bbox_px": [786, 5288, 881, 5468], "area": "40.2 ft\u00b2", "area_raw": 40.16}, {"id": "R55", "area_px": 58549, "centroid_px": [49, 213], "bbox_px": [1135, 5288, 1373, 5567], "area": "166.5 ft\u00b2", "area_raw": 166.54}, {"id": "R56", "area_px": 58459, "centroid_px": [58, 213], "bbox_px": [1383, 5288, 1620, 5567], "area": "166.3 ft\u00b2", "area_raw": 166.28}, {"id": "R57", "area_px": 58089, "centroid_px": [68, 213], "bbox_px": [1629, 5288, 1864, 5567], "area": "165.2 ft\u00b2", "area_raw": 165.23}, {"id": "R58", "area_px": 58044, "centroid_px": [78, 213], "bbox_px": [1874, 5288, 2109, 5567], "area": "165.1 ft\u00b2", "area_raw": 165.1}, {"id": "R59", "area_px": 55541, "centroid_px": [87, 213], "bbox_px": [2119, 5288, 2347, 5567], "area": "158.0 ft\u00b2", "area_raw": 157.98}, {"id": "R60", "area_px": 57700, "centroid_px": [39, 213], "bbox_px": [889, 5295, 1126, 5567], "area": "164.1 ft\u00b2", "area_raw": 164.12}, {"id": "R61", "area_px": 14152, "centroid_px": [27, 214], "bbox_px": [634, 5393, 813, 5503], "area": "40.3 ft\u00b2", "area_raw": 40.25}];
+const HAS_ROOMS   = true;
+const IMG_COORD_W = 400;
+const IMG_COORD_H = 259;
+
+const img       = document.getElementById('plan-img');
+const canvas    = document.getElementById('overlay-canvas');
+const ctx       = canvas.getContext('2d');
+const wallList  = document.getElementById('wall-list');
+const label     = document.getElementById('wall-label');
+
+let selectedIdx = null;
+
+// ── Color palette ─────────────────────────────────────────────────────────
+const FACING_COLORS = {
+  North: '#4a9eff',
+  East:  '#52c98e',
+  South: '#ff6b6b',
+  West:  '#f0b429',
+};
+
+// 18-color palette for rooms — distinguishable on dark background
+const ROOM_PALETTE = [
+  '#4a9eff', '#52c98e', '#ff6b6b', '#f0b429',
+  '#b388ff', '#26c6da', '#ff8a65', '#9ccc65',
+  '#ec407a', '#7e57c2', '#ffca28', '#66bb6a',
+  '#5c6bc0', '#26a69a', '#ffa726', '#ab47bc',
+  '#42a5f5', '#d4e157',
+];
+const NO_ROOM_COLOR = '#444';
+
+function roomColor(room_id) {
+  if (!room_id) return NO_ROOM_COLOR;
+  // Hash the room id string to a stable palette index
+  let h = 0;
+  for (let i = 0; i < room_id.length; i++) h = (h * 31 + room_id.charCodeAt(i)) | 0;
+  return ROOM_PALETTE[Math.abs(h) % ROOM_PALETTE.length];
+}
+
+function wallColor(wall) {
+  if (HAS_ROOMS) return roomColor(wall.room_id);
+  return FACING_COLORS[wall.facing] ?? '#888';
+}
+
+const FACING_DEG = { North: 0, East: 90, South: 180, West: 270 };
+
+function arrowSVG(facing, color) {
+  const deg = FACING_DEG[facing] ?? 0;
+  return `<svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
+    style="transform:rotate(${deg}deg);transition:transform 0.15s">
+    <path d="M7 11 L7 3 M4 6 L7 3 L10 6"
+      stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ── Draw all walls in their room colors (only when we have rooms) ─────────
+function drawAllWalls() {
+  if (!HAS_ROOMS) return;
+  if (!syncCanvas()) return;
+  const { w, h, sx, sy } = cssSize();
+  ctx.clearRect(0, 0, w, h);
+  WALLS.forEach(wall => {
+    const [x1, y1, x2, y2] = wall.px_coords;
+    ctx.beginPath();
+    ctx.moveTo(x1 * sx, y1 * sy);
+    ctx.lineTo(x2 * sx, y2 * sy);
+    ctx.strokeStyle = wallColor(wall);
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+  // Room labels at centroids
+  ctx.font = '12px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ROOMS.forEach(r => {
+    const cx = r.centroid_px[0] * sx;
+    const cy = r.centroid_px[1] * sy;
+    const txt = r.id;
+    const w = ctx.measureText(txt).width + 8;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(cx - w/2, cy - 9, w, 18);
+    ctx.fillStyle = roomColor(r.id);
+    ctx.fillText(txt, cx, cy);
+  });
+}
+
+// ── Build wall list ────────────────────────────────────────────────────────
+WALLS.forEach((wall, i) => {
+  const item = document.createElement('div');
+  item.className = 'wall-item';
+  const c = wallColor(wall);
+  item.style.setProperty('--accent', c);
+  const roomTag = HAS_ROOMS
+    ? `<span class="room-chip" style="background:${c}22;color:${c};border-color:${c}55">${wall.room_id ?? '—'}</span>`
+    : '';
+  item.innerHTML = `
+    <div class="wall-icon">${arrowSVG(wall.facing, c)}</div>
+    <div class="wall-info">
+      <div class="wall-name">${wall.name}</div>
+      <div class="wall-length">${wall.length}${roomTag}</div>
+    </div>
+    <div class="wall-id">${wall.id}</div>`;
+
+  item.addEventListener('mouseenter', () => highlight(i, item));
+  item.addEventListener('mouseleave', () => clear(item));
+  item.addEventListener('click', () => {
+    if (selectedIdx === i) {
+      selectedIdx = null;
+      clear(item);
+    } else {
+      selectedIdx = i;
+      highlight(i, item);
+    }
+  });
+  wallList.appendChild(item);
+});
+
+// ── Canvas sync ────────────────────────────────────────────────────────────
+function syncCanvas() {
+  const rect = img.getBoundingClientRect();
+  if (!rect.width || !rect.height) return false;   // not laid out yet
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(rect.width  * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  // Reset any inline style so CSS width:100%/height:100% governs display size
+  canvas.style.width  = '';
+  canvas.style.height = '';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return true;
+}
+
+function cssSize() {
+  const rect = img.getBoundingClientRect();
+  return { w: rect.width, h: rect.height,
+            sx: rect.width / IMG_COORD_W, sy: rect.height / IMG_COORD_H };
+}
+
+// roundRect polyfill for older browsers
+function roundRect(x, y, w, h, r) {
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y,     x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x,     y + h, r);
+  ctx.arcTo(x,     y + h, x,     y,     r);
+  ctx.arcTo(x,     y,     x + w, y,     r);
+  ctx.closePath();
+}
+
+// ── Highlight one wall ─────────────────────────────────────────────────────
+function highlight(idx, item) {
+  if (!syncCanvas()) return;
+  const { w, h, sx, sy } = cssSize();
+
+  const wall = WALLS[idx];
+  const [x1, y1, x2, y2] = wall.px_coords;
+  const c = wallColor(wall);
+
+  const px1 = x1 * sx, py1 = y1 * sy;
+  const px2 = x2 * sx, py2 = y2 * sy;
+
+  // Dim overlay — use CSS dimensions, not device-pixel canvas.width
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(0,0,0,0.40)';
+  ctx.fillRect(0, 0, w, h);
+
+  // Glow halo
+  ctx.beginPath();
+  ctx.moveTo(px1, py1);
+  ctx.lineTo(px2, py2);
+  ctx.strokeStyle = c + '40';
+  ctx.lineWidth   = 14;
+  ctx.lineCap     = 'round';
+  ctx.stroke();
+
+  // Main line
+  ctx.strokeStyle = c;
+  ctx.lineWidth   = 3;
+  ctx.stroke();
+
+  // Endpoint dots
+  [[ px1, py1 ], [ px2, py2 ]].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = c;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // Length label — centred on the wall midpoint
+  const mx = (px1 + px2) / 2, my = (py1 + py2) / 2;
+  const txt = wall.length;
+  ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  const tw = ctx.measureText(txt).width;
+  const pad = 6, bh = 20;
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.beginPath();
+  roundRect(mx - tw/2 - pad, my - bh/2, tw + pad*2, bh, 4);
+  ctx.fill();
+  ctx.fillStyle = c;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(txt, mx, my);
+
+  // Active state on list item
+  document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));
+  item.classList.add('active');
+}
+
+function clear(item) {
+  item.classList.remove('active');
+  if (selectedIdx !== null) {
+    const selItem = wallList.children[selectedIdx];
+    highlight(selectedIdx, selItem);
+  } else {
+    if (!syncCanvas()) return;
+    const { w, h } = cssSize();
+    ctx.clearRect(0, 0, w, h);
+    drawAllWalls();
+  }
+}
+
+// ── Init — defer until the image is actually laid out ──────────────────────
+function tryInit() {
+  if (!syncCanvas()) { requestAnimationFrame(tryInit); return; }
+  drawAllWalls();
+}
+if (img.complete) { requestAnimationFrame(tryInit); }
+else { img.addEventListener('load', () => requestAnimationFrame(tryInit)); }
+
+window.addEventListener('resize', () => {
+  if (!syncCanvas()) return;
+  const { w, h } = cssSize();
+  ctx.clearRect(0, 0, w, h);
+  document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));
+  drawAllWalls();
+});
+</script>
+
+</body>
+</html>

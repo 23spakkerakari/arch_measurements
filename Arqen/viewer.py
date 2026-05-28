@@ -293,6 +293,8 @@ const ctx       = canvas.getContext('2d');
 const wallList  = document.getElementById('wall-list');
 const label     = document.getElementById('wall-label');
 
+let selectedIdx = null;
+
 // ── Color palette (per facing direction) ──────────────────────────────────
 const COLORS = {{
   North: '#4a9eff',
@@ -327,8 +329,17 @@ WALLS.forEach((wall, i) => {{
     </div>
     <div class="wall-id">${{wall.id}}</div>`;
 
-  item.addEventListener('mouseenter', (e) => highlight(i, item));
-  item.addEventListener('mouseleave', ()  => clear(item));
+  item.addEventListener('mouseenter', () => highlight(i, item));
+  item.addEventListener('mouseleave', () => clear(item));
+  item.addEventListener('click', () => {{
+    if (selectedIdx === i) {{
+      selectedIdx = null;
+      clear(item);
+    }} else {{
+      selectedIdx = i;
+      highlight(i, item);
+    }}
+  }});
   wallList.appendChild(item);
 }});
 
@@ -428,10 +439,15 @@ function highlight(idx, item) {{
 }}
 
 function clear(item) {{
-  if (!syncCanvas()) return;
-  const {{ w, h }} = cssSize();
-  ctx.clearRect(0, 0, w, h);
   item.classList.remove('active');
+  if (selectedIdx !== null) {{
+    const selItem = wallList.children[selectedIdx];
+    highlight(selectedIdx, selItem);
+  }} else {{
+    if (!syncCanvas()) return;
+    const {{ w, h }} = cssSize();
+    ctx.clearRect(0, 0, w, h);
+  }}
 }}
 
 // ── Init — defer until the image is actually laid out ──────────────────────

@@ -20,10 +20,25 @@ function drawCanvas() {
     const H = canvas.height;
 
     const dimLines = data.dimension_lines || [];
+    const walls    = data.walls || [];
     const hi = appState.highlightedWall;
 
+    // Resolve a highlight target: prefer dimension_lines[hi], fall back to
+    // walls[hi] if it carries percentage coordinates (manual mode).
+    const hiDimLine = (hi !== null && hi !== undefined) ? dimLines[hi] : null;
+    const hiWall    = (hi !== null && hi !== undefined) ? walls[hi] : null;
+    const hiWallHasCoords = hiWall &&
+      hiWall.x1_pct != null && hiWall.y1_pct != null &&
+      hiWall.x2_pct != null && hiWall.y2_pct != null;
+    // Synthesise a dim-line-shaped object from wall coords when needed
+    const hiTarget  = hiDimLine || (hiWallHasCoords ? {
+      x1_pct: hiWall.x1_pct, y1_pct: hiWall.y1_pct,
+      x2_pct: hiWall.x2_pct, y2_pct: hiWall.y2_pct,
+      label:  hiWall.length || null,
+    } : null);
+
     if (appState.layers.dims) {
-      if (hi !== null && hi !== undefined && dimLines[hi]) {
+      if (hiTarget) {
         // Dim overlay
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(0, 0, W, H);
@@ -35,7 +50,7 @@ function drawCanvas() {
         ctx.restore();
 
         // Draw the selected line brightly with glow
-        drawHighlightedDimLine(ctx, dimLines[hi], hi, W, H);
+        drawHighlightedDimLine(ctx, hiTarget, hi, W, H);
       } else {
         drawDimLines(ctx, dimLines, W, H);
       }

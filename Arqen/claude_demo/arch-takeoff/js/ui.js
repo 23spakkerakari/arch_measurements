@@ -65,4 +65,5 @@ function highlightWall(idx, itemEl) {
   document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('highlighted'));
   appState.highlightedWall = appState.highlightedWall === idx ? null : idx;
   if (appState.highlightedWall !== null) itemEl.classList.add('highlighted');
+  drawCanvas();
 }

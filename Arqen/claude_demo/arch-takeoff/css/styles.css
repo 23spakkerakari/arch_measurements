@@ -28,8 +28,10 @@ body {
   font-family: var(--sans);
   background: var(--bg0);
   color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Subtle dot grid background */
@@ -47,6 +49,7 @@ body::before {
 header {
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -84,6 +87,7 @@ header {
 .steps-bar {
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 0;
@@ -121,9 +125,21 @@ header {
 .main {
   position: relative;
   z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 28px;
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+/* Results view locks to the remaining viewport — override main's scroll */
+#view-results {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* ── Upload zone ─────────────────────────────────────── */
@@ -346,15 +362,17 @@ header {
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 20px;
-  align-items: start;
+  flex: 1;
+  min-height: 0;
 }
 .canvas-container {
   position: relative;
   background: var(--bg1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: auto;
   line-height: 0;
+  min-height: 0;
 }
 .canvas-container img {
   display: block;
@@ -397,6 +415,8 @@ header {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
+  min-height: 0;
 }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat-card {

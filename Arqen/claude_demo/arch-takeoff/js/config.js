@@ -23,5 +23,5 @@ const CONFIG = {
   API_ENDPOINT: '/api/analyze',
 
   MODEL: 'claude-sonnet-4-6',
-  MAX_TOKENS: 8192,
+  MAX_TOKENS: 16384,
 };

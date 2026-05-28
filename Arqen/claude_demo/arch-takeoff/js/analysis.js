@@ -84,16 +84,13 @@ async function startAnalysis() {
       throw new Error(err.error?.message || `API error ${response.status}`);
     }
 
-    const data    = await response.json();
-    const rawText = data.content.map(c => c.text || '').join('').trim();
+    const data       = await response.json();
+    const rawText    = data.content.map(c => c.text || '').join('').trim();
+    const stopReason = data.stop_reason;
 
     let parsed;
     try {
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON object found in response');
-      const cleaned = jsonMatch[0]
-        .replace(/,\s*([\]}])/g, '$1');
-      parsed = JSON.parse(cleaned);
+      parsed = parseAiJson(rawText, stopReason);
     } catch (e) {
       throw new Error('Could not parse AI response as JSON: ' + e.message);
     }
@@ -114,6 +111,72 @@ async function startAnalysis() {
     container.innerHTML = `<div class="error-banner">⚠ Analysis failed: ${err.message}. Please try again with a clearer plan.</div>`;
     container.classList.remove('hidden');
   }
+}
+
+// ── JSON parser (handles markdown fences, trailing commas, truncation) ──
+function parseAiJson(rawText, stopReason) {
+  let text = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON object found in response');
+
+  const cleaned = jsonMatch[0].replace(/,\s*([\]}])/g, '$1');
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (firstErr) {
+    const repaired = repairTruncatedJson(cleaned);
+    if (repaired) {
+      try {
+        return JSON.parse(repaired);
+      } catch { /* fall through */ }
+    }
+
+    const hint = stopReason === 'max_tokens'
+      ? ' Response was cut off — try Standard detail level or a single-page plan.'
+      : '';
+    throw new Error(firstErr.message + hint);
+  }
+}
+
+function repairTruncatedJson(s) {
+  let attempt = s;
+  for (let tries = 0; tries < 100; tries++) {
+    const lastClose = attempt.lastIndexOf('}');
+    if (lastClose < 0) return null;
+    attempt = attempt.slice(0, lastClose + 1).replace(/,\s*$/, '');
+    const suffix = closeOpenBrackets(attempt);
+    try {
+      JSON.parse(attempt + suffix);
+      return attempt + suffix;
+    } catch {
+      attempt = attempt.slice(0, lastClose);
+    }
+  }
+  return null;
+}
+
+function closeOpenBrackets(s) {
+  const stack = [];
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') stack.pop();
+  }
+  let suffix = '';
+  while (stack.length) {
+    suffix += stack.pop() === '{' ? '}' : ']';
+  }
+  return suffix;
 }
 
 // ── Scale parser ────────────────────────────────────────

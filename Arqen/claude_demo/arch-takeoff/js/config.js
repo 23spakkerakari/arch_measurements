@@ -19,8 +19,8 @@ const CONFIG = {
   // ------------------------------------------------------------------
   ANTHROPIC_API_KEY: null,
 
-  // API endpoint — routed through the local proxy to avoid CORS
-  API_ENDPOINT: 'http://localhost:3001/api/analyze',
+  // API endpoint — relative so it works both locally (Express on :3001) and on Cloudflare Pages
+  API_ENDPOINT: '/api/analyze',
 
   MODEL: 'claude-sonnet-4-6',
   MAX_TOKENS: 8192,

@@ -133,10 +133,13 @@ header {
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-/* Results view locks to the remaining viewport — override main's scroll */
+/* Results view locks to the remaining viewport */
 #view-results {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -361,6 +364,7 @@ header {
 .results-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
+  grid-template-rows: 1fr;
   gap: 20px;
   flex: 1;
   min-height: 0;

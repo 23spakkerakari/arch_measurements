@@ -268,7 +268,11 @@ function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
     : `    {
       "name": "North Wall of Room 445",
       "facing": "North",
-      "length": "5.2 m"
+      "length": "5.2 m",
+      "x1_pct": 0.12,
+      "y1_pct": 0.05,
+      "x2_pct": 0.88,
+      "y2_pct": 0.05
     }`;
 
   const coordNote = isManual
@@ -277,7 +281,9 @@ function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
 top-to-bottom. Do NOT compute wall lengths — just return the coordinates.
 Also return "area_x1_pct", "area_y1_pct", "area_x2_pct", "area_y2_pct" as the
 bounding box of the overall building footprint.\n`
-    : '';
+    : `\nIMPORTANT: For each wall, also return its start and end points as fractional
+coordinates (0.0–1.0) relative to the image dimensions. x increases left-to-right,
+y increases top-to-bottom.\n`;
 
   return `You are an expert architectural drawing analyst and quantity surveyor.
 Analyze this architectural floor plan.

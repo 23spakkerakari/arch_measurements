@@ -3,21 +3,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg0: #080c12;
-  --bg1: #0d1420;
-  --bg2: #121b2e;
-  --bg3: #182338;
-  --border: rgba(0,212,255,0.12);
-  --border-bright: rgba(0,212,255,0.35);
-  --cyan: #00d4ff;
-  --cyan-dim: rgba(0,212,255,0.6);
-  --cyan-faint: rgba(0,212,255,0.08);
-  --amber: #f0a500;
-  --green: #00e5a0;
-  --red: #ff4d6a;
-  --text: #d8e8f0;
-  --text-dim: #7a97b0;
-  --text-faint: #3d5568;
+  --bg0: #f8fafc;
+  --bg1: #ffffff;
+  --bg2: #f1f5f9;
+  --bg3: #e8eef4;
+  --border: rgba(0,0,0,0.08);
+  --border-bright: rgba(37,99,235,0.35);
+  --cyan: #2563eb;
+  --cyan-dim: rgba(37,99,235,0.65);
+  --cyan-faint: rgba(37,99,235,0.06);
+  --amber: #d97706;
+  --green: #059669;
+  --red: #dc2626;
+  --text: #0f172a;
+  --text-dim: #64748b;
+  --text-faint: #94a3b8;
   --mono: 'Space Mono', monospace;
   --sans: 'DM Sans', sans-serif;
   --radius: 6px;
@@ -32,17 +32,13 @@ body {
   overflow-x: hidden;
 }
 
-/* Blueprint grid background */
+/* Subtle dot grid background */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px),
-    linear-gradient(rgba(0,212,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,212,255,0.05) 1px, transparent 1px);
-  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
   pointer-events: none;
   z-index: 0;
 }
@@ -56,7 +52,7 @@ header {
   justify-content: space-between;
   padding: 14px 28px;
   border-bottom: 1px solid var(--border);
-  background: rgba(8,12,18,0.85);
+  background: rgba(255,255,255,0.9);
   backdrop-filter: blur(12px);
 }
 .logo {
@@ -67,7 +63,7 @@ header {
   font-family: var(--sans);
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text);
   letter-spacing: -0.01em;
 }
 .logo-text-sub {
@@ -92,7 +88,7 @@ header {
   align-items: center;
   gap: 0;
   padding: 0 28px;
-  background: rgba(13,20,32,0.7);
+  background: rgba(255,255,255,0.8);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
@@ -132,9 +128,9 @@ header {
 
 /* ── Upload zone ─────────────────────────────────────── */
 .upload-zone {
-  border: 1.5px dashed rgba(0,212,255,0.3);
+  border: 1.5px dashed rgba(37,99,235,0.25);
   border-radius: var(--radius-lg);
-  background: rgba(0,212,255,0.03);
+  background: var(--bg1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -151,9 +147,10 @@ header {
 }
 .upload-icon {
   width: 64px; height: 64px;
-  border: 1.5px solid rgba(0,212,255,0.3);
+  border: 1.5px solid var(--border);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
+  background: var(--bg2);
 }
 .upload-icon svg { color: var(--cyan-dim); }
 .upload-title {
@@ -188,16 +185,16 @@ header {
 }
 .btn-primary {
   background: var(--cyan);
-  color: var(--bg0);
+  color: #ffffff;
 }
-.btn-primary:hover { background: #33dcff; }
-.btn-primary:disabled { background: rgba(0,212,255,0.25); color: var(--text-faint); cursor: not-allowed; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-primary:disabled { background: rgba(37,99,235,0.25); color: var(--text-faint); cursor: not-allowed; }
 .btn-ghost {
   background: transparent;
-  color: var(--cyan-dim);
-  border: 1px solid var(--border-bright);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
 }
-.btn-ghost:hover { background: var(--cyan-faint); color: var(--cyan); }
+.btn-ghost:hover { background: var(--bg2); color: var(--text); }
 
 /* ── Config panel ──────────────────────────────────────── */
 .config-panel {
@@ -226,10 +223,11 @@ header {
   gap: 16px;
 }
 .card {
-  background: var(--bg2);
+  background: var(--bg1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .card-title {
   font-family: var(--mono);
@@ -260,7 +258,7 @@ header {
 }
 .field select, .field input[type="text"] {
   width: 100%;
-  background: var(--bg1);
+  background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
@@ -274,7 +272,7 @@ header {
 .field select:focus, .field input[type="text"]:focus {
   border-color: var(--cyan-dim);
 }
-.field select option { background: var(--bg1); }
+.field select option { background: var(--bg2); color: var(--text); }
 .radio-group { display: flex; gap: 8px; }
 .radio-opt {
   flex: 1;
@@ -324,7 +322,7 @@ header {
 .analyzing-text { font-family: var(--mono); font-size: 13px; color: var(--cyan); }
 .analyzing-sub  { font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
 .log-lines {
-  background: var(--bg1);
+  background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 16px;
@@ -376,10 +374,10 @@ header {
   z-index: 5;
 }
 .tool-btn {
-  background: rgba(8,12,18,0.85);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  color: var(--cyan-dim);
+  color: var(--text-dim);
   font-family: var(--mono);
   font-size: 10px;
   padding: 5px 8px;
@@ -391,7 +389,7 @@ header {
 .tool-btn:hover, .tool-btn.active {
   background: var(--cyan-faint);
   color: var(--cyan);
-  border-color: var(--cyan);
+  border-color: var(--border-bright);
 }
 
 /* ── Measurements panel ─────────────────────────────────── */
@@ -415,7 +413,7 @@ header {
 
 .wall-list { display: flex; flex-direction: column; gap: 6px; }
 .wall-item {
-  background: var(--bg2);
+  background: var(--bg1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 10px 12px;
@@ -425,7 +423,7 @@ header {
   align-items: center;
   gap: 10px;
 }
-.wall-item:hover { border-color: var(--border-bright); background: rgba(0,212,255,0.04); }
+.wall-item:hover { border-color: var(--border-bright); background: var(--cyan-faint); }
 .wall-item.highlighted { border-color: var(--cyan); background: var(--cyan-faint); }
 .wall-dot {
   width: 10px; height: 10px;
@@ -438,7 +436,7 @@ header {
 .wall-notes { font-family: var(--mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
 
 .notes-box {
-  background: var(--bg2);
+  background: var(--bg1);
   border: 1px solid rgba(240,165,0,0.2);
   border-left: 2px solid var(--amber);
   border-radius: var(--radius);
@@ -459,13 +457,13 @@ header {
 .scale-badge {
   position: absolute;
   bottom: 10px; right: 10px;
-  background: rgba(8,12,18,0.9);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 5px 10px;
   font-family: var(--mono);
   font-size: 10px;
-  color: var(--cyan);
+  color: var(--text-dim);
   backdrop-filter: blur(6px);
   z-index: 5;
 }
@@ -488,5 +486,5 @@ header {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg0); }
-::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--text-faint); border-radius: 3px; }

@@ -349,8 +349,8 @@ function arrowSVG(facing, color) {{
 function drawAllWalls() {{
   if (!HAS_ROOMS) return;
   syncCanvas();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const {{ sx, sy }} = scale();
+  const {{ w, h, sx, sy }} = cssSize();
+  ctx.clearRect(0, 0, w, h);
   WALLS.forEach(wall => {{
     const [x1, y1, x2, y2] = wall.px_coords;
     ctx.beginPath();
@@ -401,7 +401,6 @@ WALLS.forEach((wall, i) => {{
 
 // ── Canvas sync ────────────────────────────────────────────────────────────
 function syncCanvas() {{
-  // canvas pixel buffer = image rendered size (devicePixelRatio-aware)
   const dpr  = window.devicePixelRatio || 1;
   const rect = img.getBoundingClientRect();
   canvas.width  = rect.width  * dpr;
@@ -411,27 +410,28 @@ function syncCanvas() {{
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }}
 
-function scale() {{
+function cssSize() {{
   const rect = img.getBoundingClientRect();
-  return {{ sx: rect.width / IMG_COORD_W, sy: rect.height / IMG_COORD_H }};
+  return {{ w: rect.width, h: rect.height,
+            sx: rect.width / IMG_COORD_W, sy: rect.height / IMG_COORD_H }};
 }}
 
 // ── Highlight one wall ─────────────────────────────────────────────────────
 function highlight(idx, item) {{
   syncCanvas();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const {{ w, h, sx, sy }} = cssSize();
 
   const wall = WALLS[idx];
   const [x1, y1, x2, y2] = wall.px_coords;
-  const {{ sx, sy }} = scale();
   const c = wallColor(wall);
 
   const px1 = x1 * sx, py1 = y1 * sy;
   const px2 = x2 * sx, py2 = y2 * sy;
 
-  // Dim overlay
+  // Dim overlay — use CSS dimensions, not device-pixel canvas.width
+  ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = 'rgba(0,0,0,0.40)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, w, h);
 
   // Glow halo
   ctx.beginPath();
@@ -453,7 +453,6 @@ function highlight(idx, item) {{
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.fillStyle = c;
     ctx.fill();
-
     ctx.beginPath();
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.strokeStyle = '#000';
@@ -461,13 +460,29 @@ function highlight(idx, item) {{
     ctx.stroke();
   }});
 
+  // Length label — centred on the wall midpoint
+  const mx = (px1 + px2) / 2, my = (py1 + py2) / 2;
+  const txt = wall.length;
+  ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  const tw = ctx.measureText(txt).width;
+  const pad = 6, bh = 20;
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.beginPath();
+  ctx.roundRect(mx - tw/2 - pad, my - bh/2, tw + pad*2, bh, 4);
+  ctx.fill();
+  ctx.fillStyle = c;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(txt, mx, my);
+
   // Active state on list item
   document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));
   item.classList.add('active');
 }}
 
 function clear(item) {{
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const {{ w, h }} = cssSize();
+  ctx.clearRect(0, 0, w, h);
   item.classList.remove('active');
   drawAllWalls();
 }}
@@ -481,7 +496,8 @@ if (img.complete) init();
 img.addEventListener('load', init);
 window.addEventListener('resize', () => {{
   syncCanvas();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const {{ w, h }} = cssSize();
+  ctx.clearRect(0, 0, w, h);
   document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));
   drawAllWalls();
 }});

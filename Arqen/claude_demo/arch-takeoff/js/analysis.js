@@ -25,7 +25,7 @@ async function startAnalysis() {
   const scaleMode   = appState.scaleMode;
   const manualScale = document.getElementById('manual-scale').value;
   const units  = appState.units;
-  const detail = document.getElementById('detail-level').value;
+  const detail = 'full';
 
   if (scaleMode === 'manual') {
     appState.imageDpi = parseInt(document.getElementById('image-dpi').value, 10) || 300;

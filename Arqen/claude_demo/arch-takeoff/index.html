@@ -72,8 +72,20 @@
             </div>
           </div>
           <div class="field" id="manual-scale-field" style="display:none">
-            <label>DRAWING SCALE (e.g. 1in=32ft, 1:100)</label>
-            <input type="text" id="manual-scale" placeholder="1in=32ft" value="1:100">
+            <label>DRAWING SCALE</label>
+            <select id="manual-scale">
+              <option value='1/16"=1ft'>1/16" = 1'-0"</option>
+              <option value='3/32"=1ft'>3/32" = 1'-0"</option>
+              <option value='1/8"=1ft'>1/8" = 1'-0"</option>
+              <option value='3/16"=1ft'>3/16" = 1'-0"</option>
+              <option value='1/4"=1ft' selected>1/4" = 1'-0"</option>
+              <option value='3/8"=1ft'>3/8" = 1'-0"</option>
+              <option value='1/2"=1ft'>1/2" = 1'-0"</option>
+              <option value='3/4"=1ft'>3/4" = 1'-0"</option>
+              <option value='1"=1ft'>1" = 1'-0"</option>
+              <option value='1.5"=1ft'>1-1/2" = 1'-0"</option>
+              <option value='3"=1ft'>3" = 1'-0"</option>
+            </select>
           </div>
           <div class="field" id="dpi-field" style="display:none">
             <label>IMAGE DPI (scanned resolution)</label>

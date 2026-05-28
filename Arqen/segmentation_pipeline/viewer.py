@@ -348,7 +348,7 @@ function arrowSVG(facing, color) {{
 // ── Draw all walls in their room colors (only when we have rooms) ─────────
 function drawAllWalls() {{
   if (!HAS_ROOMS) return;
-  syncCanvas();
+  if (!syncCanvas()) return;
   const {{ w, h, sx, sy }} = cssSize();
   ctx.clearRect(0, 0, w, h);
   WALLS.forEach(wall => {{
@@ -401,13 +401,16 @@ WALLS.forEach((wall, i) => {{
 
 // ── Canvas sync ────────────────────────────────────────────────────────────
 function syncCanvas() {{
-  const dpr  = window.devicePixelRatio || 1;
   const rect = img.getBoundingClientRect();
-  canvas.width  = rect.width  * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width  = rect.width  + 'px';
-  canvas.style.height = rect.height + 'px';
+  if (!rect.width || !rect.height) return false;   // not laid out yet
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(rect.width  * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  // Reset any inline style so CSS width:100%/height:100% governs display size
+  canvas.style.width  = '';
+  canvas.style.height = '';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return true;
 }}
 
 function cssSize() {{
@@ -416,9 +419,20 @@ function cssSize() {{
             sx: rect.width / IMG_COORD_W, sy: rect.height / IMG_COORD_H }};
 }}
 
+// roundRect polyfill for older browsers
+function roundRect(x, y, w, h, r) {{
+  if (ctx.roundRect) {{ ctx.roundRect(x, y, w, h, r); return; }}
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y,     x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x,     y + h, r);
+  ctx.arcTo(x,     y + h, x,     y,     r);
+  ctx.arcTo(x,     y,     x + w, y,     r);
+  ctx.closePath();
+}}
+
 // ── Highlight one wall ─────────────────────────────────────────────────────
 function highlight(idx, item) {{
-  syncCanvas();
+  if (!syncCanvas()) return;
   const {{ w, h, sx, sy }} = cssSize();
 
   const wall = WALLS[idx];
@@ -468,7 +482,7 @@ function highlight(idx, item) {{
   const pad = 6, bh = 20;
   ctx.fillStyle = 'rgba(0,0,0,0.72)';
   ctx.beginPath();
-  ctx.roundRect(mx - tw/2 - pad, my - bh/2, tw + pad*2, bh, 4);
+  roundRect(mx - tw/2 - pad, my - bh/2, tw + pad*2, bh, 4);
   ctx.fill();
   ctx.fillStyle = c;
   ctx.textAlign = 'center';
@@ -481,21 +495,23 @@ function highlight(idx, item) {{
 }}
 
 function clear(item) {{
+  if (!syncCanvas()) return;
   const {{ w, h }} = cssSize();
   ctx.clearRect(0, 0, w, h);
   item.classList.remove('active');
   drawAllWalls();
 }}
 
-// ── Init ───────────────────────────────────────────────────────────────────
-function init() {{
-  syncCanvas();
+// ── Init — defer until the image is actually laid out ──────────────────────
+function tryInit() {{
+  if (!syncCanvas()) {{ requestAnimationFrame(tryInit); return; }}
   drawAllWalls();
 }}
-if (img.complete) init();
-img.addEventListener('load', init);
+if (img.complete) {{ requestAnimationFrame(tryInit); }}
+else {{ img.addEventListener('load', () => requestAnimationFrame(tryInit)); }}
+
 window.addEventListener('resize', () => {{
-  syncCanvas();
+  if (!syncCanvas()) return;
   const {{ w, h }} = cssSize();
   ctx.clearRect(0, 0, w, h);
   document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));

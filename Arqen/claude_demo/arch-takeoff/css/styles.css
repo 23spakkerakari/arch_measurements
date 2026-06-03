@@ -231,11 +231,31 @@ header {
   justify-content: center;
   min-height: 400px;
 }
+.preview-wrap {
+  position: relative;
+  line-height: 0;
+  max-width: 100%;
+}
 .preview-container img {
   max-width: 100%;
   max-height: 500px;
   display: block;
 }
+#roi-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+.roi-status {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin: 0;
+}
+.roi-status.ok { color: var(--green, #0a8f5c); }
+.btn-sm { padding: 6px 10px; font-size: 10px; }
 .config-sidebar {
   display: flex;
   flex-direction: column;

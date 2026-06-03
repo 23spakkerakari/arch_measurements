@@ -9,6 +9,38 @@
 
 let logTimer = null;
 
+async function detectScaleQuick(imageDataUrl) {
+  const base64 = imageDataUrl.split(',')[1];
+  const mimeType = imageDataUrl.split(';')[0].replace('data:', '');
+  const headers = { 'Content-Type': 'application/json' };
+  if (CONFIG.ANTHROPIC_API_KEY) {
+    headers['x-api-key'] = CONFIG.ANTHROPIC_API_KEY;
+    headers['anthropic-version'] = '2023-06-01';
+  }
+  const response = await fetch(CONFIG.API_ENDPOINT, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: CONFIG.MODEL,
+      max_tokens: 256,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+          { type: 'text', text: 'Return ONLY JSON: {"detected_scale":"1:50"} with the drawing scale. No markdown.' },
+        ],
+      }],
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Scale detect failed ${response.status}`);
+  }
+  const data = await response.json();
+  const rawText = data.content.map(c => c.text || '').join('').trim();
+  return parseAiJson(rawText).detected_scale;
+}
+
 async function startAnalysis() {
   goToStep(3);
   document.getElementById('log-lines').innerHTML = '';
@@ -27,13 +59,42 @@ async function startAnalysis() {
   const units  = appState.units;
   const detail = 'full';
 
-  if (scaleMode === 'manual') {
-    appState.imageDpi = parseInt(document.getElementById('image-dpi').value, 10) || 300;
+  const isManual = scaleMode === 'manual';
+  if (isManual) {
+    const inputDpi = parseInt(document.getElementById('image-dpi').value, 10);
+    if (inputDpi) appState.imageDpi = inputDpi;
+  }
+  const sourceUrl = appState.imageDataUrl || appState.fileDataUrl;
+  if (!sourceUrl) {
+    clearInterval(logTimer);
+    throw new Error('No plan image available. Re-upload the file.');
   }
 
-  const isManual = scaleMode === 'manual';
+  try {
+    addLog('Running CV wall detection…');
+    let scaleStr = isManual ? manualScale : null;
+    if (!scaleStr) {
+      addLog('Detecting drawing scale…');
+      scaleStr = await detectScaleQuick(sourceUrl);
+    }
+    const dpi = appState.imageDpi || parseInt(document.getElementById('image-dpi').value, 10) || 150;
 
-  const scaleInstruction = isManual
+    let parsed = await runCvAnalyze(sourceUrl, scaleStr, dpi, appState.buildingRoi);
+    parsed = applyUserRoiToResult(parsed);
+    clearInterval(logTimer);
+
+    appState.analysisResult = parsed;
+    addLog('CV analysis complete!');
+    setTimeout(() => renderResults(parsed), 400);
+    return;
+  } catch (cvErr) {
+    addLog('CV failed: ' + cvErr.message);
+    addLog('Falling back to vision model…');
+  }
+
+  const isManualFallback = scaleMode === 'manual';
+
+  const scaleInstruction = isManualFallback
     ? `The drawing scale is EXACTLY ${manualScale}. Do NOT compute wall lengths yourself — return pixel-percentage coordinates instead (see output schema). Set "detected_scale" to "${manualScale}" and "scale_confidence" to "high".`
     : `Auto-detect the scale from any scale bar, north arrow annotation, dimension strings,
        or labeled measurements visible in the drawing.`;
@@ -47,20 +108,18 @@ async function startAnalysis() {
   const prompt = buildPrompt(scaleInstruction, detailInstr, units, isManual);
 
   try {
-    const sourceUrl = appState.fileDataUrl || appState.imageDataUrl;
-    const base64    = sourceUrl.split(',')[1];
-    const mimeType  = sourceUrl.split(';')[0].replace('data:', '');
-    const isPdf     = appState.fileType === 'pdf';
+    const base64   = sourceUrl.split(',')[1];
+    const mimeType = sourceUrl.split(';')[0].replace('data:', '');
 
-    const fileBlock = isPdf
-      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-      : { type: 'image',    source: { type: 'base64', media_type: mimeType, data: base64 } };
+    const fileBlock = {
+      type: 'image',
+      source: { type: 'base64', media_type: mimeType, data: base64 },
+    };
 
     const headers = { 'Content-Type': 'application/json' };
     if (CONFIG.ANTHROPIC_API_KEY) {
       headers['x-api-key'] = CONFIG.ANTHROPIC_API_KEY;
       headers['anthropic-version'] = '2023-06-01';
-      if (isPdf) headers['anthropic-beta'] = 'pdfs-2024-09-25';
     }
 
     const response = await fetch(CONFIG.API_ENDPOINT, {
@@ -94,10 +153,11 @@ async function startAnalysis() {
       throw new Error('Could not parse AI response as JSON: ' + e.message);
     }
 
-    if (isManual) {
+    parsed = await normalizeAnalysisCoords(parsed, appState.imageDataUrl);
+
+    if (isManualFallback) {
       parsed = computeWallLengths(parsed, manualScale, appState.imageDpi, units);
     }
-
     appState.analysisResult = parsed;
     addLog('Analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
@@ -275,15 +335,19 @@ function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
       "y2_pct": 0.05
     }`;
 
-  const coordNote = isManual
-    ? `\nIMPORTANT: For each wall, return its start and end points as fractional coordinates
-(0.0–1.0) relative to the image dimensions. x increases left-to-right, y increases
-top-to-bottom. Do NOT compute wall lengths — just return the coordinates.
-Also return "area_x1_pct", "area_y1_pct", "area_x2_pct", "area_y2_pct" as the
-bounding box of the overall building footprint.\n`
-    : `\nIMPORTANT: For each wall, also return its start and end points as fractional
-coordinates (0.0–1.0) relative to the image dimensions. x increases left-to-right,
-y increases top-to-bottom.\n`;
+  const imgSize = appState.planImageSize;
+  const sizeNote = imgSize
+    ? `The provided image is exactly ${imgSize.w}×${imgSize.h} pixels.\n`
+    : '';
+
+  const coordNote = `
+COORDINATE SYSTEM (critical — overlays depend on this):
+${sizeNote}Return x1_pct, y1_pct, x2_pct, y2_pct as fractions of the FULL PROVIDED IMAGE
+(top-left = 0,0; bottom-right = 1,1). x increases left-to-right, y increases top-to-bottom.
+Place each endpoint on the wall centerline in the drawing — not on margins, legends,
+title blocks, or dimension text.
+Optionally include "footprint_bbox" (building only, image fractions) for reference.
+${isManual ? 'Do NOT compute wall lengths — return coordinates only.\n' : ''}`;
 
   return `You are an expert architectural drawing analyst and quantity surveyor.
 Analyze this architectural floor plan.
@@ -302,11 +366,7 @@ Return exactly this structure:
   "detected_scale": "e.g. 1:100 or 1/8 inch = 1 foot",
   "scale_confidence": "high|medium|low",
   "total_area": "e.g. 142.5 m² or 1534 ft²",
-  "units": "${units}",${isManual ? `
-  "area_x1_pct": 0.05,
-  "area_y1_pct": 0.03,
-  "area_x2_pct": 0.95,
-  "area_y2_pct": 0.97,` : ''}
+  "units": "${units}",
   "walls": [
 ${wallSchema}
   ]

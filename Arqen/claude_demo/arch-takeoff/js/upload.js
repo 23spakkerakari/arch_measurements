@@ -12,6 +12,120 @@ const fileInput = document.getElementById('file-input');
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+const PLAN_CROP_PAD = 0.015;
+/** Only trim bottom title block — fixed % insets break overlays on varied sheet layouts. */
+const PLAN_BOTTOM_TITLE_TRIM = 0.18;
+
+function isInkPixel(r, g, b) {
+  return r < 238 || g < 238 || b < 238;
+}
+
+async function loadImagePixels(dataUrl) {
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return { data: canvas.getContext('2d').getImageData(0, 0, w, h).data, w, h, img };
+}
+
+/** Bounding box of all non-white pixels (fractional 0–1). */
+function detectInkBBox(pixels) {
+  const { data, w, h } = pixels;
+  const step = Math.max(2, Math.floor(Math.min(w, h) / 800));
+  let minX = w, minY = h, maxX = 0, maxY = 0;
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
+      const i = (y * w + x) * 4;
+      if (isInkPixel(data[i], data[i + 1], data[i + 2])) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX <= minX || maxY <= minY) return null;
+  return {
+    x0: minX / w,
+    y0: minY / h,
+    x1: (maxX + step) / w,
+    y1: (maxY + step) / h,
+  };
+}
+
+/** Trim title block at bottom only; keep full drawing width for consistent coordinates. */
+function trimTitleBlock(bbox) {
+  const ih = bbox.y1 - bbox.y0;
+  return {
+    x0: bbox.x0,
+    x1: bbox.x1,
+    y0: bbox.y0,
+    y1: bbox.y1 - ih * PLAN_BOTTOM_TITLE_TRIM,
+    method: 'ink-bottom-trim',
+    inkBBox: bbox,
+  };
+}
+
+/** Crop plan: ink bbox with bottom title trim only (no side insets). */
+async function cropPlanToContent(dataUrl) {
+  const pixels = await loadImagePixels(dataUrl);
+  const ink = detectInkBBox(pixels);
+  if (!ink) return { dataUrl, bbox: null, crop: null, skipped: true };
+
+  const bbox = trimTitleBlock(ink);
+  const area = (bbox.x1 - bbox.x0) * (bbox.y1 - bbox.y0);
+  if (area < 0.08 || area > 0.98) return { dataUrl, bbox: ink, crop: null, skipped: true };
+
+  const { img, w, h } = pixels;
+  const padX = Math.round(PLAN_CROP_PAD * w);
+  const padY = Math.round(PLAN_CROP_PAD * h);
+  const sx = Math.max(0, Math.floor(bbox.x0 * w) - padX);
+  const sy = Math.max(0, Math.floor(bbox.y0 * h) - padY);
+  const ex = Math.min(w, Math.ceil(bbox.x1 * w) + padX);
+  const ey = Math.min(h, Math.ceil(bbox.y1 * h) + padY);
+  const sw = ex - sx;
+  const sh = ey - sy;
+  if (sw < 32 || sh < 32) return { dataUrl, bbox, crop: null, skipped: true };
+
+  const out = document.createElement('canvas');
+  out.width = sw;
+  out.height = sh;
+  out.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  return {
+    dataUrl: out.toDataURL('image/png'),
+    bbox,
+    crop: { sx, sy, sw, sh },
+    skipped: false,
+  };
+}
+
+async function applyPlanImage(dataUrl) {
+  // Use the full raster as-is so AI coordinates match what is displayed.
+  appState.buildingRoi = null;
+  appState.imageDataUrl = dataUrl;
+  appState.contentBBox  = null;
+  appState.planCrop     = null;
+
+  const previewImg = document.getElementById('preview-img');
+  previewImg.src = dataUrl;
+  document.getElementById('result-img').src = dataUrl;
+  await new Promise(res => { previewImg.complete ? res() : (previewImg.onload = res); });
+  appState.planImageSize = {
+    w: previewImg.naturalWidth,
+    h: previewImg.naturalHeight,
+  };
+
+  goToStep(2);
+  requestAnimationFrame(() => {
+    initBuildingRoi();
+    updateRoiStatus();
+  });
+}
+
 dropZone.addEventListener('dragover', e => {
   e.preventDefault();
   dropZone.classList.add('dragging');
@@ -65,10 +179,7 @@ function handleFile(f) {
     if (isPdf) {
       renderPdfFirstPage(ev.target.result);
     } else {
-      appState.imageDataUrl = ev.target.result;
-      document.getElementById('preview-img').src = ev.target.result;
-      document.getElementById('result-img').src  = ev.target.result;
-      goToStep(2);
+      applyPlanImage(ev.target.result);
     }
   };
   reader.readAsDataURL(f);
@@ -190,6 +301,11 @@ async function renderPdfFirstPage(dataUrl) {
     const page = await pdf.getPage(1);
 
     const scale    = 2;
+    const rasterDpi = Math.round(72 * scale);
+    appState.imageDpi = rasterDpi;
+    const dpiInput = document.getElementById('image-dpi');
+    if (dpiInput) dpiInput.value = String(rasterDpi);
+
     const viewport = page.getViewport({ scale });
     const canvas   = document.createElement('canvas');
     canvas.width   = viewport.width;
@@ -198,16 +314,13 @@ async function renderPdfFirstPage(dataUrl) {
     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
     const imageUrl = canvas.toDataURL('image/png');
-    appState.imageDataUrl = imageUrl;
-    document.getElementById('preview-img').src = imageUrl;
-    document.getElementById('result-img').src  = imageUrl;
 
     const pageCount = pdf.numPages;
     if (pageCount > 1) {
       console.log(`PDF has ${pageCount} pages — showing page 1 as preview; all pages sent to API.`);
     }
 
-    goToStep(2);
+    await applyPlanImage(imageUrl);
   } catch (err) {
     console.error('PDF render error:', err);
     alert('Could not render PDF preview. The file may be corrupted or password-protected.');

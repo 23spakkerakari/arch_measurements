@@ -21,6 +21,7 @@ const CONFIG = {
 
   // API endpoint — relative so it works both locally (Express on :3001) and on Cloudflare Pages
   API_ENDPOINT: '/api/analyze',
+  CV_ENDPOINT: '/api/cv-analyze',
 
   MODEL: 'claude-sonnet-4-6',
   MAX_TOKENS: 16384,

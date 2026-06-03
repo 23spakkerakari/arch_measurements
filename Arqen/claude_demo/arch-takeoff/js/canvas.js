@@ -11,13 +11,49 @@ function drawCanvas() {
   const canvas = document.getElementById('overlay-canvas');
 
   const render = () => {
-    canvas.width  = img.offsetWidth;
-    canvas.height = img.offsetHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const container = img.parentElement;
+    const imgRect   = img.getBoundingClientRect();
+    const boxRect   = container.getBoundingClientRect();
 
-    const W = canvas.width;
-    const H = canvas.height;
+    // Pin overlay to the displayed image, not the full scrollable container.
+    canvas.style.left   = `${imgRect.left - boxRect.left + container.scrollLeft}px`;
+    canvas.style.top    = `${imgRect.top - boxRect.top + container.scrollTop}px`;
+    canvas.style.width  = `${imgRect.width}px`;
+    canvas.style.height = `${imgRect.height}px`;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.round(imgRect.width  * dpr);
+    canvas.height = Math.round(imgRect.height * dpr);
+
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, imgRect.width, imgRect.height);
+
+    const W = imgRect.width;
+    const H = imgRect.height;
+
+    const poly = data.footprint_polygon_pct;
+    const fp = data.footprint_bbox_cv || data.footprint_bbox;
+    if (appState.layers.dims) {
+      ctx.strokeStyle = data._userRoi ? 'rgba(0, 200, 120, 0.9)' : 'rgba(255, 60, 60, 0.75)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      if (poly && poly.length >= 3) {
+        ctx.beginPath();
+        ctx.moveTo(poly[0][0] * W, poly[0][1] * H);
+        for (let i = 1; i < poly.length; i++) {
+          ctx.lineTo(poly[i][0] * W, poly[i][1] * H);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      } else if (fp && fp.x0_pct != null) {
+        ctx.strokeRect(
+          fp.x0_pct * W, fp.y0_pct * H,
+          (fp.x1_pct - fp.x0_pct) * W, (fp.y1_pct - fp.y0_pct) * H
+        );
+      }
+      ctx.setLineDash([]);
+    }
 
     const dimLines = data.dimension_lines || [];
     const walls    = data.walls || [];

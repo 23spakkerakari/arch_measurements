@@ -3,9 +3,39 @@
  * Draws dimension lines and labels onto the result canvas.
  */
 
+/**
+ * Fetch the wall_pair_mask PNG from the server and store it in appState.maskImage.
+ * Called lazily from drawCanvas whenever the mask_cache_path changes.
+ * On successful load, triggers a fresh drawCanvas to composite the mask.
+ */
+function loadMaskImageIfNeeded(data) {
+  const maskPath = data && data.mask_cache_path;
+  if (!maskPath) {
+    appState.maskImage = null;
+    appState._loadedMaskPath = null;
+    return;
+  }
+  if (appState._loadedMaskPath === maskPath) return;  // already loaded / loading
+  appState._loadedMaskPath = maskPath;
+  appState.maskImage = null;  // clear stale image while new one loads
+  const img = new Image();
+  img.onload = () => {
+    appState.maskImage = img;
+    drawCanvas();
+  };
+  img.onerror = () => {
+    console.warn('[mask] failed to load mask image from', maskPath);
+    appState.maskImage = null;
+  };
+  img.src = `/api/mask-image?path=${encodeURIComponent(maskPath)}`;
+}
+
 function drawCanvas() {
   const data = appState.analysisResult;
   if (!data) return;
+
+  // Kick off (or serve from cache) the wall_pair_mask fetch.
+  loadMaskImageIfNeeded(data);
 
   const img    = document.getElementById('result-img');
   const canvas = document.getElementById('overlay-canvas');
@@ -31,6 +61,36 @@ function drawCanvas() {
 
     const W = imgRect.width;
     const H = imgRect.height;
+
+    // ── CV wall-pair mask overlay ────────────────────────
+    // Renders the raw OpenCV wall_pair_mask as a semi-transparent green tint.
+    // White pixels in the mask = pixels OpenCV identified as double-line wall pairs.
+    // Gaps in the tint explain exactly why a wall was missed.
+    if (appState.layers.mask && appState.maskImage) {
+      const maskImg = appState.maskImage;
+      const [imgW, imgH] = data.image_size_px || [maskImg.naturalWidth, maskImg.naturalHeight];
+      const [ox, oy] = data.mask_roi_offset || [0, 0];
+      const dx = (ox / imgW) * W;
+      const dy = (oy / imgH) * H;
+      const dw = (maskImg.naturalWidth / imgW) * W;
+      const dh = (maskImg.naturalHeight / imgH) * H;
+
+      // Build a green-tinted version of the mask on an offscreen canvas:
+      // fill with solid green, then clip to the mask's white pixels.
+      const off = document.createElement('canvas');
+      off.width  = Math.max(1, Math.round(dw));
+      off.height = Math.max(1, Math.round(dh));
+      const octx = off.getContext('2d');
+      octx.fillStyle = '#00e878';
+      octx.fillRect(0, 0, off.width, off.height);
+      octx.globalCompositeOperation = 'destination-in';
+      octx.drawImage(maskImg, 0, 0, off.width, off.height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.40;
+      ctx.drawImage(off, dx, dy, dw, dh);
+      ctx.restore();
+    }
 
     const poly = data.footprint_polygon_pct;
     const fp = data.footprint_bbox_cv || data.footprint_bbox;
@@ -59,10 +119,15 @@ function drawCanvas() {
     const walls    = data.walls || [];
     const hi = appState.highlightedWall;
 
-    // Resolve a highlight target: prefer dimension_lines[hi], fall back to
-    // walls[hi] if it carries percentage coordinates (manual mode).
-    const hiDimLine = (hi !== null && hi !== undefined) ? dimLines[hi] : null;
-    const hiWall    = (hi !== null && hi !== undefined) ? walls[hi] : null;
+    // Resolve the highlighted wall object from the walls array.
+    const hiWall = (hi !== null && hi !== undefined) ? walls[hi] : null;
+
+    // Look up the matching dim line by wall ID so the index into the filtered
+    // dimension_lines subset never diverges from the wall list index.
+    const hiDimLine = hiWall && hiWall.id
+      ? dimLines.find(dl => dl.wallId === hiWall.id) || null
+      : (hi !== null && hi !== undefined ? dimLines[hi] : null);
+
     const hiWallHasCoords = hiWall &&
       hiWall.x1_pct != null && hiWall.y1_pct != null &&
       hiWall.x2_pct != null && hiWall.y2_pct != null;
@@ -90,6 +155,45 @@ function drawCanvas() {
       } else {
         drawDimLines(ctx, dimLines, W, H);
       }
+    }
+
+    // ── DRAW WALL rubber-band preview ────────────────────
+    // Show a dashed line from the first click to the current cursor position,
+    // plus a dot at the first anchor point.
+    if (appState.drawWallMode && appState.drawWallFirstPoint) {
+      const p1 = appState.drawWallFirstPoint;
+      const cur = appState._drawCursor || p1;
+      const ax = p1.x * W,  ay = p1.y * H;
+      const bx = cur.x * W, by = cur.y * H;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 230, 120, 0.9)';
+      ctx.lineWidth   = 1.8;
+      ctx.setLineDash([8, 5]);
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Anchor dot at first click
+      ctx.fillStyle = '#00e878';
+      ctx.beginPath();
+      ctx.arc(ax, ay, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Instruction label above anchor
+      ctx.font         = 'bold 10px "Space Mono", monospace';
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle    = 'rgba(8,12,18,0.85)';
+      ctx.fillRect(ax + 8, ay - 20, 114, 16);
+      ctx.fillStyle = '#00e878';
+      ctx.fillText('Click 2nd point to finish', ax + 10, ay - 6);
+      ctx.restore();
     }
   };
 
@@ -271,6 +375,73 @@ function drawWitnessLines(ctx, x1, y1, x2, y2) {
   });
 
   ctx.setLineDash([]);
+}
+
+/**
+ * Toggle the DRAW WALL two-click mode.
+ * First click sets the start point; second click creates the wall.
+ */
+function toggleDrawWallMode(btn) {
+  appState.drawWallMode = !appState.drawWallMode;
+  appState.drawWallFirstPoint = null;
+  appState._drawCursor = null;
+  btn.classList.toggle('active', appState.drawWallMode);
+  const canvas = document.getElementById('overlay-canvas');
+  canvas.style.cursor = appState.drawWallMode ? 'crosshair' : '';
+  canvas.style.pointerEvents = appState.drawWallMode ? 'auto' : '';
+  if (!appState.drawWallMode) drawCanvas();  // clear rubber-band preview
+}
+
+function _initAddWallClickHandler() {
+  const canvas = document.getElementById('overlay-canvas');
+  if (canvas._addWallHandlerAttached) return;
+  canvas._addWallHandlerAttached = true;
+
+  // ── Mousemove: update rubber-band cursor for draw mode ──
+  canvas.addEventListener('mousemove', (e) => {
+    if (!appState.drawWallMode || !appState.drawWallFirstPoint) return;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    if (W === 0 || H === 0) return;
+    appState._drawCursor = {
+      x: (e.clientX - rect.left) / W,
+      y: (e.clientY - rect.top)  / H,
+    };
+    drawCanvas();
+  });
+
+  canvas.addEventListener('click', (e) => {
+    if (!appState.drawWallMode) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const xCanvas = e.clientX - rect.left;
+    const yCanvas = e.clientY - rect.top;
+    const W = rect.width;
+    const H = rect.height;
+
+    if (W === 0 || H === 0) return;
+
+    const xPct = xCanvas / W;
+    const yPct = yCanvas / H;
+
+    if (!appState.drawWallFirstPoint) {
+      appState.drawWallFirstPoint = { x: xPct, y: yPct };
+      appState._drawCursor = { x: xPct, y: yPct };
+      drawCanvas();
+    } else {
+      const p1 = appState.drawWallFirstPoint;
+      appState.drawWallFirstPoint = null;
+      appState._drawCursor = null;
+      createManualWall(p1.x, p1.y, xPct, yPct);
+    }
+  });
+}
+
+// Initialise the handler as soon as the DOM is ready.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initAddWallClickHandler);
+} else {
+  _initAddWallClickHandler();
 }
 
 function drawDimLabel(ctx, label, x1, y1, x2, y2) {

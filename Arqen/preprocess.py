@@ -18,7 +18,9 @@ import argparse
 import json
 import math
 import sys
+import tempfile
 import time
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -134,15 +136,17 @@ def _blank_sheet_margins(gray: np.ndarray) -> np.ndarray:
     return out
 
 
-def _strip_spanning_grid_lines(mask: np.ndarray) -> np.ndarray:
+def _strip_spanning_grid_lines(mask: np.ndarray, span_frac: float = 0.42) -> np.ndarray:
     """
     Remove long H/V runs that span most of the sheet (structural grid, borders).
-    Building wall strokes are shorter than ~40% of the sheet span.
+    span_frac controls the threshold: 0.42 for margin-aware passes (walls shorter
+    than ~40 % of sheet); 0.90 for snap-mask passes so long exterior wall pixel
+    runs are NOT stripped before snap_segments_to_walls uses them.
     """
     h, w = mask.shape
     out = mask.copy()
-    kw = max(40, int(w * 0.42))
-    kh = max(40, int(h * 0.42))
+    kw = max(40, int(w * span_frac))
+    kh = max(40, int(h * span_frac))
     long_h = cv2.morphologyEx(
         mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (kw, 1))
     )
@@ -154,13 +158,30 @@ def _strip_spanning_grid_lines(mask: np.ndarray) -> np.ndarray:
     return out
 
 
-def _extract_wall_lines(image: np.ndarray, blank_right_frac: Optional[float] = None) -> np.ndarray:
-    """Threshold → clean noise → extract H/V wall lines via double-line pairing."""
+def _extract_wall_lines(
+    image: np.ndarray,
+    blank_right_frac: Optional[float] = None,
+    apply_margins: bool = True,
+    px_per_unit: float = 18.0,
+) -> np.ndarray:
+    """Threshold → clean noise → extract H/V wall lines via double-line pairing.
+
+    apply_margins=True  (default): blank title-block/header zones before
+        detection — used for footprint detection so sheet borders and title
+        text don't pollute the wall-pair mask.
+    apply_margins=False: skip the margin-blanking step — used when building
+        a snap mask so exterior wall pixels near the sheet edge are preserved.
+
+    px_per_unit drives the wall-pair gap range so it tracks drawing scale and
+    DPI. Walls whose two faces are separated by 2–12 real-world inches are
+    kept; everything else (single-stroke annotation lines, grid) is discarded.
+    """
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     h, w = image.shape
-    image = _blank_sheet_margins(image)
+    if apply_margins:
+        image = _blank_sheet_margins(image)
     # Legacy: optional full-height right strip (off by default)
     if blank_right_frac is not None:
         image[:, int(w * blank_right_frac) :] = 255
@@ -183,29 +204,66 @@ def _extract_wall_lines(image: np.ndarray, blank_right_frac: Optional[float] = N
     # Keep only lines that have a close parallel partner — the two faces of a wall.
     # Single-stroke annotation lines (dimensions, borders, grid) have no partner
     # and are discarded here.
-    # Wall thickness gap (wider than typical grid-line spacing).
-    horiz_walls = _find_wall_pairs(horiz, scan_rows=True, min_gap_px=6, max_gap_px=55)
-    vert_walls = _find_wall_pairs(vert, scan_rows=False, min_gap_px=6, max_gap_px=55)
+    # Gap range is derived from px_per_unit so it scales with drawing scale & DPI:
+    #   min = 2 real inches  (thinnest possible wall face-to-face gap)
+    #   max = 12 real inches (thickest typical exterior wall)
+    # At 1/4"=1ft / 150 DPI (px_per_unit≈37.5): min=6, max=55 (same as old hardcoded).
+    # At 1/4"=1ft / 300 DPI (px_per_unit≈75): min=12, max=75 (catches thick walls).
+    # At 1/8"=1ft / 150 DPI (px_per_unit≈18.75): min=3 (catches thin pairs at small scale).
+    min_gap_px = max(3, int(px_per_unit / 6))   # 2 inches = px_per_unit/6
+    max_gap_px = max(55, int(px_per_unit))        # 12 inches = px_per_unit
+    print(f"  [wall-pairs] gap range {min_gap_px}–{max_gap_px} px "
+          f"(px_per_unit={px_per_unit:.1f}, margins={apply_margins})", file=sys.stderr)
+    horiz_walls = _find_wall_pairs(horiz, scan_rows=True, min_gap_px=min_gap_px, max_gap_px=max_gap_px)
+    vert_walls = _find_wall_pairs(vert, scan_rows=False, min_gap_px=min_gap_px, max_gap_px=max_gap_px)
     combined = cv2.bitwise_or(horiz_walls, vert_walls)
-    return _strip_spanning_grid_lines(combined)
+    # Snap mask (apply_margins=False) must keep long exterior wall runs intact so
+    # snap_segments_to_walls can find them; raise threshold to 0.90 for that pass.
+    # Footprint pass raised to 0.65 so exterior walls spanning 42–65% of the sheet
+    # are not incorrectly stripped as structural grid lines.
+    span_frac = 0.65 if apply_margins else 0.90
+    return _strip_spanning_grid_lines(combined, span_frac=span_frac)
 
 
-def preprocess(image: np.ndarray, blank_right_frac: Optional[float] = None) -> np.ndarray:
+def preprocess(
+    image: np.ndarray,
+    blank_right_frac: Optional[float] = None,
+    px_per_unit: float = 18.0,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Two-pass preprocessing:
       1. Extract H/V wall lines at full resolution.
+         - Filtered mask (margins blanked): drives footprint detection so
+           title-block borders and header text are excluded.
+         - Full mask (no margin blanking): returned for segment snapping so
+           exterior wall pixels near the sheet edge are preserved.
       2. Downscale → heavy dilation+closing to bridge doorways →
-         upscale the solid footprint mask back to full resolution.
+         upscale the solid footprint mask back to full resolution (big).
+
+    px_per_unit drives the adaptive closing kernel so windows and doors
+    (up to 12 real-world units wide) are always bridged regardless of scale/DPI.
+
+    Returns (big, wall_pair_mask_full).
     """
     t0 = time.time()
-    walls = _extract_wall_lines(image, blank_right_frac=blank_right_frac)
+    # Filtered mask: used for footprint morphology (excludes sheet margins).
+    wall_pair_mask_filtered = _extract_wall_lines(
+        image, blank_right_frac=blank_right_frac, apply_margins=True,
+        px_per_unit=px_per_unit,
+    )
+    # Full mask: used for snapping — exterior wall pixels near the sheet edge
+    # must NOT be erased, otherwise snap_segments_to_walls finds nothing there.
+    wall_pair_mask_full = _extract_wall_lines(
+        image, blank_right_frac=blank_right_frac, apply_margins=False,
+        px_per_unit=px_per_unit,
+    )
     print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
-    h, w = walls.shape
+    h, w = wall_pair_mask_filtered.shape
     small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
 
     t0 = time.time()
-    small = cv2.resize(walls, (small_w, small_h), interpolation=cv2.INTER_AREA)
+    small = cv2.resize(wall_pair_mask_filtered, (small_w, small_h), interpolation=cv2.INTER_AREA)
     _, small = cv2.threshold(small, 127, 255, cv2.THRESH_BINARY)
 
     small = cv2.dilate(
@@ -214,13 +272,18 @@ def preprocess(image: np.ndarray, blank_right_frac: Optional[float] = None) -> n
         iterations=2,
     )
 
-    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
+    # Adaptive closing kernel: bridge window/door gaps up to 12 real-world units.
+    # At 1/8"=1'/144 DPI: 12*18/4=54; at 1/4"=1'/144 DPI: 12*36/4=108.
+    # The hard-coded 25 only bridged ~2.7 ft gaps, causing flood-fill leakage.
+    close_k_size = max(25, int(12 * px_per_unit / DOWNSCALE))
+    print(f"  [preprocess] adaptive close_k_size={close_k_size} (px_per_unit={px_per_unit:.1f})", file=sys.stderr)
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (close_k_size, close_k_size))
     small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, close_k, iterations=1)
 
     big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
     print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
 
-    return big
+    return big, wall_pair_mask_full
 
 def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
     """
@@ -255,65 +318,78 @@ def find_footprint(binary: np.ndarray):
     is NOT the sheet border/title block.
 
     Strategy:
-      - Reject components that touch the image edge (sheet border artifacts).
+      - Pass 1: reject components that touch the image edge (sheet border artifacts).
+      - Pass 2 (fallback): allow edge-touching blobs but use stricter aspect ratio
+        (< 8) and lower max-area limit (92%) to avoid picking up the sheet border
+        itself. Useful for plans where the building fills most of the sheet.
       - Reject components that fill most of the image (the border itself).
       - Reject components with extreme aspect ratios (title blocks, scale bars).
-      - Among survivors, pick the largest by area.
+      - Among survivors, pick the largest by area × compactness.
     """
     filled = flood_fill_interior(binary)
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(filled)
 
     h, w = filled.shape
     image_area = h * w
-
     edge_margin_x = w * 0.01
     edge_margin_y = h * 0.01
-
     excl = _build_exclusion_mask(h, w)
-    best_label = None
-    best_score = -1.0
 
-    for label in range(1, num_labels):
-        x = stats[label, cv2.CC_STAT_LEFT]
-        y = stats[label, cv2.CC_STAT_TOP]
-        width = stats[label, cv2.CC_STAT_WIDTH]
-        height = stats[label, cv2.CC_STAT_HEIGHT]
-        area = stats[label, cv2.CC_STAT_AREA]
+    def _score_components(allow_edge_touch: bool) -> Optional[int]:
+        best_label = None
+        best_score = -1.0
+        max_area_frac = 0.92 if allow_edge_touch else 0.85
+        max_aspect = 8 if allow_edge_touch else 12
 
-        if area < image_area * 0.005:
-            continue
+        for label in range(1, num_labels):
+            x = stats[label, cv2.CC_STAT_LEFT]
+            y = stats[label, cv2.CC_STAT_TOP]
+            width = stats[label, cv2.CC_STAT_WIDTH]
+            height = stats[label, cv2.CC_STAT_HEIGHT]
+            area = stats[label, cv2.CC_STAT_AREA]
 
-        if area > image_area * 0.85:
-            continue
+            if area < image_area * 0.005:
+                continue
+            if area > image_area * max_area_frac:
+                continue
 
-        aspect = width / max(height, 1)
-        if aspect > 12 or aspect < 1 / 12:
-            continue
+            aspect = width / max(height, 1)
+            if aspect > max_aspect or aspect < 1 / max_aspect:
+                continue
 
-        touches_edge = (
-            x <= edge_margin_x
-            or y <= edge_margin_y
-            or (x + width) >= (w - edge_margin_x)
-            or (y + height) >= (h - edge_margin_y)
-        )
-        if touches_edge:
-            continue
+            if not allow_edge_touch:
+                touches_edge = (
+                    x <= edge_margin_x
+                    or y <= edge_margin_y
+                    or (x + width) >= (w - edge_margin_x)
+                    or (y + height) >= (h - edge_margin_y)
+                )
+                if touches_edge:
+                    continue
 
-        comp = (labels == label).astype(np.uint8)
-        overlap = np.logical_and(comp, excl > 0).sum() / max(comp.sum(), 1)
-        if overlap > 0.12:
-            continue
+            comp = (labels == label).astype(np.uint8)
+            overlap = np.logical_and(comp, excl > 0).sum() / max(comp.sum(), 1)
+            if overlap > 0.12:
+                continue
 
-        cx = x + width / 2
-        cy = y + height / 2
-        if _point_in_exclusion(cx, cy, w, h):
-            continue
+            cx = x + width / 2
+            cy = y + height / 2
+            if _point_in_exclusion(cx, cy, w, h):
+                continue
 
-        compactness = area / max(width * height, 1)
-        score = area * compactness
-        if score > best_score:
-            best_score = score
-            best_label = label
+            compactness = area / max(width * height, 1)
+            score = area * compactness
+            if score > best_score:
+                best_score = score
+                best_label = label
+
+        return best_label
+
+    best_label = _score_components(allow_edge_touch=False)
+    if best_label is None:
+        print("  [find_footprint] pass 1 found nothing; retrying with edge-touching blobs allowed",
+              file=sys.stderr)
+        best_label = _score_components(allow_edge_touch=True)
 
     if best_label is None:
         return None
@@ -430,6 +506,224 @@ def measure_walls(segments: list[tuple], px_per_unit: float, unit_label: str) ->
     return walls
 
 
+# ─── Wall-position snapping ─────────────────────────────────────────────────
+
+def snap_segments_to_walls(
+    segments: list[tuple],
+    wall_mask: np.ndarray,
+    search_radius: int = 80,
+    min_pixels: int = 10,
+) -> list[tuple]:
+    """
+    Shift each polygon-derived segment onto the nearest actual wall-pair pixels.
+
+    The polygon contour is traced on an inflated binary mask, so its edges sit
+    outside the real wall lines.  For each segment we scan the undilated
+    wall_pair_mask perpendicular to the segment direction, find the median
+    position of wall pixels within search_radius, and snap the segment there.
+    Falls back to the original position when no wall pixels are found.
+    """
+    h, w = wall_mask.shape
+    snapped = []
+    for (x1, y1, x2, y2) in segments:
+        is_horiz = abs(x2 - x1) >= abs(y2 - y1)
+        if is_horiz:
+            cy = (y1 + y2) // 2
+            y_lo = max(0, cy - search_radius)
+            y_hi = min(h - 1, cy + search_radius)
+            x_lo = max(0, min(x1, x2) + 5)
+            x_hi = min(w - 1, max(x1, x2) - 5)
+            if x_lo < x_hi and y_lo < y_hi:
+                strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
+                ys, _ = np.where(strip > 0)
+                if len(ys) >= min_pixels:
+                    ny = int(np.median(ys)) + y_lo
+                    snapped.append((x1, ny, x2, ny))
+                    continue
+        else:
+            cx = (x1 + x2) // 2
+            x_lo = max(0, cx - search_radius)
+            x_hi = min(w - 1, cx + search_radius)
+            y_lo = max(0, min(y1, y2) + 5)
+            y_hi = min(h - 1, max(y1, y2) - 5)
+            if x_lo < x_hi and y_lo < y_hi:
+                strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
+                _, xs = np.where(strip > 0)
+                if len(xs) >= min_pixels:
+                    nx = int(np.median(xs)) + x_lo
+                    snapped.append((nx, y1, nx, y2))
+                    continue
+        snapped.append((x1, y1, x2, y2))
+    return snapped
+
+
+def _hough_supplement(
+    wall_mask: np.ndarray,
+    existing_segments: list[tuple],
+    min_length_px: float = 60,
+    max_gap_px: int = 20,
+    dedup_tol_px: int = 22,
+) -> list[tuple]:
+    """
+    Run HoughLinesP on wall_mask to find wall segments missed by the polygon approach.
+
+    The polygon-based pipeline only extracts the building footprint's outer edges; any
+    interior walls and recesses smoothed away by approxPolyDP are invisible to it.
+    This supplement detects all significant H/V runs in the wall_pair_mask and adds any
+    that are not already represented in existing_segments.
+
+    Returns a list of new (x1, y1, x2, y2) tuples in image-pixel coordinates.
+    """
+    # Light dilation bridges thin ink gaps so Hough gets longer continuous runs.
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    dilated = cv2.dilate(wall_mask, kernel, iterations=1)
+
+    lines = cv2.HoughLinesP(
+        dilated,
+        rho=1,
+        theta=np.pi / 180,
+        threshold=max(20, int(min_length_px * 0.6)),
+        minLineLength=int(min_length_px),
+        maxLineGap=max_gap_px,
+    )
+    if lines is None:
+        return []
+
+    def _is_duplicate(seg: tuple) -> bool:
+        """True if seg is close to and overlaps an existing or already-accepted segment."""
+        nx1, ny1, nx2, ny2 = seg
+        n_horiz = abs(nx2 - nx1) >= abs(ny2 - ny1)
+        for ex1, ey1, ex2, ey2 in existing_segments:
+            e_horiz = abs(ex2 - ex1) >= abs(ey2 - ey1)
+            if n_horiz != e_horiz:
+                continue
+            if n_horiz:
+                if abs((ny1 + ny2) / 2 - (ey1 + ey2) / 2) > dedup_tol_px:
+                    continue
+                n_lo, n_hi = min(nx1, nx2), max(nx1, nx2)
+                e_lo, e_hi = min(ex1, ex2), max(ex1, ex2)
+                overlap = min(n_hi, e_hi) - max(n_lo, e_lo)
+                if n_hi > n_lo and overlap / (n_hi - n_lo) >= 0.30:
+                    return True
+            else:
+                if abs((nx1 + nx2) / 2 - (ex1 + ex2) / 2) > dedup_tol_px:
+                    continue
+                n_lo, n_hi = min(ny1, ny2), max(ny1, ny2)
+                e_lo, e_hi = min(ey1, ey2), max(ey1, ey2)
+                overlap = min(n_hi, e_hi) - max(n_lo, e_lo)
+                if n_hi > n_lo and overlap / (n_hi - n_lo) >= 0.30:
+                    return True
+        return False
+
+    accepted: list[tuple] = []
+    all_check = list(existing_segments)  # grows as new segs are accepted
+
+    for line in lines:
+        # Cast to Python int immediately — numpy.intc from HoughLinesP is not JSON-serializable.
+        x1, y1, x2, y2 = int(line[0][0]), int(line[0][1]), int(line[0][2]), int(line[0][3])
+
+        # Orthogonal check: within 10° of H or V axis.
+        angle = abs(math.degrees(math.atan2(abs(y2 - y1), abs(x2 - x1))))
+        is_horiz = angle < 10
+        is_vert = angle > 80
+        if not (is_horiz or is_vert):
+            continue
+
+        # Snap to exact H or V so coordinates are axis-aligned.
+        if is_horiz:
+            cy = (y1 + y2) // 2
+            x1, x2 = min(x1, x2), max(x1, x2)
+            y1 = y2 = cy
+        else:
+            cx = (x1 + x2) // 2
+            y1, y2 = min(y1, y2), max(y1, y2)
+            x1 = x2 = cx
+
+        seg = (x1, y1, x2, y2)
+        if not _is_duplicate(seg):
+            accepted.append(seg)
+            all_check.append(seg)
+
+    return accepted
+
+
+def detect_wall_at_point(
+    wall_pair_mask: np.ndarray,
+    x_px: int,
+    y_px: int,
+    search_radius: int = 150,
+    min_run_px: int = 15,
+) -> Optional[dict]:
+    """
+    Find the wall segment closest to (x_px, y_px) in wall_pair_mask.
+
+    Scans a horizontal strip and a vertical strip of width/height 1 px centred
+    on the click point.  Whichever axis has more wall pixels is taken as the
+    wall orientation, and a connected run of wall pixels along that axis is
+    returned as the segment.
+
+    Returns a dict {'px_coords': [x1,y1,x2,y2], 'facing': str} or None.
+    """
+    h, w = wall_pair_mask.shape
+    x_lo = max(0, x_px - search_radius)
+    x_hi = min(w - 1, x_px + search_radius)
+    y_lo = max(0, y_px - search_radius)
+    y_hi = min(h - 1, y_px + search_radius)
+
+    # Sample horizontal and vertical strips around the click point.
+    h_strip = wall_pair_mask[y_px, x_lo:x_hi + 1]
+    v_strip = wall_pair_mask[y_lo:y_hi + 1, x_px]
+    h_count = int(np.count_nonzero(h_strip))
+    v_count = int(np.count_nonzero(v_strip))
+
+    # #region agent log
+    import json as _json, os as _os
+    _log_path = _os.path.normpath(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'debug-7104c9.log'))
+    _total_px = int(np.count_nonzero(wall_pair_mask))
+    with open(_log_path, 'a') as _lf:
+        _lf.write(_json.dumps({'sessionId':'7104c9','location':'preprocess.py:detect_wall_at_point','message':'entry','data':{'mask_shape':[h,w],'total_nonzero_px':_total_px,'x_px':x_px,'y_px':y_px,'h_count':h_count,'v_count':v_count,'search_radius':search_radius,'min_run_px':min_run_px},'timestamp':int(__import__('time').time()*1000),'hypothesisId':'WALL-MASK'}) + '\n')
+    # #endregion
+
+    if h_count == 0 and v_count == 0:
+        return None
+
+    is_horiz = h_count >= v_count
+
+    if is_horiz:
+        # Scan the full row at y_px across the search window; find the median
+        # wall-pixel row in ±search_radius to snap to the true wall centre.
+        region = wall_pair_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
+        ys, _ = np.where(region > 0)
+        if len(ys) < min_run_px:
+            return None
+        wall_row = int(np.median(ys)) + y_lo
+
+        # Extend the segment along the snapped row as far as wall pixels go.
+        row_pixels = wall_pair_mask[wall_row, :]
+        xs = np.where(row_pixels > 0)[0]
+        near_xs = xs[(xs >= x_lo) & (xs <= x_hi)]
+        if len(near_xs) < min_run_px:
+            return None
+        x1, x2 = int(near_xs[0]), int(near_xs[-1])
+        facing = "North" if wall_row < h // 2 else "South"
+        return {"px_coords": [x1, wall_row, x2, wall_row], "facing": facing}
+    else:
+        region = wall_pair_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
+        _, xs = np.where(region > 0)
+        if len(xs) < min_run_px:
+            return None
+        wall_col = int(np.median(xs)) + x_lo
+
+        col_pixels = wall_pair_mask[:, wall_col]
+        ys = np.where(col_pixels > 0)[0]
+        near_ys = ys[(ys >= y_lo) & (ys <= y_hi)]
+        if len(near_ys) < min_run_px:
+            return None
+        y1, y2 = int(near_ys[0]), int(near_ys[-1])
+        facing = "West" if wall_col < w // 2 else "East"
+        return {"px_coords": [wall_col, y1, wall_col, y2], "facing": facing}
+
+
 # ─── Main pipeline ──────────────────────────────────────────────────────────
 
 def _crop_to_roi(image: np.ndarray, roi: dict) -> tuple[np.ndarray, tuple[int, int], int, int]:
@@ -456,8 +750,16 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     roi_offset = (0, 0)
     if roi:
         image, roi_offset, full_w, full_h = _crop_to_roi(image, roi)
+
+    # Parse scale first so px_per_unit is available for scale-adaptive parameters.
+    cal = parse_scale(scale_str, dpi, output_unit="ft")
+    px_per_unit = cal["px_per_unit"]
+    unit_label = cal["unit_label"]
+    is_metric = unit_label == "m"
+    area_unit = f"{unit_label}²"
+
     t0 = time.time()
-    binary = preprocess(image)
+    binary, wall_pair_mask = preprocess(image, px_per_unit=px_per_unit)
     print(f"  [pipeline] preprocess total: {time.time()-t0:.1f}s", file=sys.stderr)
 
     t0 = time.time()
@@ -475,16 +777,44 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     polygon = simplify_polygon(contour, epsilon_factor=eps)
     analyze_page._last_polygon = polygon
     img_h, img_w = image.shape[:2]
-    min_seg_px = max(70.0, min(img_w, img_h) * 0.03) if roi else max(60.0, min(img_w, img_h) * 0.025)
+    # Scale-adaptive minimum: walls shorter than 12 real-world units are polygon
+    # artifacts, not real exterior walls. At 1/8"=1'/144 DPI this is 216 px.
+    min_seg_px = max(60, int(12 * px_per_unit))
+    print(f"  [pipeline] min_seg_px={min_seg_px} (px_per_unit={px_per_unit:.1f})", file=sys.stderr)
     segments = extract_wall_segments(polygon, min_length_px=min_seg_px)
     raw_count = len(segments)
-    segments = _filter_wall_segments(segments, img_w, img_h, roi=None)
-        
-    cal = parse_scale(scale_str, dpi, output_unit="ft") #see scale_parse.py
-    px_per_unit = cal["px_per_unit"]
-    unit_label = cal["unit_label"]
-    is_metric = unit_label == "m"
-    area_unit = f"{unit_label}²"
+
+    # Build a filter ROI from the polygon's own bounding box (+ 3 % padding).
+    # Passing roi= instead of roi=None means _filter_wall_segments uses a
+    # bounds check rather than _point_in_exclusion, which has hard-coded
+    # sheet-fraction exclusion zones (top 12 %, bottom 18 %, etc.) that
+    # incorrectly drop exterior walls of buildings that fill the sheet.
+    # max_span_frac is 0.95 because polygon edges can legitimately span most
+    # of the image (the old 0.38 default was sized for raw grid-line detection).
+    xs_poly, ys_poly = polygon[:, 0], polygon[:, 1]
+    pad = int(min(img_w, img_h) * 0.03)
+    poly_roi = {
+        "x0_pct": max(0.0, float(xs_poly.min() - pad) / img_w),
+        "y0_pct": max(0.0, float(ys_poly.min() - pad) / img_h),
+        "x1_pct": min(1.0, float(xs_poly.max() + pad) / img_w),
+        "y1_pct": min(1.0, float(ys_poly.max() + pad) / img_h),
+    }
+    segments = _filter_wall_segments(segments, img_w, img_h, roi=poly_roi, max_span_frac=0.95)
+    print(f"  [pipeline] segments: raw={raw_count} after_filter={len(segments)}", file=sys.stderr)
+    segments = snap_segments_to_walls(segments, wall_pair_mask)
+    print(f"  [pipeline] segments after snap={len(segments)}", file=sys.stderr)
+
+    # Supplement with Hough lines detected directly on the wall_pair_mask so that
+    # interior walls and recesses smoothed out by approxPolyDP are also captured.
+    hough_segs = _hough_supplement(wall_pair_mask, segments, min_length_px=min_seg_px)
+    if hough_segs:
+        hough_segs = _filter_wall_segments(
+            hough_segs, img_w, img_h, roi=poly_roi, max_span_frac=0.95
+        )
+        hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask)
+        print(f"  [pipeline] Hough supplement: +{len(hough_segs)} segments "
+              f"(total will be {len(segments) + len(hough_segs)})", file=sys.stderr)
+        segments = segments + hough_segs
 
     walls = measure_walls(segments, px_per_unit, unit_label)
     min_real = 8.0 if unit_label == "ft" else 2.5
@@ -514,6 +844,17 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     fp_bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
     poly_out = polygon.astype(int).tolist()
 
+    # Cache wall_pair_mask so detect_wall_at_point can reload it instantly
+    # without re-running the expensive _extract_wall_lines pass.
+    mask_cache_path = None
+    try:
+        cache_name = f"arqen_mask_{uuid.uuid4().hex[:12]}.png"
+        mask_cache_path = str(Path(tempfile.gettempdir()) / cache_name)
+        cv2.imwrite(mask_cache_path, wall_pair_mask)
+    except Exception as e:
+        print(f"  [pipeline] mask cache write failed: {e}", file=sys.stderr)
+        mask_cache_path = None
+
     return {
         "detected_scale": scale_str,
         "total_area": f"{total_area_real:.1f} {area_unit}",
@@ -524,6 +865,11 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
         "footprint_bbox_px": fp_bbox,
         "px_per_ft": round(px_per_unit, 2),
         "walls": walls,
+        "mask_cache_path": mask_cache_path,
+        # roi_offset is the pixel offset of the cropped image within the full image.
+        # detect_wall_at_point needs this to translate full-image click coords into
+        # crop-image coords before querying the mask.
+        "mask_roi_offset": list(roi_offset),
     }
 
 

@@ -60,9 +60,9 @@
       </div>
       <div class="config-sidebar">
         <div class="card">
-          <div class="card-title">BUILDING REGION</div>
-          <p class="roi-status" id="roi-status">Drag on the plan to draw a box around the building (recommended).</p>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="clearBuildingRoi()" style="width:100%;margin-top:8px;">Clear region</button>
+          <div class="card-title">BUILDING REGION <span style="color:#ff6496;font-size:10px;letter-spacing:.05em;">REQUIRED</span></div>
+          <p class="roi-status" id="roi-status">Draw a box around the floor plan to continue.</p>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-roi" onclick="clearBuildingRoi()" style="width:100%;margin-top:8px;display:none;">Re-draw region</button>
         </div>
         <div class="card">
           <div class="card-title">SCALE CONFIGURATION</div>
@@ -98,7 +98,7 @@
             <input type="number" id="image-dpi" placeholder="300" value="300" min="72" max="1200">
           </div>
         </div>
-        <button class="btn btn-primary" onclick="startAnalysis()" style="width:100%;justify-content:center;padding:14px;">
+        <button class="btn btn-primary" id="btn-run-analysis" onclick="startAnalysis()" disabled style="width:100%;justify-content:center;padding:14px;opacity:0.45;cursor:not-allowed;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.35-4.35"/>
@@ -128,6 +128,8 @@
         <div class="canvas-toolbar">
           <button class="tool-btn active" id="btn-show-dims"   onclick="toggleLayer('dims',this)">DIMS</button>
           <button class="tool-btn active" id="btn-show-labels" onclick="toggleLayer('labels',this)">LABELS</button>
+          <button class="tool-btn" id="btn-show-mask" onclick="toggleLayer('mask',this)" title="Show CV wall-pair mask — highlights pixels OpenCV detected as wall pairs">CV MASK</button>
+          <button class="tool-btn" id="btn-draw-wall" onclick="toggleDrawWallMode(this)" title="Click two points to draw a wall manually (no CV needed)">DRAW WALL</button>
         </div>
         <img id="result-img" src="" alt="Plan">
         <canvas id="overlay-canvas"></canvas>

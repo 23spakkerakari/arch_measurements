@@ -3,7 +3,12 @@ const cors    = require('cors');
 const path    = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const os = require('os');
+
+// #region agent log
+const DEBUG_LOG = path.join(__dirname, '..', '..', '..', '..', 'debug-7104c9.log');
+// #endregion
 
 const API_KEY = process.env.ANTHROPIC_API_KEY || null;
 const PORT    = 3001;
@@ -13,6 +18,14 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 app.use(express.static(path.join(__dirname, '..')));
+
+// #region agent log
+app.post('/api/debug-log', (req, res) => {
+  const line = JSON.stringify({ ...req.body, _server: true }) + '\n';
+  fsSync.appendFileSync(DEBUG_LOG, line);
+  res.json({ ok: true });
+});
+// #endregion
 
 app.post('/api/cv-analyze', async (req, res) => {
   const { imageBase64, scale, dpi = 150, roi } = req.body || {};
@@ -70,6 +83,7 @@ app.post('/api/cv-analyze', async (req, res) => {
   }
 });
 
+
 app.post('/api/analyze', async (req, res) => {
   const key = API_KEY || req.headers['x-api-key'];
   if (!key) {
@@ -102,6 +116,27 @@ app.post('/api/analyze', async (req, res) => {
   } catch (err) {
     console.error('Proxy error:', err.message);
     res.status(502).json({ error: { message: 'Proxy failed to reach Anthropic API: ' + err.message } });
+  }
+});
+
+// Serve the cached wall_pair_mask PNG so the browser can overlay it on the plan.
+// Security: only paths inside the OS temp directory are allowed.
+app.get('/api/mask-image', async (req, res) => {
+  const maskPath = req.query.path;
+  if (!maskPath) return res.status(400).json({ error: 'path query parameter required' });
+  const resolved = path.resolve(maskPath);
+  const tmpDir   = os.tmpdir();
+  // Normalise both paths to the same separator style before comparing.
+  if (!resolved.startsWith(path.resolve(tmpDir))) {
+    return res.status(403).json({ error: 'Path not allowed' });
+  }
+  try {
+    const data = await fs.readFile(resolved);
+    res.set('Content-Type', 'image/png');
+    res.set('Cache-Control', 'no-store');
+    res.send(data);
+  } catch {
+    res.status(404).json({ error: 'Mask file not found' });
   }
 });
 

@@ -16,9 +16,14 @@ const appState = {
   units: 'imperial',
   currentStep: 1,
   analysisResult: null,
-  layers: { dims: true, labels: true },
+  layers: { dims: true, labels: true, mask: false },
   highlightedWall: null,
   buildingRoi: null,         // user-drawn { x0_pct, y0_pct, x1_pct, y1_pct }
+  drawWallMode: false,       // true when user is drawing a wall by clicking two endpoints
+  drawWallFirstPoint: null,  // { x, y } in pct — first endpoint while drawing
+  _drawCursor: null,         // { x, y } current cursor pct — rubber-band preview
+  maskImage: null,           // loaded Image of the wall_pair_mask PNG (for CV mask overlay)
+  _loadedMaskPath: null,     // path of the currently loaded mask (cache key)
 };
 
 const WALL_STROKES = [

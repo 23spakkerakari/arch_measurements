@@ -117,18 +117,37 @@ function clearBuildingRoi() {
 }
 
 function updateRoiStatus() {
-  const el = document.getElementById('roi-status');
-  if (!el) return;
-  const roi = appState.buildingRoi;
+  const el      = document.getElementById('roi-status');
+  const runBtn  = document.getElementById('btn-run-analysis');
+  const clearBtn = document.getElementById('btn-clear-roi');
+  const roi     = appState.buildingRoi;
+
   if (!roi) {
-    el.textContent = 'Drag on the plan to draw a box around the building (recommended).';
-    el.classList.remove('ok');
+    if (el) {
+      el.textContent = 'Draw a box around the floor plan to continue.';
+      el.classList.remove('ok');
+    }
+    if (runBtn) {
+      runBtn.disabled = true;
+      runBtn.style.opacity = '0.45';
+      runBtn.style.cursor = 'not-allowed';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
     return;
   }
+
   const w = ((roi.x1_pct - roi.x0_pct) * 100).toFixed(0);
   const h = ((roi.y1_pct - roi.y0_pct) * 100).toFixed(0);
-  el.textContent = `Building region set (${w}% × ${h}% of sheet). Analysis will ignore title block and grid outside this box.`;
-  el.classList.add('ok');
+  if (el) {
+    el.textContent = `Region set (${w}% × ${h}% of sheet) — title block and margins excluded.`;
+    el.classList.add('ok');
+  }
+  if (runBtn) {
+    runBtn.disabled = false;
+    runBtn.style.opacity = '';
+    runBtn.style.cursor = '';
+  }
+  if (clearBtn) clearBtn.style.display = '';
 }
 
 function applyUserRoiToResult(parsed) {

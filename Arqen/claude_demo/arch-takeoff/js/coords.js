@@ -318,9 +318,13 @@ function cvResultToAnalysis(cv) {
   }
 
   const minSegPx = Math.max(70, Math.min(imgW, imgH) * 0.03);
-  const minLenFt = 8;
+  const minLenFt = 4;
+  // Only exclude pixels right at the image edge (2 %). Python's
+  // _filter_wall_segments already removed title-block and header content,
+  // so a tighter band here was incorrectly dropping exterior walls whose
+  // midpoints fall near the top/bottom of the sheet.
   const inExclusion = (mx, my) => (
-    my < 0.12 || my > 0.82 || mx < 0.05 || mx > 0.96 || (mx > 0.58 && my > 0.50)
+    my < 0.02 || my > 0.98 || mx < 0.02 || mx > 0.98
   );
   const dimension_lines = walls.filter(w => {
     const dx = (w.x2_pct - w.x1_pct) * imgW;
@@ -336,6 +340,7 @@ function cvResultToAnalysis(cv) {
     x2_pct: w.x2_pct,
     y2_pct: w.y2_pct,
     label: w.length,
+    wallId: w.id,
   }));
 
   return {
@@ -350,6 +355,8 @@ function cvResultToAnalysis(cv) {
     footprint_polygon_pct,
     image_size_px: cv.image_size_px,
     polygon_vertices: cv.polygon_vertices,
+    mask_cache_path: cv.mask_cache_path || null,
+    mask_roi_offset: cv.mask_roi_offset || [0, 0],
     _coordSpace: 'cv-px',
     _source: 'preprocess',
   };

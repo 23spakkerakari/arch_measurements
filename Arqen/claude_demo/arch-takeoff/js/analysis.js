@@ -42,6 +42,15 @@ async function detectScaleQuick(imageDataUrl) {
 }
 
 async function startAnalysis() {
+  if (!appState.buildingRoi) {
+    const el = document.getElementById('roi-status');
+    if (el) {
+      el.textContent = 'Please draw a box around the floor plan first.';
+      el.style.color = '#ff6496';
+      setTimeout(() => { el.style.color = ''; updateRoiStatus(); }, 2500);
+    }
+    return;
+  }
   goToStep(3);
   document.getElementById('log-lines').innerHTML = '';
 
@@ -374,6 +383,111 @@ ${wallSchema}
 `;
 }
 
+// ── Manual two-point wall creation ──────────────────────
+/**
+ * Create a wall object from two percentage-coordinate endpoints and add it to
+ * the current analysis result. Length is computed client-side from the scale.
+ * Called by the DRAW WALL two-click mode in canvas.js.
+ */
+function createManualWall(x1Pct, y1Pct, x2Pct, y2Pct) {
+  const result = appState.analysisResult;
+  if (!result) return;
+
+  const [imgW, imgH] = result.image_size_px;
+  const scaleStr = result.detected_scale
+    || document.getElementById('manual-scale')?.value
+    || '1/4"=1ft';
+  const dpi = appState.imageDpi
+    || parseInt(document.getElementById('image-dpi')?.value, 10)
+    || 150;
+
+  const pxPerUnit = parseScale(scaleStr, dpi);
+  const isMetric  = scaleStr.includes(':');
+  const unitLabel = isMetric ? 'm' : 'ft';
+
+  const dx    = (x2Pct - x1Pct) * imgW;
+  const dy    = (y2Pct - y1Pct) * imgH;
+  const pxLen = Math.sqrt(dx * dx + dy * dy);
+  const realLen = pxPerUnit ? pxLen / pxPerUnit : 0;
+
+  // Angle clockwise from North (image-up), matching preprocess.py's wall_angle_deg.
+  const angleDeg = (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+  const normalAngle = (angleDeg + 90) % 360;
+  let facing;
+  if (normalAngle >= 315 || normalAngle < 45)  facing = 'North';
+  else if (normalAngle < 135)                   facing = 'East';
+  else if (normalAngle < 225)                   facing = 'South';
+  else                                           facing = 'West';
+
+  const wallId = `w-draw-${Date.now()}`;
+  const newWall = {
+    id: wallId,
+    name: `${facing} Wall (drawn)`,
+    facing,
+    length:     `${realLen.toFixed(2)} ${unitLabel}`,
+    length_raw: realLen,
+    x1_pct: x1Pct, y1_pct: y1Pct,
+    x2_pct: x2Pct, y2_pct: y2Pct,
+    px_coords: [
+      Math.round(x1Pct * imgW), Math.round(y1Pct * imgH),
+      Math.round(x2Pct * imgW), Math.round(y2Pct * imgH),
+    ],
+    _userAdded: true,
+  };
+
+  result.walls.push(newWall);
+
+  const minSegPx = Math.max(70, Math.min(imgW, imgH) * 0.03);
+  const minLenFt = 4;
+  const inExclusion = (mx, my) => (my < 0.02 || my > 0.98 || mx < 0.02 || mx > 0.98);
+  result.dimension_lines = result.walls.filter(w => {
+    const ddx = (w.x2_pct - w.x1_pct) * imgW;
+    const ddy = (w.y2_pct - w.y1_pct) * imgH;
+    const mx  = (w.x1_pct + w.x2_pct) / 2;
+    const my  = (w.y1_pct + w.y2_pct) / 2;
+    if (inExclusion(mx, my)) return false;
+    if ((w.length_raw || 0) < minLenFt) return false;
+    return Math.hypot(ddx, ddy) >= minSegPx;
+  }).map(w => ({
+    x1_pct: w.x1_pct, y1_pct: w.y1_pct,
+    x2_pct: w.x2_pct, y2_pct: w.y2_pct,
+    label:  w.length,
+    wallId: w.id,
+  }));
+
+  renderResults(result);
+}
+
+// ── Delete a wall ───────────────────────────────────────
+function deleteWall(wallId) {
+  const result = appState.analysisResult;
+  if (!result) return;
+
+  result.walls = result.walls.filter(w => w.id !== wallId);
+
+  const [imgW, imgH] = result.image_size_px || [1, 1];
+  const minSegPx = Math.max(70, Math.min(imgW, imgH) * 0.03);
+  const minLenFt = 4;
+  const inExclusion = (mx, my) => (my < 0.02 || my > 0.98 || mx < 0.02 || mx > 0.98);
+  result.dimension_lines = result.walls.filter(w => {
+    const dx = (w.x2_pct - w.x1_pct) * imgW;
+    const dy = (w.y2_pct - w.y1_pct) * imgH;
+    const mx = (w.x1_pct + w.x2_pct) / 2;
+    const my = (w.y1_pct + w.y2_pct) / 2;
+    if (inExclusion(mx, my)) return false;
+    if ((w.length_raw || 0) < minLenFt) return false;
+    return Math.hypot(dx, dy) >= minSegPx;
+  }).map(w => ({
+    x1_pct: w.x1_pct, y1_pct: w.y1_pct,
+    x2_pct: w.x2_pct, y2_pct: w.y2_pct,
+    label:  w.length,
+    wallId: w.id,
+  }));
+
+  if (appState.highlightedWall !== null) appState.highlightedWall = null;
+  renderResults(result);
+}
+
 // ── Render results ──────────────────────────────────────
 function renderResults(data) {
   goToStep(4);
@@ -400,7 +514,12 @@ function renderResults(data) {
         <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
       </div>
       <div class="wall-notes">${wall.notes || ''}</div>
+      <button class="wall-delete" title="Remove this wall">×</button>
     `;
+    item.querySelector('.wall-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteWall(wall.id);
+    });
     item.addEventListener('click', () => highlightWall(i, item));
     listEl.appendChild(item);
   });
@@ -412,3 +531,4 @@ function renderResults(data) {
 
   drawCanvas();
 }
+

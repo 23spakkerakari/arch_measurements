@@ -4,19 +4,31 @@
  */
 
 /**
- * Fetch the wall_pair_mask PNG from the server and store it in appState.maskImage.
- * Called lazily from drawCanvas whenever the mask_cache_path changes.
+ * Load the wall_pair_mask into appState.maskImage for the debug overlay.
+ *
+ * Two sources are supported:
+ *   mask_base64     — inline data-URL returned by the Render production service
+ *                     (no extra HTTP request needed)
+ *   mask_cache_path — temp-file path served by the local Express proxy
+ *                     (local development only)
+ *
+ * Called lazily from drawCanvas whenever the analysis result changes.
  * On successful load, triggers a fresh drawCanvas to composite the mask.
  */
 function loadMaskImageIfNeeded(data) {
-  const maskPath = data && data.mask_cache_path;
-  if (!maskPath) {
+  // Prefer the inline data-URL (production) over the file-path endpoint (local dev).
+  const maskSrc = (data && data.mask_base64)
+    || (data && data.mask_cache_path
+        ? `/api/mask-image?path=${encodeURIComponent(data.mask_cache_path)}`
+        : null);
+
+  if (!maskSrc) {
     appState.maskImage = null;
     appState._loadedMaskPath = null;
     return;
   }
-  if (appState._loadedMaskPath === maskPath) return;  // already loaded / loading
-  appState._loadedMaskPath = maskPath;
+  if (appState._loadedMaskPath === maskSrc) return;  // already loaded / loading
+  appState._loadedMaskPath = maskSrc;
   appState.maskImage = null;  // clear stale image while new one loads
   const img = new Image();
   img.onload = () => {
@@ -24,10 +36,10 @@ function loadMaskImageIfNeeded(data) {
     drawCanvas();
   };
   img.onerror = () => {
-    console.warn('[mask] failed to load mask image from', maskPath);
+    console.warn('[mask] failed to load mask image');
     appState.maskImage = null;
   };
-  img.src = `/api/mask-image?path=${encodeURIComponent(maskPath)}`;
+  img.src = maskSrc;
 }
 
 function drawCanvas() {

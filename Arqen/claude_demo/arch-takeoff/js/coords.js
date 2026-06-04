@@ -356,6 +356,7 @@ function cvResultToAnalysis(cv) {
     image_size_px: cv.image_size_px,
     polygon_vertices: cv.polygon_vertices,
     mask_cache_path: cv.mask_cache_path || null,
+    mask_base64: cv.mask_base64 || null,
     mask_roi_offset: cv.mask_roi_offset || [0, 0],
     _coordSpace: 'cv-px',
     _source: 'preprocess',

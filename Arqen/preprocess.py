@@ -557,6 +557,117 @@ def snap_segments_to_walls(
     return snapped
 
 
+def merge_and_deduplicate_segments(
+    segments: list[tuple],
+    axis_tol_px: int = 12,
+    gap_tol_px: int = 8,
+) -> list[tuple]:
+    """Collapse coaxial duplicate segments and subsummed fragments.
+
+    Fixes two sources of measurement overlap that arise from combining polygon
+    and Hough segments:
+
+    1. Double-lined walls: the footprint polygon and Hough lines can each
+       detect a different one of the two ink lines that form a drawn wall,
+       producing two near-parallel segments on the same axis.  These are
+       merged into one by clustering segments whose perpendicular (off-axis)
+       distance is within ``axis_tol_px`` and union-merging their 1D extents.
+
+    2. Window/door stubs vs. spanning segment: the polygon traces a
+       continuous span across a window gap (bridged by morphological close),
+       while Hough finds the two real wall stubs on either side.  All three
+       land on the same axis and are collapsed into the longest span.
+
+    Algorithm
+    ---------
+    Pass 1 – coaxial merge:
+        • Split into H and V groups.
+        • Sort each group by perpendicular coordinate.
+        • Single-linkage cluster by perpendicular distance (≤ axis_tol_px).
+        • Within each cluster, sort 1D projections and union-merge intervals
+          that overlap or are within gap_tol_px of each other.
+        • Emit one merged segment per interval, at the cluster's median
+          perpendicular coordinate.
+
+    Pass 2 – subsumption drop (safety net):
+        • Drop any segment whose 1D extent is fully contained within a longer
+          co-axial segment (same orientation, perp within axis_tol_px).
+    """
+    if not segments:
+        return segments
+
+    def _perp(seg: tuple, horiz: bool) -> int:
+        return (seg[1] + seg[3]) // 2 if horiz else (seg[0] + seg[2]) // 2
+
+    def _proj(seg: tuple, horiz: bool) -> tuple[int, int]:
+        if horiz:
+            return min(seg[0], seg[2]), max(seg[0], seg[2])
+        return min(seg[1], seg[3]), max(seg[1], seg[3])
+
+    merged_result: list[tuple] = []
+
+    for is_horiz in (True, False):
+        segs = [s for s in segments
+                if (abs(s[2] - s[0]) >= abs(s[3] - s[1])) == is_horiz]
+        if not segs:
+            continue
+
+        segs.sort(key=lambda s: _perp(s, is_horiz))
+
+        clusters: list[list[tuple]] = []
+        for seg in segs:
+            p = _perp(seg, is_horiz)
+            if clusters and p - _perp(clusters[-1][-1], is_horiz) <= axis_tol_px:
+                clusters[-1].append(seg)
+            else:
+                clusters.append([seg])
+
+        for cluster in clusters:
+            perps = sorted(_perp(s, is_horiz) for s in cluster)
+            median_perp = perps[len(perps) // 2]
+            intervals = sorted(_proj(s, is_horiz) for s in cluster)
+
+            lo, hi = intervals[0]
+            for nlo, nhi in intervals[1:]:
+                if nlo <= hi + gap_tol_px:
+                    hi = max(hi, nhi)
+                else:
+                    if is_horiz:
+                        merged_result.append((lo, median_perp, hi, median_perp))
+                    else:
+                        merged_result.append((median_perp, lo, median_perp, hi))
+                    lo, hi = nlo, nhi
+            if is_horiz:
+                merged_result.append((lo, median_perp, hi, median_perp))
+            else:
+                merged_result.append((median_perp, lo, median_perp, hi))
+
+    # Pass 2: drop any segment fully contained within a longer co-axial one.
+    final: list[tuple] = []
+    for i, seg_a in enumerate(merged_result):
+        is_horiz_a = abs(seg_a[2] - seg_a[0]) >= abs(seg_a[3] - seg_a[1])
+        pa = _perp(seg_a, is_horiz_a)
+        lo_a, hi_a = _proj(seg_a, is_horiz_a)
+        subsumed = False
+        for j, seg_b in enumerate(merged_result):
+            if i == j:
+                continue
+            is_horiz_b = abs(seg_b[2] - seg_b[0]) >= abs(seg_b[3] - seg_b[1])
+            if is_horiz_a != is_horiz_b:
+                continue
+            pb = _perp(seg_b, is_horiz_b)
+            if abs(pa - pb) > axis_tol_px:
+                continue
+            lo_b, hi_b = _proj(seg_b, is_horiz_b)
+            if lo_b <= lo_a and hi_b >= hi_a and (hi_b - lo_b) > (hi_a - lo_a):
+                subsumed = True
+                break
+        if not subsumed:
+            final.append(seg_a)
+
+    return final
+
+
 def _hough_supplement(
     wall_mask: np.ndarray,
     existing_segments: list[tuple],
@@ -815,6 +926,21 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
         print(f"  [pipeline] Hough supplement: +{len(hough_segs)} segments "
               f"(total will be {len(segments) + len(hough_segs)})", file=sys.stderr)
         segments = segments + hough_segs
+
+    # Deduplicate and merge the combined segment list.  Two common sources of
+    # overlap are collapsed here:
+    #   • Double-lined walls: polygon and Hough each detect a different ink
+    #     line of the same drawn wall → coaxial merge within axis_tol_px.
+    #   • Window/door stubs: polygon spans the full wall; Hough finds the two
+    #     stubs on either side of the opening → subsumed into the longer span.
+    axis_tol_px = max(8, int(0.5 * px_per_unit))
+    gap_tol_px = max(5, int(0.3 * px_per_unit))
+    before_dedup = len(segments)
+    segments = merge_and_deduplicate_segments(
+        segments, axis_tol_px=axis_tol_px, gap_tol_px=gap_tol_px
+    )
+    print(f"  [pipeline] dedup: {before_dedup} → {len(segments)} segments "
+          f"(axis_tol={axis_tol_px}px, gap_tol={gap_tol_px}px)", file=sys.stderr)
 
     walls = measure_walls(segments, px_per_unit, unit_label)
     min_real = 8.0 if unit_label == "ft" else 2.5

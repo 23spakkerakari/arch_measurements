@@ -53,7 +53,6 @@ async function startAnalysis() {
   }
   goToStep(3);
   document.getElementById('log-lines').innerHTML = '';
-
   let logIdx = 0;
   logTimer = setInterval(() => {
     if (logIdx < LOG_MSGS.length) {
@@ -167,6 +166,8 @@ async function startAnalysis() {
     if (isManualFallback) {
       parsed = computeWallLengths(parsed, manualScale, appState.imageDpi, units);
     }
+
+
     appState.analysisResult = parsed;
     addLog('Analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
@@ -317,6 +318,45 @@ function computeWallLengths(data, scaleStr, dpi, units) {
   }
 
   return { ...data, walls, total_area: totalArea };
+}
+
+// ── Image crop helper ───────────────────────────────────
+function cropImageToRegion(dataUrl, region) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const { x1_pct, y1_pct, x2_pct, y2_pct } = region;
+      const sx = Math.round(x1_pct * img.naturalWidth);
+      const sy = Math.round(y1_pct * img.naturalHeight);
+      const sw = Math.round((x2_pct - x1_pct) * img.naturalWidth);
+      const sh = Math.round((y2_pct - y1_pct) * img.naturalHeight);
+      const c  = document.createElement('canvas');
+      c.width  = sw;
+      c.height = sh;
+      c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.src = dataUrl;
+  });
+}
+
+// ── Coordinate transform: crop-relative → full-image ────
+function transformCoordsToFullImage(data, region) {
+  const { x1_pct: rx1, y1_pct: ry1, x2_pct: rx2, y2_pct: ry2 } = region;
+  const rw = rx2 - rx1, rh = ry2 - ry1;
+
+  function tx(x) { return rx1 + x * rw; }
+  function ty(y) { return ry1 + y * rh; }
+
+  const walls = (data.walls || []).map(w => ({
+    ...w,
+    ...(w.x1_pct != null ? { x1_pct: tx(w.x1_pct), y1_pct: ty(w.y1_pct), x2_pct: tx(w.x2_pct), y2_pct: ty(w.y2_pct) } : {}),
+  }));
+  const dimension_lines = (data.dimension_lines || []).map(dl => ({
+    ...dl,
+    ...(dl.x1_pct != null ? { x1_pct: tx(dl.x1_pct), y1_pct: ty(dl.y1_pct), x2_pct: tx(dl.x2_pct), y2_pct: ty(dl.y2_pct) } : {}),
+  }));
+  return { ...data, walls, dimension_lines };
 }
 
 // ── Prompt builder ──────────────────────────────────────

@@ -24,6 +24,10 @@ const appState = {
   _drawCursor: null,         // { x, y } current cursor pct — rubber-band preview
   maskImage: null,           // loaded Image of the wall_pair_mask PNG (for CV mask overlay)
   _loadedMaskPath: null,     // path of the currently loaded mask (cache key)
+  // Endpoint drag state — set while the user is dragging a wall endpoint to adjust length.
+  // { wallId, endpointIdx (0=start,1=end), anchorXPct, anchorYPct, unitX, unitY }
+  dragState: null,
+  hoveredEndpoint: null,     // { wallId, endpointIdx } — endpoint under cursor (hover only)
 };
 
 const WALL_STROKES = [

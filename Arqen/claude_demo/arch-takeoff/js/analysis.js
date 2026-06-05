@@ -528,6 +528,59 @@ function deleteWall(wallId) {
   renderResults(result);
 }
 
+// ── Recalculate wall length after endpoint drag ──────────
+/**
+ * Recompute `length` / `length_raw` for a wall whose coordinates have just
+ * been updated by dragging an endpoint, then patch the sidebar label in-place
+ * without triggering a full re-render.
+ */
+function recalculateWallLength(wallId) {
+  const result = appState.analysisResult;
+  if (!result) return;
+
+  const wall = (result.walls || []).find(w => w.id === wallId);
+  if (!wall) return;
+
+  const [imgW, imgH] = result.image_size_px || [1, 1];
+  const scaleStr = result.detected_scale
+    || document.getElementById('manual-scale')?.value
+    || '1/4"=1ft';
+  const dpi = appState.imageDpi
+    || parseInt(document.getElementById('image-dpi')?.value, 10)
+    || 150;
+
+  const pxPerUnit = parseScale(scaleStr, dpi);
+  const isMetric  = scaleStr.includes(':');
+  const unitLabel = isMetric ? 'm' : 'ft';
+
+  const dx     = (wall.x2_pct - wall.x1_pct) * imgW;
+  const dy     = (wall.y2_pct - wall.y1_pct) * imgH;
+  const pxLen  = Math.sqrt(dx * dx + dy * dy);
+  const realLen = pxPerUnit ? pxLen / pxPerUnit : 0;
+
+  wall.length     = `${realLen.toFixed(2)} ${unitLabel}`;
+  wall.length_raw = realLen;
+
+  // Sync the dimension_lines label
+  const dl = (result.dimension_lines || []).find(d => d.wallId === wallId);
+  if (dl) dl.label = wall.length;
+
+  // Patch the sidebar <div class="wall-dims"> in-place
+  const listEl = document.getElementById('wall-list');
+  if (listEl) {
+    const walls = result.walls || [];
+    const wallIdx = walls.findIndex(w => w.id === wallId);
+    if (wallIdx >= 0) {
+      const items = listEl.querySelectorAll('.wall-item');
+      const item  = items[wallIdx];
+      if (item) {
+        const dimsEl = item.querySelector('.wall-dims');
+        if (dimsEl) dimsEl.textContent = `${wall.facing || '—'} · ${wall.length}`;
+      }
+    }
+  }
+}
+
 // ── Render results ──────────────────────────────────────
 function renderResults(data) {
   goToStep(4);

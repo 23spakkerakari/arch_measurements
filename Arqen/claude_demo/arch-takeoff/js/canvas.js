@@ -46,6 +46,9 @@ function drawCanvas() {
   const data = appState.analysisResult;
   if (!data) return;
 
+  // Keep pointer-events in sync with whether draggable endpoints are visible.
+  _syncCanvasPointerEvents();
+
   // Kick off (or serve from cache) the wall_pair_mask fetch.
   loadMaskImageIfNeeded(data);
 
@@ -146,7 +149,7 @@ function drawCanvas() {
           label:  wall.length || null,
         } : null);
 
-        if (target) drawHighlightedDimLine(ctx, target, idx, W, H);
+            if (target) drawHighlightedDimLine(ctx, target, idx, W, H, wallId);
       });
     }
 
@@ -201,7 +204,7 @@ function drawCanvas() {
 }
 
 // ── Highlighted single dim line ──────────────────────────
-function drawHighlightedDimLine(ctx, dl, idx, W, H) {
+function drawHighlightedDimLine(ctx, dl, idx, W, H, wallId) {
   const x1 = dl.x1_pct * W;
   const y1 = dl.y1_pct * H;
   const x2 = dl.x2_pct * W;
@@ -230,16 +233,34 @@ function drawHighlightedDimLine(ctx, dl, idx, W, H) {
   drawArrowheadColored(ctx, x2, y2, x1, y1, color);
   drawWitnessLinesColored(ctx, x1, y1, x2, y2, color);
 
-  // Endpoint dots
-  [[x1, y1], [x2, y2]].forEach(([px, py]) => {
+  // Endpoint dots — enlarged + ring when hovered or actively dragged
+  [[x1, y1], [x2, y2]].forEach(([px, py], epIdx) => {
+    const isHovered  = appState.hoveredEndpoint
+      && appState.hoveredEndpoint.wallId === wallId
+      && appState.hoveredEndpoint.endpointIdx === epIdx;
+    const isDragging = appState.dragState
+      && appState.dragState.wallId === wallId
+      && appState.dragState.endpointIdx === epIdx;
+    const active = isHovered || isDragging;
+    const r = active ? 7 : 4;
+
+    // Outer glow ring when active
+    if (active) {
+      ctx.beginPath();
+      ctx.arc(px, py, r + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = color + '66';
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+
     ctx.beginPath();
-    ctx.arc(px, py, 4, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fillStyle = active ? '#ffffff' : color;
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(px, py, 4, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-    ctx.lineWidth = 1.5;
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.strokeStyle = active ? color : 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = active ? 2.5 : 1.5;
     ctx.stroke();
   });
 
@@ -370,6 +391,93 @@ function drawWitnessLines(ctx, x1, y1, x2, y2) {
   ctx.setLineDash([]);
 }
 
+// ── Endpoint drag helper ─────────────────────────────────
+/**
+ * Project a cursor position (in pct-space) onto the axis of an existing wall,
+ * anchored at the OPPOSITE endpoint from the one being dragged.
+ *
+ * Axis-lock ensures the wall angle never changes — the dragged endpoint can
+ * only slide along the line's current direction vector.
+ *
+ * @param {object} wall        - Wall object with x1_pct … y2_pct
+ * @param {number} endpointIdx - 0 = dragging start (P1), 1 = dragging end (P2)
+ * @param {number} cursorXPct  - Mouse X as fraction of canvas width
+ * @param {number} cursorYPct  - Mouse Y as fraction of canvas height
+ * @returns {{ newXPct: number, newYPct: number }}
+ */
+function _projectEndpoint(wall, endpointIdx, cursorXPct, cursorYPct) {
+  // Anchor is the opposite endpoint (stays fixed).
+  const anchorX = endpointIdx === 0 ? wall.x2_pct : wall.x1_pct;
+  const anchorY = endpointIdx === 0 ? wall.y2_pct : wall.y1_pct;
+
+  // Current dragged endpoint (used to build the unit axis vector).
+  const dragX = endpointIdx === 0 ? wall.x1_pct : wall.x2_pct;
+  const dragY = endpointIdx === 0 ? wall.y1_pct : wall.y2_pct;
+
+  // Unit vector pointing from anchor toward the dragged endpoint.
+  const rawDx = dragX - anchorX;
+  const rawDy = dragY - anchorY;
+  const rawLen = Math.sqrt(rawDx * rawDx + rawDy * rawDy) || 1e-9;
+  const unitX = rawDx / rawLen;
+  const unitY = rawDy / rawLen;
+
+  // Project cursor onto axis through anchor.
+  const t = (cursorXPct - anchorX) * unitX + (cursorYPct - anchorY) * unitY;
+
+  return {
+    newXPct: anchorX + t * unitX,
+    newYPct: anchorY + t * unitY,
+  };
+}
+
+/**
+ * Return the first { wallId, endpointIdx } within HIT_RADIUS pixels of
+ * (canvasX, canvasY), or null.
+ */
+function _findEndpointHit(canvasX, canvasY, W, H) {
+  const HIT_RADIUS = 12;
+  const result = appState.analysisResult;
+  if (!result) return null;
+
+  const walls = result.walls || [];
+  let best = null;
+  let bestDist = HIT_RADIUS;
+
+  appState.visibleWalls.forEach(wallId => {
+    const wall = walls.find(w => w.id === wallId);
+    if (!wall) return;
+
+    const pts = [
+      { x: wall.x1_pct * W, y: wall.y1_pct * H, idx: 0 },
+      { x: wall.x2_pct * W, y: wall.y2_pct * H, idx: 1 },
+    ];
+    pts.forEach(({ x, y, idx }) => {
+      const d = Math.sqrt((canvasX - x) ** 2 + (canvasY - y) ** 2);
+      if (d < bestDist) {
+        bestDist = d;
+        best = { wallId, endpointIdx: idx };
+      }
+    });
+  });
+
+  return best;
+}
+
+/**
+ * Sync the overlay-canvas pointer-events so mouse interactions (hover + drag)
+ * are captured whenever needed:
+ *   - draw-wall mode is active, OR
+ *   - at least one wall is pinned/visible (endpoints become draggable).
+ * Otherwise the canvas is transparent to mouse events so the plan image beneath
+ * remains fully clickable.
+ */
+function _syncCanvasPointerEvents() {
+  const canvas = document.getElementById('overlay-canvas');
+  if (!canvas) return;
+  const needEvents = appState.drawWallMode || appState.visibleWalls.size > 0;
+  canvas.style.pointerEvents = needEvents ? 'auto' : 'none';
+}
+
 /**
  * Toggle the DRAW WALL two-click mode.
  * First click sets the start point; second click creates the wall.
@@ -381,7 +489,7 @@ function toggleDrawWallMode(btn) {
   btn.classList.toggle('active', appState.drawWallMode);
   const canvas = document.getElementById('overlay-canvas');
   canvas.style.cursor = appState.drawWallMode ? 'crosshair' : '';
-  canvas.style.pointerEvents = appState.drawWallMode ? 'auto' : '';
+  _syncCanvasPointerEvents();
   if (!appState.drawWallMode) drawCanvas();  // clear rubber-band preview
 }
 
@@ -405,6 +513,8 @@ function _initAddWallClickHandler() {
 
   canvas.addEventListener('click', (e) => {
     if (!appState.drawWallMode) return;
+    // Ignore clicks that were actually the end of an endpoint drag
+    if (canvas._dragConsumedClick) { canvas._dragConsumedClick = false; return; }
 
     const rect = canvas.getBoundingClientRect();
     const xCanvas = e.clientX - rect.left;
@@ -426,6 +536,132 @@ function _initAddWallClickHandler() {
       appState.drawWallFirstPoint = null;
       appState._drawCursor = null;
       createManualWall(p1.x, p1.y, xPct, yPct);
+    }
+  });
+
+  // ── Endpoint drag: mousedown ──────────────────────────
+  canvas.addEventListener('mousedown', (e) => {
+    if (appState.drawWallMode) return;
+    if (e.button !== 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    if (W === 0 || H === 0) return;
+
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    const hit = _findEndpointHit(cx, cy, W, H);
+    if (!hit) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    canvas._dragConsumedClick = true;
+
+    const result = appState.analysisResult;
+    const wall   = (result.walls || []).find(w => w.id === hit.wallId);
+    if (!wall) return;
+
+    // Build the unit axis vector once and store it in dragState so it never
+    // shifts during the drag (prevents axis-drift from floating-point).
+    const rawDx = wall.x2_pct - wall.x1_pct;
+    const rawDy = wall.y2_pct - wall.y1_pct;
+    const rawLen = Math.sqrt(rawDx * rawDx + rawDy * rawDy) || 1e-9;
+
+    appState.dragState = {
+      wallId:       hit.wallId,
+      endpointIdx:  hit.endpointIdx,
+      anchorXPct:   hit.endpointIdx === 0 ? wall.x2_pct : wall.x1_pct,
+      anchorYPct:   hit.endpointIdx === 0 ? wall.y2_pct : wall.y1_pct,
+      // Unit vector pointing FROM anchor TOWARD dragged endpoint
+      unitX: (hit.endpointIdx === 0 ? -rawDx : rawDx) / rawLen,
+      unitY: (hit.endpointIdx === 0 ? -rawDy : rawDy) / rawLen,
+    };
+    appState.hoveredEndpoint = null;
+    canvas.style.cursor = 'grabbing';
+  });
+
+  // ── Endpoint drag: mousemove ──────────────────────────
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+    if (W === 0 || H === 0) return;
+
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    if (appState.dragState) {
+      // Active drag — project cursor onto axis and update wall coords
+      const ds = appState.dragState;
+      const result = appState.analysisResult;
+      const wall   = (result.walls || []).find(w => w.id === ds.wallId);
+      if (!wall) return;
+
+      const cxPct = cx / W;
+      const cyPct = cy / H;
+      const t = (cxPct - ds.anchorXPct) * ds.unitX + (cyPct - ds.anchorYPct) * ds.unitY;
+      // Prevent collapsing to zero length (minimum 5 px in pct-space ≈ 0.005)
+      const MIN_T = 5 / Math.min(W, H);
+      const clampedT = Math.max(MIN_T, t);
+      const newXPct = ds.anchorXPct + clampedT * ds.unitX;
+      const newYPct = ds.anchorYPct + clampedT * ds.unitY;
+
+      if (ds.endpointIdx === 0) {
+        wall.x1_pct = newXPct; wall.y1_pct = newYPct;
+      } else {
+        wall.x2_pct = newXPct; wall.y2_pct = newYPct;
+      }
+
+      // Keep dimension_lines in sync
+      const dl = (result.dimension_lines || []).find(d => d.wallId === ds.wallId);
+      if (dl) {
+        dl.x1_pct = wall.x1_pct; dl.y1_pct = wall.y1_pct;
+        dl.x2_pct = wall.x2_pct; dl.y2_pct = wall.y2_pct;
+      }
+
+      drawCanvas();
+      return;
+    }
+
+    if (appState.drawWallMode) return;
+
+    // Hover detection — show grab cursor near endpoints
+    const hit = _findEndpointHit(cx, cy, W, H);
+    const prev = appState.hoveredEndpoint;
+    const changed = (hit?.wallId !== prev?.wallId) || (hit?.endpointIdx !== prev?.endpointIdx);
+    if (changed) {
+      appState.hoveredEndpoint = hit || null;
+      canvas.style.cursor = hit ? 'grab' : '';
+      drawCanvas();
+    }
+  });
+
+  // ── Endpoint drag: mouseup ────────────────────────────
+  canvas.addEventListener('mouseup', (e) => {
+    if (!appState.dragState) return;
+    if (e.button !== 0) return;
+
+    const { wallId } = appState.dragState;
+    appState.dragState = null;
+    canvas.style.cursor = '';
+
+    // Recompute length and update sidebar label
+    recalculateWallLength(wallId);
+    drawCanvas();
+  });
+
+  // Also release drag if mouse leaves the canvas
+  canvas.addEventListener('mouseleave', () => {
+    if (appState.dragState) {
+      const { wallId } = appState.dragState;
+      appState.dragState = null;
+      canvas.style.cursor = '';
+      recalculateWallLength(wallId);
+      drawCanvas();
+    }
+    if (appState.hoveredEndpoint) {
+      appState.hoveredEndpoint = null;
+      drawCanvas();
     }
   });
 }

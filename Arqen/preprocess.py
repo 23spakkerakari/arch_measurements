@@ -917,7 +917,11 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
 
     # Supplement with Hough lines detected directly on the wall_pair_mask so that
     # interior walls and recesses smoothed out by approxPolyDP are also captured.
-    hough_segs = _hough_supplement(wall_pair_mask, segments, min_length_px=min_seg_px)
+    hough_segs = _hough_supplement(
+        wall_pair_mask, segments,
+        min_length_px=min_seg_px,
+        dedup_tol_px=max(55, int(px_per_unit)),
+    )
     if hough_segs:
         hough_segs = _filter_wall_segments(
             hough_segs, img_w, img_h, roi=poly_roi, max_span_frac=0.95
@@ -933,7 +937,7 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     #     line of the same drawn wall → coaxial merge within axis_tol_px.
     #   • Window/door stubs: polygon spans the full wall; Hough finds the two
     #     stubs on either side of the opening → subsumed into the longer span.
-    axis_tol_px = max(8, int(0.5 * px_per_unit))
+    axis_tol_px = max(55, int(px_per_unit))   # must cover full wall-pair gap so both ink lines collapse
     gap_tol_px = max(5, int(0.3 * px_per_unit))
     before_dedup = len(segments)
     segments = merge_and_deduplicate_segments(

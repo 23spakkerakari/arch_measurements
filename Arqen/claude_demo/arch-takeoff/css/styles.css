@@ -509,6 +509,15 @@ header {
 .wall-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wall-dims { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 1px; }
 .wall-notes { font-family: var(--mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.wall-show-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  transition: color 0.15s;
+}
+.wall-item:hover .wall-show-icon { color: var(--cyan-dim); }
+.wall-item.highlighted .wall-show-icon { color: var(--cyan); }
 
 .notes-box {
   background: var(--bg1);

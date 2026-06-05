@@ -129,44 +129,25 @@ function drawCanvas() {
 
     const dimLines = data.dimension_lines || [];
     const walls    = data.walls || [];
-    const hi = appState.highlightedWall;
 
-    // Resolve the highlighted wall object from the walls array.
-    const hiWall = (hi !== null && hi !== undefined) ? walls[hi] : null;
+    // Draw each pinned wall's measurement independently (supports multi-select).
+    if (appState.layers.dims && appState.visibleWalls.size > 0) {
+      appState.visibleWalls.forEach(wallId => {
+        const idx  = walls.findIndex(w => w.id === wallId);
+        if (idx < 0) return;
+        const wall = walls[idx];
 
-    // Look up the matching dim line by wall ID so the index into the filtered
-    // dimension_lines subset never diverges from the wall list index.
-    const hiDimLine = hiWall && hiWall.id
-      ? dimLines.find(dl => dl.wallId === hiWall.id) || null
-      : (hi !== null && hi !== undefined ? dimLines[hi] : null);
+        const dimLine = dimLines.find(dl => dl.wallId === wallId) || null;
+        const hasCoords = wall.x1_pct != null && wall.y1_pct != null &&
+                          wall.x2_pct != null && wall.y2_pct != null;
+        const target = dimLine || (hasCoords ? {
+          x1_pct: wall.x1_pct, y1_pct: wall.y1_pct,
+          x2_pct: wall.x2_pct, y2_pct: wall.y2_pct,
+          label:  wall.length || null,
+        } : null);
 
-    const hiWallHasCoords = hiWall &&
-      hiWall.x1_pct != null && hiWall.y1_pct != null &&
-      hiWall.x2_pct != null && hiWall.y2_pct != null;
-    // Synthesise a dim-line-shaped object from wall coords when needed
-    const hiTarget  = hiDimLine || (hiWallHasCoords ? {
-      x1_pct: hiWall.x1_pct, y1_pct: hiWall.y1_pct,
-      x2_pct: hiWall.x2_pct, y2_pct: hiWall.y2_pct,
-      label:  hiWall.length || null,
-    } : null);
-
-    if (appState.layers.dims) {
-      if (hiTarget) {
-        // Dim overlay
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.fillRect(0, 0, W, H);
-
-        // Draw all lines at reduced opacity
-        ctx.save();
-        ctx.globalAlpha = 0.25;
-        drawDimLines(ctx, dimLines, W, H);
-        ctx.restore();
-
-        // Draw the selected line brightly with glow
-        drawHighlightedDimLine(ctx, hiTarget, hi, W, H);
-      } else {
-        drawDimLines(ctx, dimLines, W, H);
-      }
+        if (target) drawHighlightedDimLine(ctx, target, idx, W, H);
+      });
     }
 
     // ── DRAW WALL rubber-band preview ────────────────────

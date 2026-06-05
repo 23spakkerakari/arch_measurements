@@ -524,7 +524,7 @@ function deleteWall(wallId) {
     wallId: w.id,
   }));
 
-  if (appState.highlightedWall !== null) appState.highlightedWall = null;
+  appState.visibleWalls.delete(wallId);
   renderResults(result);
 }
 
@@ -554,13 +554,20 @@ function renderResults(data) {
         <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
       </div>
       <div class="wall-notes">${wall.notes || ''}</div>
+      <span class="wall-show-icon" title="Show on plan">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="8" cy="8" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.4"/>
+          <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
+        </svg>
+      </span>
       <button class="wall-delete" title="Remove this wall">×</button>
     `;
     item.querySelector('.wall-delete').addEventListener('click', (e) => {
       e.stopPropagation();
       deleteWall(wall.id);
     });
-    item.addEventListener('click', () => highlightWall(i, item));
+    if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
+    item.addEventListener('click', () => toggleWallVisibility(wall.id, item));
     listEl.appendChild(item);
   });
 

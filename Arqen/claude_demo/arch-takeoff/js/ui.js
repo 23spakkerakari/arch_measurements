@@ -75,10 +75,14 @@ function toggleLayer(layer, btn) {
   drawCanvas();
 }
 
-function highlightWall(idx, itemEl) {
-  document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('highlighted'));
-  appState.highlightedWall = appState.highlightedWall === idx ? null : idx;
-  if (appState.highlightedWall !== null) itemEl.classList.add('highlighted');
+function toggleWallVisibility(wallId, itemEl) {
+  if (appState.visibleWalls.has(wallId)) {
+    appState.visibleWalls.delete(wallId);
+    itemEl.classList.remove('highlighted');
+  } else {
+    appState.visibleWalls.add(wallId);
+    itemEl.classList.add('highlighted');
+  }
   drawCanvas();
 }
 

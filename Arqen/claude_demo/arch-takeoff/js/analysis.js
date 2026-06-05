@@ -681,6 +681,153 @@ function findRoomForWall(wallId) {
 }
 
 /**
+ * Directly assign a wall to a room (or unassign if roomId is null).
+ * If the wall is already in the target room, clicking again unassigns it (toggle).
+ * Called by the room picker popover.
+ */
+function assignWallToRoom(wallId, roomId) {
+  if (!roomId) {
+    appState.rooms.forEach(r => {
+      const i = r.wallIds.indexOf(wallId);
+      if (i >= 0) r.wallIds.splice(i, 1);
+    });
+  } else {
+    const targetRoom = appState.rooms.find(r => r.id === roomId);
+    if (!targetRoom) return;
+    const alreadyIn = targetRoom.wallIds.includes(wallId);
+    appState.rooms.forEach(r => {
+      const i = r.wallIds.indexOf(wallId);
+      if (i >= 0) r.wallIds.splice(i, 1);
+    });
+    if (!alreadyIn) targetRoom.wallIds.push(wallId);
+  }
+  renderRoomsPanel();
+  _renderWallList(appState.analysisResult?.walls || []);
+  drawCanvas();
+}
+
+/**
+ * Assign all lasso-selected walls to a room, then clear the selection.
+ */
+function _assignSelectedWallsToRoom(roomId) {
+  const room = appState.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  appState.selectedWalls.forEach(wallId => {
+    appState.rooms.forEach(r => {
+      const i = r.wallIds.indexOf(wallId);
+      if (i >= 0) r.wallIds.splice(i, 1);
+    });
+    if (!room.wallIds.includes(wallId)) room.wallIds.push(wallId);
+  });
+  clearLassoSelection();
+  renderRoomsPanel();
+  _renderWallList(appState.analysisResult?.walls || []);
+  drawCanvas();
+}
+
+/**
+ * Show the floating lasso-assign bar with the current selection count and room chips.
+ */
+function _showLassoBar() {
+  const bar = document.getElementById('lasso-assign-bar');
+  if (!bar) return;
+  const count = appState.selectedWalls.size;
+  let html = `
+    <span class="lab-count">${count} wall${count !== 1 ? 's' : ''} selected</span>
+    <span class="lab-label">Assign to:</span>
+    <div class="lab-rooms">`;
+  appState.rooms.forEach(room => {
+    html += `<button class="lab-room-chip"
+      style="color:${room.color};border-color:${room.color};background:color-mix(in srgb,${room.color} 12%,transparent)"
+      onclick="_assignSelectedWallsToRoom('${room.id}')">${room.name}</button>`;
+  });
+  if (appState.rooms.length === 0) {
+    html += `<span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.4)">No rooms yet — add one first</span>`;
+  }
+  html += `</div><button class="lab-clear" title="Clear selection" onclick="clearLassoSelection()">✕</button>`;
+  bar.innerHTML = html;
+  bar.classList.remove('hidden');
+}
+
+/**
+ * Clear the lasso wall selection and hide the assign bar.
+ */
+function clearLassoSelection() {
+  appState.selectedWalls = new Set();
+  const bar = document.getElementById('lasso-assign-bar');
+  if (bar) bar.classList.add('hidden');
+  drawCanvas();
+}
+
+/**
+ * Open the room picker popover anchored near (pageX, pageY).
+ */
+function renderRoomPickerPopover(wallId, pageX, pageY) {
+  const popover = document.getElementById('room-picker-popover');
+  if (!popover) return;
+
+  const currentRoom = findRoomForWall(wallId);
+
+  let listHtml = '';
+
+  if (appState.rooms.length === 0) {
+    listHtml += `<div class="rpp-option rpp-add" onclick="addRoom();closeRoomPickerPopover();">
+      <span class="rpp-dot"></span><span>Add a room…</span>
+    </div>`;
+  } else {
+    appState.rooms.forEach(room => {
+      const isCurrent = currentRoom && currentRoom.id === room.id;
+      listHtml += `<div class="rpp-option${isCurrent ? ' rpp-selected' : ''}"
+        style="color:${room.color}"
+        onclick="assignWallToRoom('${wallId}','${room.id}');closeRoomPickerPopover();">
+        <span class="rpp-dot"></span>
+        <span style="color:var(--text)">${room.name}</span>
+        ${isCurrent ? '<span class="rpp-check">✓</span>' : ''}
+      </div>`;
+    });
+    if (currentRoom) {
+      listHtml += `<div class="rpp-divider"></div>
+      <div class="rpp-option rpp-none"
+        onclick="assignWallToRoom('${wallId}',null);closeRoomPickerPopover();">
+        <span class="rpp-dot"></span><span>No room</span>
+      </div>`;
+    }
+    listHtml += `<div class="rpp-divider"></div>
+    <div class="rpp-option rpp-add"
+      onclick="addRoom();closeRoomPickerPopover();">
+      <span class="rpp-dot"></span><span>Add room…</span>
+    </div>`;
+  }
+
+  popover.innerHTML = `<div class="rpp-title">Assign to room</div><div class="rpp-list">${listHtml}</div>`;
+  popover.classList.remove('hidden');
+
+  // Position near cursor; clamp to viewport using the CSS max-height (280px)
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const pW = 200;
+  const pH = 280;
+  let left = pageX + 10;
+  let top  = pageY - 6;
+  if (left + pW > vw - 8) left = Math.max(8, pageX - pW - 10);
+  if (top  + pH > vh - 8) top  = Math.max(8, vh - pH - 8);
+  popover.style.left = `${left}px`;
+  popover.style.top  = `${top}px`;
+}
+
+function closeRoomPickerPopover() {
+  const popover = document.getElementById('room-picker-popover');
+  if (popover) popover.classList.add('hidden');
+}
+
+// Dismiss the popover when clicking anywhere outside it.
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('room-picker-popover');
+  if (!popover || popover.classList.contains('hidden')) return;
+  if (!popover.contains(e.target)) closeRoomPickerPopover();
+});
+
+/**
  * Extract unique room names from freshly-analysed walls and build/merge
  * appState.rooms. Only called once per analysis pass, not on re-renders.
  */
@@ -754,8 +901,7 @@ function renderRoomsPanel() {
             <button class="btn btn-ghost btn-sm" onclick="renameRoom('${room.id}')">Rename</button>
             <button class="btn btn-ghost btn-sm room-delete-btn" onclick="deleteRoom('${room.id}')">Delete</button>
           </div>
-        </div>
-        <div class="room-assign-hint">Click walls below or on the plan to assign to <strong>${room.name}</strong></div>`;
+        </div>`;
     }
   }
 
@@ -842,8 +988,18 @@ function _renderWallList(walls) {
   listEl.innerHTML = '';
 
   const wallIndexMap = new Map(walls.map((w, i) => [w.id, i]));
-  const activeRoom   = appState.rooms.find(r => r.id === appState.activeRoomId);
   const assignedIds  = new Set(appState.rooms.flatMap(r => r.wallIds));
+
+  // Update the card-title badge with unassigned count
+  const cardTitle = listEl.closest('.card')?.querySelector('.card-title');
+  if (cardTitle) {
+    const unassignedCount = walls.filter(w => !assignedIds.has(w.id)).length;
+    if (unassignedCount > 0 && appState.rooms.length > 0) {
+      cardTitle.innerHTML = `WALL MEASUREMENTS <span class="unassigned-badge">${unassignedCount} unassigned</span>`;
+    } else {
+      cardTitle.innerHTML = 'WALL MEASUREMENTS';
+    }
+  }
 
   // Build ordered groups: rooms first (appState.rooms order), then unassigned
   const groups = [];
@@ -856,7 +1012,7 @@ function _renderWallList(walls) {
 
   if (groups.length === 0) {
     // No rooms yet — flat list
-    walls.forEach((wall, i) => _renderWallItem(listEl, wall, i, activeRoom));
+    walls.forEach((wall, i) => _renderWallItem(listEl, wall, i));
     return;
   }
 
@@ -885,26 +1041,31 @@ function _renderWallList(walls) {
 
     group.walls.forEach(wall => {
       const i = wallIndexMap.get(wall.id) ?? 0;
-      _renderWallItem(groupEl, wall, i, activeRoom);
+      _renderWallItem(groupEl, wall, i);
     });
 
     listEl.appendChild(groupEl);
   });
 }
 
-function _renderWallItem(containerEl, wall, colorIdx, activeRoom) {
-  const color = WALL_STROKES[colorIdx % WALL_STROKES.length];
-  const item  = document.createElement('div');
-  item.className    = 'wall-item';
+function _renderWallItem(containerEl, wall, colorIdx) {
+  const assignedRoom = findRoomForWall(wall.id);
+  const dotColor = assignedRoom ? assignedRoom.color : WALL_STROKES[colorIdx % WALL_STROKES.length];
+  const roomBadge = assignedRoom
+    ? `<span class="wall-room-badge" style="color:${assignedRoom.color};border-color:${assignedRoom.color};background:color-mix(in srgb,${assignedRoom.color} 10%,transparent)">${assignedRoom.name}</span>`
+    : '';
+
+  const item = document.createElement('div');
+  item.className = 'wall-item';
   item.dataset.wallId = wall.id;
   item.innerHTML = `
-    <div class="wall-dot" style="background:${color};opacity:0.9"></div>
+    <div class="wall-dot" style="background:${dotColor};opacity:0.9"></div>
     <div class="wall-info">
-      <div class="wall-name">${wall.name || wall.id || 'Wall'}</div>
+      <div class="wall-name">${wall.name || wall.id || 'Wall'}${roomBadge}</div>
       <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
     </div>
     <div class="wall-notes">${wall.notes || ''}</div>
-    <span class="wall-show-icon" title="Show on plan">
+    <span class="wall-show-icon" title="Show measurement on plan">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="8" cy="8" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.4"/>
         <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
@@ -912,23 +1073,31 @@ function _renderWallItem(containerEl, wall, colorIdx, activeRoom) {
     </span>
     <button class="wall-delete" title="Remove this wall">×</button>
   `;
+
   item.querySelector('.wall-delete').addEventListener('click', (e) => {
     e.stopPropagation();
     deleteWall(wall.id);
   });
-  if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
-  const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
-  if (isAssignedToActive) {
-    item.classList.add('room-assigned');
-    item.style.setProperty('--room-color', activeRoom.color);
-  }
-  item.addEventListener('click', () => {
-    if (appState.activeRoomId) {
-      toggleWallRoomAssignment(wall.id);
-    } else {
-      toggleWallVisibility(wall.id, item);
-    }
+
+  // Eye icon: show/hide dimension overlay on canvas (independent of room assignment)
+  item.querySelector('.wall-show-icon').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleWallVisibility(wall.id, item);
   });
+
+  if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
+
+  if (assignedRoom) {
+    item.classList.add('room-assigned');
+    item.style.setProperty('--room-color', assignedRoom.color);
+  }
+
+  // Main click: open room picker popover
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    renderRoomPickerPopover(wall.id, e.clientX, e.clientY);
+  });
+
   containerEl.appendChild(item);
 }
 

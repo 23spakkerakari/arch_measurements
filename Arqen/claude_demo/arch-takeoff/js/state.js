@@ -29,7 +29,9 @@ const appState = {
   dragState: null,
   hoveredEndpoint: null,     // { wallId, endpointIdx } — endpoint under cursor (hover only)
   rooms: [],                 // [{ id, name, wallIds: [], color }]
-  activeRoomId: null,        // room currently open for wall-assignment mode
+  activeRoomId: null,        // room chip whose detail card is currently expanded
+  selectedWalls: new Set(),  // wall IDs selected by shift-drag lasso
+  lassoState: null,          // { x1, y1, x2, y2, active } while lasso is being drawn
 };
 
 const WALL_STROKES = [

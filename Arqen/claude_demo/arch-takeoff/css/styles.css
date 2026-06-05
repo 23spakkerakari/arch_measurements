@@ -626,16 +626,6 @@ header {
   color: #ff6496 !important;
   border-color: rgba(255,100,150,0.4) !important;
 }
-.room-assign-hint {
-  font-size: 10px;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
-  margin-top: 4px;
-  line-height: 1.5;
-}
-.room-assign-hint strong { color: var(--text-dim); }
 
 /* ── Room-grouped wall list ───────────────────────────── */
 .room-group { margin-bottom: 10px; }
@@ -674,6 +664,147 @@ header {
 /* Wall item subtle left border when it's in the active room */
 .wall-item.room-assigned {
   border-left: 3px solid var(--room-color, var(--cyan));
+}
+
+/* ── Room picker popover ─────────────────────────────── */
+.room-picker-popover {
+  position: fixed;
+  z-index: 1000;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+  min-width: 170px;
+  max-width: 230px;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.rpp-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  padding: 7px 12px 5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.rpp-list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.rpp-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  transition: background 0.1s;
+  user-select: none;
+}
+.rpp-option:hover { background: var(--bg2); }
+.rpp-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+.rpp-option.rpp-selected .rpp-dot { background: currentColor; }
+.rpp-check { margin-left: auto; font-size: 10px; color: var(--green); }
+.rpp-divider { height: 1px; background: var(--border); margin: 4px 0; }
+.rpp-none { color: var(--text-faint) !important; }
+.rpp-none .rpp-dot { border-style: dashed !important; }
+.rpp-add { color: var(--cyan-dim) !important; }
+.rpp-add .rpp-dot { border-style: dashed !important; border-color: var(--cyan-dim) !important; }
+
+/* ── Lasso assign bar ───────────────────────────────── */
+.lasso-assign-bar {
+  position: absolute;
+  bottom: 46px;
+  left: 10px;
+  right: 10px;
+  background: rgba(15,23,42,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+.lab-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.lab-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.lab-rooms { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+.lab-room-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid;
+  cursor: pointer;
+  background: transparent;
+  transition: opacity 0.12s;
+}
+.lab-room-chip:hover { opacity: 0.75; }
+.lab-clear {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.1s;
+}
+.lab-clear:hover { color: #ff6496; }
+
+/* ── Wall room badge ────────────────────────────────── */
+.wall-room-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 1px 5px;
+  border-radius: 10px;
+  border: 1px solid;
+  margin-left: 5px;
+  vertical-align: middle;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+/* Unassigned count badge in the wall list card title */
+.unassigned-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--amber);
+  background: rgba(217,119,6,0.08);
+  border: 1px solid rgba(217,119,6,0.2);
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 700;
 }
 
 /* ── Utility ─────────────────────────────────────────── */

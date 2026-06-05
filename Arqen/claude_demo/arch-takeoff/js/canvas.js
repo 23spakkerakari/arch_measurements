@@ -135,7 +135,7 @@ function drawCanvas() {
 
     // ── Room wall highlights ─────────────────────────────
     // Draw subtle colored strokes along walls that belong to any room,
-    // with the active room drawn more prominently.
+    // with the expanded room drawn more prominently.
     appState.rooms.forEach(room => {
       const isActive = room.id === appState.activeRoomId;
       room.wallIds.forEach(wallId => {
@@ -155,6 +155,73 @@ function drawCanvas() {
         ctx.restore();
       });
     });
+
+    // ── Dashed stroke on unassigned walls ────────────────
+    // Makes it obvious at a glance which walls still need a room.
+    walls.forEach(wall => {
+      if (wall.x1_pct == null) return;
+      if (findRoomForWall(wall.id)) return;
+      const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
+      const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    });
+
+    // ── Lasso-selected wall highlights ───────────────────
+    if (appState.selectedWalls && appState.selectedWalls.size > 0) {
+      appState.selectedWalls.forEach(wallId => {
+        const wall = walls.find(w => w.id === wallId);
+        if (!wall || wall.x1_pct == null) return;
+        const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
+        const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+        ctx.save();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 6;
+        ctx.globalAlpha = 0.45;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.strokeStyle = '#00d4ff';
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 1;
+        ctx.setLineDash([8, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      });
+    }
+
+    // ── Lasso selection rectangle ────────────────────────
+    if (appState.lassoState?.active) {
+      const { x1, y1, x2, y2 } = appState.lassoState;
+      const rx = Math.min(x1, x2) * W;
+      const ry = Math.min(y1, y2) * H;
+      const rw = Math.abs(x2 - x1) * W;
+      const rh = Math.abs(y2 - y1) * H;
+      ctx.save();
+      ctx.strokeStyle = '#00d4ff';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(rx, ry, rw, rh);
+      ctx.fillStyle = 'rgba(0,212,255,0.06)';
+      ctx.fillRect(rx, ry, rw, rh);
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
 
     // Draw each pinned wall's measurement independently (supports multi-select).
     if (appState.layers.dims && appState.visibleWalls.size > 0) {
@@ -534,7 +601,7 @@ function _syncCanvasPointerEvents() {
   // Enable pointer events whenever there are walls (canvas click highlights them),
   // or when a special mode is active.
   const hasWalls = (appState.analysisResult?.walls || []).length > 0;
-  const needEvents = hasWalls || appState.drawWallMode || appState.visibleWalls.size > 0 || !!appState.activeRoomId;
+  const needEvents = hasWalls || appState.drawWallMode || appState.visibleWalls.size > 0;
   canvas.style.pointerEvents = needEvents ? 'auto' : 'none';
 }
 
@@ -580,6 +647,23 @@ function toggleDrawWallMode(btn) {
   if (!appState.drawWallMode) drawCanvas();  // clear rubber-band preview
 }
 
+/**
+ * Return IDs of walls whose midpoints fall within the given pct-space rectangle.
+ * Used by the lasso selection to find all walls in the dragged region.
+ */
+function _getWallsInRect(x1Pct, y1Pct, x2Pct, y2Pct) {
+  const result = appState.analysisResult;
+  if (!result) return [];
+  return (result.walls || [])
+    .filter(w => {
+      if (w.x1_pct == null) return false;
+      const mx = (w.x1_pct + w.x2_pct) / 2;
+      const my = (w.y1_pct + w.y2_pct) / 2;
+      return mx >= x1Pct && mx <= x2Pct && my >= y1Pct && my <= y2Pct;
+    })
+    .map(w => w.id);
+}
+
 function _initAddWallClickHandler() {
   const canvas = document.getElementById('overlay-canvas');
   if (canvas._addWallHandlerAttached) return;
@@ -599,7 +683,7 @@ function _initAddWallClickHandler() {
   });
 
   canvas.addEventListener('click', (e) => {
-    // Ignore clicks that were actually the end of an endpoint drag
+    // Ignore clicks that were actually the end of an endpoint drag or lasso
     if (canvas._dragConsumedClick) { canvas._dragConsumedClick = false; return; }
 
     const rect = canvas.getBoundingClientRect();
@@ -612,13 +696,9 @@ function _initAddWallClickHandler() {
     if (!appState.drawWallMode) {
       const wallId = _findWallLineHit(cx, cy, W, H);
       if (wallId) {
-        if (appState.activeRoomId) {
-          // Room-assignment mode
-          toggleWallRoomAssignment(wallId);
-        } else {
-          // Highlight mode — show/hide the wall measurement on the plan
-          _toggleWallHighlightFromCanvas(wallId);
-        }
+        // Always open the room picker popover — wall-first assignment
+        e.stopPropagation();
+        renderRoomPickerPopover(wallId, e.clientX, e.clientY);
       }
       return;
     }
@@ -639,7 +719,7 @@ function _initAddWallClickHandler() {
     }
   });
 
-  // ── Endpoint drag: mousedown ──────────────────────────
+  // ── Endpoint drag / lasso: mousedown ─────────────────
   canvas.addEventListener('mousedown', (e) => {
     if (appState.drawWallMode) return;
     if (e.button !== 0) return;
@@ -650,6 +730,14 @@ function _initAddWallClickHandler() {
 
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
+
+    // Shift+drag starts a lasso selection
+    if (e.shiftKey) {
+      e.preventDefault();
+      appState.lassoState = { x1: cx / W, y1: cy / H, x2: cx / W, y2: cy / H, active: true };
+      canvas._dragConsumedClick = true;
+      return;
+    }
 
     const hit = _findEndpointHit(cx, cy, W, H);
     if (!hit) return;
@@ -681,7 +769,7 @@ function _initAddWallClickHandler() {
     canvas.style.cursor = 'grabbing';
   });
 
-  // ── Endpoint drag: mousemove ──────────────────────────
+  // ── Endpoint drag / lasso: mousemove ─────────────────
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, H = rect.height;
@@ -690,8 +778,17 @@ function _initAddWallClickHandler() {
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
 
+    // Active lasso drag — update the rect and redraw
+    if (appState.lassoState?.active) {
+      appState.lassoState.x2 = cx / W;
+      appState.lassoState.y2 = cy / H;
+      canvas.style.cursor = 'crosshair';
+      drawCanvas();
+      return;
+    }
+
     if (appState.dragState) {
-      // Active drag — project cursor onto axis and update wall coords
+      // Active endpoint drag — project cursor onto axis and update wall coords
       const ds = appState.dragState;
       const result = appState.analysisResult;
       const wall   = (result.walls || []).find(w => w.id === ds.wallId);
@@ -734,22 +831,47 @@ function _initAddWallClickHandler() {
       drawCanvas();
     }
 
-    // Wall-line hover — pointer cursor when not near an endpoint
-    if (!epHit && !appState.activeRoomId) {
-      const wallHit = _findWallLineHit(cx, cy, W, H);
-      canvas.style.cursor = wallHit ? 'pointer' : '';
-    } else if (epHit) {
+    // Cursor: grab on endpoint, pointer on wall line, default otherwise
+    if (epHit) {
       canvas.style.cursor = 'grab';
-    } else if (appState.activeRoomId) {
+    } else {
       const wallHit = _findWallLineHit(cx, cy, W, H);
-      canvas.style.cursor = wallHit ? 'crosshair' : '';
+      canvas.style.cursor = wallHit ? 'pointer' : (e.shiftKey ? 'crosshair' : '');
     }
   });
 
-  // ── Endpoint drag: mouseup ────────────────────────────
+  // ── Endpoint drag / lasso: mouseup ───────────────────
   canvas.addEventListener('mouseup', (e) => {
-    if (!appState.dragState) return;
     if (e.button !== 0) return;
+
+    // Complete a lasso selection
+    if (appState.lassoState?.active) {
+      const rect = canvas.getBoundingClientRect();
+      const W = rect.width, H = rect.height;
+      const lasso = appState.lassoState;
+      lasso.active = false;
+      appState.lassoState = null;
+
+      const minX = Math.min(lasso.x1, lasso.x2);
+      const maxX = Math.max(lasso.x1, lasso.x2);
+      const minY = Math.min(lasso.y1, lasso.y2);
+      const maxY = Math.max(lasso.y1, lasso.y2);
+
+      // Only act if the user dragged a meaningful distance (>5px)
+      if ((maxX - minX) * W > 5 || (maxY - minY) * H > 5) {
+        const wallIds = _getWallsInRect(minX, minY, maxX, maxY);
+        if (wallIds.length > 0) {
+          appState.selectedWalls = new Set(wallIds);
+          _showLassoBar();
+        }
+      }
+
+      canvas.style.cursor = '';
+      drawCanvas();
+      return;
+    }
+
+    if (!appState.dragState) return;
 
     const { wallId } = appState.dragState;
     appState.dragState = null;
@@ -760,8 +882,13 @@ function _initAddWallClickHandler() {
     drawCanvas();
   });
 
-  // Also release drag if mouse leaves the canvas
+  // Also release drag/lasso if mouse leaves the canvas
   canvas.addEventListener('mouseleave', () => {
+    if (appState.lassoState?.active) {
+      appState.lassoState = null;
+      canvas.style.cursor = '';
+      drawCanvas();
+    }
     if (appState.dragState) {
       const { wallId } = appState.dragState;
       appState.dragState = null;

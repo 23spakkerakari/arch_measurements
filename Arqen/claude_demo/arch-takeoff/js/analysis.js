@@ -663,18 +663,13 @@ function recalculateWallLength(wallId) {
   const dl = (result.dimension_lines || []).find(d => d.wallId === wallId);
   if (dl) dl.label = wall.length;
 
-  // Patch the sidebar <div class="wall-dims"> in-place
+  // Patch the sidebar <div class="wall-dims"> in-place (lookup by data attribute)
   const listEl = document.getElementById('wall-list');
   if (listEl) {
-    const walls = result.walls || [];
-    const wallIdx = walls.findIndex(w => w.id === wallId);
-    if (wallIdx >= 0) {
-      const items = listEl.querySelectorAll('.wall-item');
-      const item  = items[wallIdx];
-      if (item) {
-        const dimsEl = item.querySelector('.wall-dims');
-        if (dimsEl) dimsEl.textContent = `${wall.facing || '—'} · ${wall.length}`;
-      }
+    const item = listEl.querySelector(`[data-wall-id="${wallId}"]`);
+    if (item) {
+      const dimsEl = item.querySelector('.wall-dims');
+      if (dimsEl) dimsEl.textContent = `${wall.facing || '—'} · ${wall.length}`;
     }
   }
 }
@@ -770,7 +765,7 @@ function renderRoomsPanel() {
 function setActiveRoom(roomId) {
   appState.activeRoomId = appState.activeRoomId === roomId ? null : roomId;
   renderRoomsPanel();
-  _updateWallListRoomBadges();
+  _renderWallList(appState.analysisResult?.walls || []);
   drawCanvas();
 }
 
@@ -791,7 +786,7 @@ function addRoom() {
   appState.rooms.push(newRoom);
   appState.activeRoomId = newRoom.id;
   renderRoomsPanel();
-  _updateWallListRoomBadges();
+  _renderWallList(appState.analysisResult?.walls || []);
   drawCanvas();
 }
 
@@ -802,14 +797,14 @@ function renameRoom(roomId) {
   if (!newName || !newName.trim()) return;
   room.name = newName.trim();
   renderRoomsPanel();
-  _updateWallListRoomBadges();
+  _renderWallList(appState.analysisResult?.walls || []);
 }
 
 function deleteRoom(roomId) {
   appState.rooms = appState.rooms.filter(r => r.id !== roomId);
   if (appState.activeRoomId === roomId) appState.activeRoomId = null;
   renderRoomsPanel();
-  _updateWallListRoomBadges();
+  _renderWallList(appState.analysisResult?.walls || []);
   drawCanvas();
 }
 
@@ -833,47 +828,108 @@ function toggleWallRoomAssignment(wallId) {
     room.wallIds.push(wallId);
   }
   renderRoomsPanel();
-  _updateWallListRoomBadges();
+  _renderWallList(appState.analysisResult?.walls || []);
   drawCanvas();
 }
 
 /**
- * Lightweight update of room badges and room-assigned class on wall list items
- * without triggering a full re-render of the wall list.
+ * Re-render the wall list grouped by room.
+ * Called whenever room assignments change (replaces the old badge-only update).
  */
-function _updateWallListRoomBadges() {
+function _renderWallList(walls) {
   const listEl = document.getElementById('wall-list');
   if (!listEl) return;
-  const walls      = appState.analysisResult?.walls || [];
-  const activeRoom = appState.rooms.find(r => r.id === appState.activeRoomId);
-  const items      = listEl.querySelectorAll('.wall-item');
+  listEl.innerHTML = '';
 
-  walls.forEach((wall, i) => {
-    const item = items[i];
-    if (!item) return;
+  const wallIndexMap = new Map(walls.map((w, i) => [w.id, i]));
+  const activeRoom   = appState.rooms.find(r => r.id === appState.activeRoomId);
+  const assignedIds  = new Set(appState.rooms.flatMap(r => r.wallIds));
 
-    const room    = findRoomForWall(wall.id);
-    const badgeEl = item.querySelector('.wall-room-badge');
-    if (badgeEl) {
-      if (room) {
-        badgeEl.textContent            = room.name;
-        badgeEl.style.background       = room.color + '33';
-        badgeEl.style.color            = room.color;
-        badgeEl.style.borderColor      = room.color + '66';
-        badgeEl.classList.remove('hidden');
-      } else {
-        badgeEl.classList.add('hidden');
-      }
-    }
+  // Build ordered groups: rooms first (appState.rooms order), then unassigned
+  const groups = [];
+  appState.rooms.forEach(room => {
+    const roomWalls = room.wallIds.map(id => walls.find(w => w.id === id)).filter(Boolean);
+    if (roomWalls.length > 0) groups.push({ type: 'room', room, walls: roomWalls });
+  });
+  const unassigned = walls.filter(w => !assignedIds.has(w.id));
+  if (unassigned.length > 0) groups.push({ type: 'unassigned', walls: unassigned });
 
-    const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
-    item.classList.toggle('room-assigned', isAssignedToActive);
-    if (isAssignedToActive) {
-      item.style.setProperty('--room-color', activeRoom.color);
+  if (groups.length === 0) {
+    // No rooms yet — flat list
+    walls.forEach((wall, i) => _renderWallItem(listEl, wall, i, activeRoom));
+    return;
+  }
+
+  groups.forEach(group => {
+    const groupEl  = document.createElement('div');
+    groupEl.className = 'room-group';
+
+    // Group header
+    const headerEl = document.createElement('div');
+    const isActiveGroup = group.type === 'room' && group.room.id === appState.activeRoomId;
+    if (group.type === 'room') {
+      headerEl.className = `room-group-header${isActiveGroup ? ' active-group' : ''}`;
+      headerEl.style.setProperty('--group-color', group.room.color);
+      headerEl.innerHTML = `
+        <span class="room-group-name">${group.room.name}</span>
+        <span class="room-group-count">${group.walls.length} wall${group.walls.length !== 1 ? 's' : ''}</span>
+      `;
     } else {
-      item.style.removeProperty('--room-color');
+      headerEl.className = 'room-group-header room-group-unassigned';
+      headerEl.innerHTML = `
+        <span class="room-group-name">UNASSIGNED</span>
+        <span class="room-group-count">${group.walls.length} wall${group.walls.length !== 1 ? 's' : ''}</span>
+      `;
+    }
+    groupEl.appendChild(headerEl);
+
+    group.walls.forEach(wall => {
+      const i = wallIndexMap.get(wall.id) ?? 0;
+      _renderWallItem(groupEl, wall, i, activeRoom);
+    });
+
+    listEl.appendChild(groupEl);
+  });
+}
+
+function _renderWallItem(containerEl, wall, colorIdx, activeRoom) {
+  const color = WALL_STROKES[colorIdx % WALL_STROKES.length];
+  const item  = document.createElement('div');
+  item.className    = 'wall-item';
+  item.dataset.wallId = wall.id;
+  item.innerHTML = `
+    <div class="wall-dot" style="background:${color};opacity:0.9"></div>
+    <div class="wall-info">
+      <div class="wall-name">${wall.name || wall.id || 'Wall'}</div>
+      <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
+    </div>
+    <div class="wall-notes">${wall.notes || ''}</div>
+    <span class="wall-show-icon" title="Show on plan">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="8" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.4"/>
+        <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
+      </svg>
+    </span>
+    <button class="wall-delete" title="Remove this wall">×</button>
+  `;
+  item.querySelector('.wall-delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    deleteWall(wall.id);
+  });
+  if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
+  const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
+  if (isAssignedToActive) {
+    item.classList.add('room-assigned');
+    item.style.setProperty('--room-color', activeRoom.color);
+  }
+  item.addEventListener('click', () => {
+    if (appState.activeRoomId) {
+      toggleWallRoomAssignment(wall.id);
+    } else {
+      toggleWallVisibility(wall.id, item);
     }
   });
+  containerEl.appendChild(item);
 }
 
 // ── Render results ──────────────────────────────────────
@@ -889,52 +945,7 @@ function renderResults(data) {
   document.getElementById('stat-confidence').textContent = (data.scale_confidence || '—').toUpperCase();
   document.getElementById('scale-badge').textContent     = `SCALE: ${data.detected_scale || 'UNKNOWN'}`;
 
-  const listEl = document.getElementById('wall-list');
-  listEl.innerHTML = '';
-  const activeRoom = appState.rooms.find(r => r.id === appState.activeRoomId);
-  walls.forEach((wall, i) => {
-    const color      = WALL_STROKES[i % WALL_STROKES.length];
-    const room       = findRoomForWall(wall.id);
-    const badgeStyle = room
-      ? `style="background:${room.color}33;color:${room.color};border-color:${room.color}66"`
-      : '';
-    const item = document.createElement('div');
-    item.className = 'wall-item';
-    item.innerHTML = `
-      <div class="wall-dot" style="background:${color};opacity:0.9"></div>
-      <div class="wall-info">
-        <div class="wall-name">${wall.name || wall.id || 'Wall ' + (i + 1)}</div>
-        <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
-      </div>
-      <span class="wall-room-badge${room ? '' : ' hidden'}" ${badgeStyle}>${room ? room.name : ''}</span>
-      <div class="wall-notes">${wall.notes || ''}</div>
-      <span class="wall-show-icon" title="Show on plan">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="8" cy="8" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.4"/>
-          <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
-        </svg>
-      </span>
-      <button class="wall-delete" title="Remove this wall">×</button>
-    `;
-    item.querySelector('.wall-delete').addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteWall(wall.id);
-    });
-    if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
-    const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
-    if (isAssignedToActive) {
-      item.classList.add('room-assigned');
-      item.style.setProperty('--room-color', activeRoom.color);
-    }
-    item.addEventListener('click', () => {
-      if (appState.activeRoomId) {
-        toggleWallRoomAssignment(wall.id);
-      } else {
-        toggleWallVisibility(wall.id, item);
-      }
-    });
-    listEl.appendChild(item);
-  });
+  _renderWallList(walls);
 
   if (data.notes) {
     document.getElementById('notes-text').textContent = data.notes;

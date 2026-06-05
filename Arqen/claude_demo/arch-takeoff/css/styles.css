@@ -637,20 +637,41 @@ header {
 }
 .room-assign-hint strong { color: var(--text-dim); }
 
-/* Room badge on wall items */
-.wall-room-badge {
+/* ── Room-grouped wall list ───────────────────────────── */
+.room-group { margin-bottom: 10px; }
+.room-group:last-child { margin-bottom: 0; }
+
+.room-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 10px;
   font-family: var(--mono);
   font-size: 10px;
+  letter-spacing: 0.1em;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 10px;
-  border: 1px solid;
-  white-space: nowrap;
-  flex-shrink: 0;
+  color: var(--text-dim);
+  border-left: 3px solid var(--group-color, var(--border));
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.room-group-header.active-group {
+  color: var(--group-color, var(--cyan));
+  background: color-mix(in srgb, var(--group-color, var(--cyan)) 10%, transparent);
+}
+.room-group-unassigned {
+  border-left-color: var(--border);
+  color: var(--text-faint);
+}
+.room-group-name { flex: 1; }
+.room-group-count {
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 400;
 }
 
-/* Wall item tinted left border when assigned to the active room */
+/* Wall item subtle left border when it's in the active room */
 .wall-item.room-assigned {
   border-left: 3px solid var(--room-color, var(--cyan));
 }

@@ -8,10 +8,11 @@ function exportCSV() {
   if (!data) return;
 
   const rows = [
-    ['Wall Name', 'Facing', 'Length', 'Notes'],
-    ...(data.walls || []).map(w => [
-      w.name || w.id, w.facing || '', w.length || '', w.notes || '',
-    ]),
+    ['Wall Name', 'Facing', 'Length', 'Room', 'Notes'],
+    ...(data.walls || []).map(w => {
+      const room = findRoomForWall(w.id);
+      return [w.name || w.id, w.facing || '', w.length || '', room ? room.name : '', w.notes || ''];
+    }),
     [],
     ['Total Area',         data.total_area],
     ['Scale',              data.detected_scale],

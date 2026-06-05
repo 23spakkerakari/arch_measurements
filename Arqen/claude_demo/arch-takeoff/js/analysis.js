@@ -41,6 +41,85 @@ async function detectScaleQuick(imageDataUrl) {
   return parseAiJson(rawText).detected_scale;
 }
 
+/**
+ * After OpenCV detects walls, make a focused Claude call to assign each wall
+ * to a room label visible in the floor plan.
+ *
+ * Sends the image + a compact list of wall midpoints; Claude returns a JSON
+ * map of { wall_id → room_name }. Falls back gracefully if Claude is
+ * unreachable or the response is unparseable.
+ *
+ * @param {string} imageDataUrl  - base64 data URL of the plan image
+ * @param {Array}  walls         - wall objects from CV (must have .id, .*_pct)
+ * @returns {Array} walls with .room field populated where detected
+ */
+async function assignRoomsToCvWalls(imageDataUrl, walls) {
+  if (!walls.length) return walls;
+
+  // Build a compact midpoint list for the prompt
+  const wallList = walls
+    .filter(w => w.x1_pct != null)
+    .map(w => {
+      const mx = ((w.x1_pct + w.x2_pct) / 2).toFixed(3);
+      const my = ((w.y1_pct + w.y2_pct) / 2).toFixed(3);
+      return `  {"id":"${w.id}","mid":[${mx},${my}]}`;
+    })
+    .join(',\n');
+
+  const prompt = `You are reading an architectural floor plan image.
+Below is a JSON array of detected wall segments. Each entry has an "id" and "mid" (midpoint as [x,y] fractions of the image: 0,0=top-left, 1,1=bottom-right).
+
+Wall segments:
+[
+${wallList}
+]
+
+For each wall, identify which labeled room, unit, or space it belongs to based on the visible room numbers, unit numbers, or room names in the drawing (e.g. "302", "Bedroom", "Living Room", "Corridor"). A wall belongs to a room if it forms part of that room's boundary. Use null for walls with no clearly associated label (e.g. exterior walls between units).
+
+Return ONLY valid JSON — no markdown, no explanation:
+{"wall_rooms":[{"id":"<wall_id>","room":"<label or null>"}]}`;
+
+  const base64   = imageDataUrl.split(',')[1];
+  const mimeType = imageDataUrl.split(';')[0].replace('data:', '');
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (CONFIG.ANTHROPIC_API_KEY) {
+    headers['x-api-key']          = CONFIG.ANTHROPIC_API_KEY;
+    headers['anthropic-version']  = '2023-06-01';
+  }
+
+  const response = await fetch(CONFIG.API_ENDPOINT, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model:      CONFIG.MODEL,
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+          { type: 'text',  text: prompt },
+        ],
+      }],
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Room label API error ${response.status}`);
+
+  const data    = await response.json();
+  const rawText = data.content.map(c => c.text || '').join('').trim();
+  const parsed  = parseAiJson(rawText);
+
+  if (!parsed.wall_rooms || !Array.isArray(parsed.wall_rooms)) return walls;
+
+  // Build a lookup map and apply to walls
+  const roomMap = new Map(parsed.wall_rooms.map(e => [e.id, e.room || null]));
+  return walls.map(w => ({
+    ...w,
+    room: roomMap.has(w.id) ? roomMap.get(w.id) : (w.room || null),
+  }));
+}
+
 async function startAnalysis() {
   if (!appState.buildingRoi) {
     const el = document.getElementById('roi-status');
@@ -91,7 +170,16 @@ async function startAnalysis() {
     parsed = applyUserRoiToResult(parsed);
     clearInterval(logTimer);
 
+    // Detect room labels for CV walls via a lightweight Claude call
+    try {
+      addLog('Detecting room labels…');
+      parsed.walls = await assignRoomsToCvWalls(sourceUrl, parsed.walls || []);
+    } catch (roomErr) {
+      addLog('Room detection skipped: ' + roomErr.message);
+    }
+
     appState.analysisResult = parsed;
+    buildRoomsFromWalls(parsed.walls || []);
     addLog('CV analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
     return;
@@ -169,6 +257,7 @@ async function startAnalysis() {
 
 
     appState.analysisResult = parsed;
+    buildRoomsFromWalls(parsed.walls || []);
     addLog('Analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
 
@@ -369,6 +458,7 @@ function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
     ? `    {
       "name": "North Wall of Room 445",
       "facing": "North",
+      "room": "445",
       "x1_pct": 0.12,
       "y1_pct": 0.05,
       "x2_pct": 0.88,
@@ -377,6 +467,7 @@ function buildPrompt(scaleInstruction, detailInstr, units, isManual) {
     : `    {
       "name": "North Wall of Room 445",
       "facing": "North",
+      "room": "445",
       "length": "5.2 m",
       "x1_pct": 0.12,
       "y1_pct": 0.05,
@@ -420,6 +511,8 @@ Return exactly this structure:
 ${wallSchema}
   ]
 }
+
+For the "room" field: extract the room/unit number from the drawing (e.g. "302", "Bedroom", "Living Room"). Use null if the wall is not clearly associated with a labeled room.
 `;
 }
 
@@ -505,6 +598,11 @@ function deleteWall(wallId) {
 
   result.walls = result.walls.filter(w => w.id !== wallId);
 
+  // Clean up room assignments for this wall
+  appState.rooms.forEach(r => {
+    r.wallIds = r.wallIds.filter(id => id !== wallId);
+  });
+
   const [imgW, imgH] = result.image_size_px || [1, 1];
   const minSegPx = Math.max(70, Math.min(imgW, imgH) * 0.03);
   const minLenFt = 4;
@@ -581,6 +679,203 @@ function recalculateWallLength(wallId) {
   }
 }
 
+// ── Room management ──────────────────────────────────────
+
+function findRoomForWall(wallId) {
+  return appState.rooms.find(r => r.wallIds.includes(wallId)) || null;
+}
+
+/**
+ * Extract unique room names from freshly-analysed walls and build/merge
+ * appState.rooms. Only called once per analysis pass, not on re-renders.
+ */
+function buildRoomsFromWalls(walls) {
+  const nameToRoom = new Map();
+
+  walls.forEach(wall => {
+    if (!wall.room) return;
+    const name = String(wall.room).trim();
+    if (!name) return;
+    if (!nameToRoom.has(name)) {
+      const existing = appState.rooms.find(r => r.name === name);
+      if (existing) {
+        existing.wallIds = [];
+        nameToRoom.set(name, existing);
+      } else {
+        nameToRoom.set(name, {
+          id: `room-${Date.now()}-${nameToRoom.size}`,
+          name,
+          wallIds: [],
+          color: WALL_STROKES[nameToRoom.size % WALL_STROKES.length],
+        });
+      }
+    }
+    nameToRoom.get(name).wallIds.push(wall.id);
+  });
+
+  if (nameToRoom.size > 0) {
+    const builtRooms = Array.from(nameToRoom.values());
+    const builtNames = new Set(builtRooms.map(r => r.name));
+    const userRooms  = appState.rooms.filter(r => !builtNames.has(r.name));
+    appState.rooms   = [...builtRooms, ...userRooms];
+  }
+}
+
+function renderRoomsPanel() {
+  const panel = document.getElementById('rooms-panel');
+  if (!panel) return;
+
+  const rooms = appState.rooms;
+  panel.classList.toggle('hidden', rooms.length === 0);
+  if (rooms.length === 0) return;
+
+  const activeId = appState.activeRoomId;
+  const result   = appState.analysisResult;
+  const scaleStr = result?.detected_scale || '1/4"=1ft';
+  const unitLabel = scaleStr.includes(':') ? 'm' : 'ft';
+
+  let html = `<div class="card-title">ROOMS</div>`;
+  html += `<div class="rooms-chips">`;
+  rooms.forEach(room => {
+    const isActive   = room.id === activeId;
+    const colorStyle = isActive ? `style="--room-color:${room.color}"` : '';
+    html += `<button class="room-chip${isActive ? ' active' : ''}" ${colorStyle} onclick="setActiveRoom('${room.id}')">${room.name}</button>`;
+  });
+  html += `<button class="room-chip room-chip-add" onclick="addRoom()">+ ADD</button>`;
+  html += `</div>`;
+
+  if (activeId) {
+    const room = rooms.find(r => r.id === activeId);
+    if (room) {
+      const wallCount = room.wallIds.length;
+      const totalLen  = room.wallIds.reduce((sum, wid) => {
+        const w = (result?.walls || []).find(w => w.id === wid);
+        return sum + (w?.length_raw || 0);
+      }, 0);
+      html += `
+        <div class="room-detail">
+          <span class="room-detail-stats">${wallCount} wall${wallCount !== 1 ? 's' : ''} &middot; ${totalLen.toFixed(1)} ${unitLabel} perimeter</span>
+          <div class="room-detail-actions">
+            <button class="btn btn-ghost btn-sm" onclick="renameRoom('${room.id}')">Rename</button>
+            <button class="btn btn-ghost btn-sm room-delete-btn" onclick="deleteRoom('${room.id}')">Delete</button>
+          </div>
+        </div>
+        <div class="room-assign-hint">Click walls below or on the plan to assign to <strong>${room.name}</strong></div>`;
+    }
+  }
+
+  panel.innerHTML = html;
+}
+
+function setActiveRoom(roomId) {
+  appState.activeRoomId = appState.activeRoomId === roomId ? null : roomId;
+  renderRoomsPanel();
+  _updateWallListRoomBadges();
+  drawCanvas();
+}
+
+function addRoom() {
+  const name = prompt('Enter room name or number (e.g. 302):');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (appState.rooms.some(r => r.name === trimmed)) {
+    alert(`Room "${trimmed}" already exists.`);
+    return;
+  }
+  const newRoom = {
+    id: `room-${Date.now()}`,
+    name: trimmed,
+    wallIds: [],
+    color: WALL_STROKES[appState.rooms.length % WALL_STROKES.length],
+  };
+  appState.rooms.push(newRoom);
+  appState.activeRoomId = newRoom.id;
+  renderRoomsPanel();
+  _updateWallListRoomBadges();
+  drawCanvas();
+}
+
+function renameRoom(roomId) {
+  const room = appState.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  const newName = prompt('New room name:', room.name);
+  if (!newName || !newName.trim()) return;
+  room.name = newName.trim();
+  renderRoomsPanel();
+  _updateWallListRoomBadges();
+}
+
+function deleteRoom(roomId) {
+  appState.rooms = appState.rooms.filter(r => r.id !== roomId);
+  if (appState.activeRoomId === roomId) appState.activeRoomId = null;
+  renderRoomsPanel();
+  _updateWallListRoomBadges();
+  drawCanvas();
+}
+
+function toggleWallRoomAssignment(wallId) {
+  const activeId = appState.activeRoomId;
+  if (!activeId) return;
+  const room = appState.rooms.find(r => r.id === activeId);
+  if (!room) return;
+
+  const idx = room.wallIds.indexOf(wallId);
+  if (idx >= 0) {
+    room.wallIds.splice(idx, 1);
+  } else {
+    // Remove from any other room first (wall belongs to one room only)
+    appState.rooms.forEach(r => {
+      if (r.id !== activeId) {
+        const i = r.wallIds.indexOf(wallId);
+        if (i >= 0) r.wallIds.splice(i, 1);
+      }
+    });
+    room.wallIds.push(wallId);
+  }
+  renderRoomsPanel();
+  _updateWallListRoomBadges();
+  drawCanvas();
+}
+
+/**
+ * Lightweight update of room badges and room-assigned class on wall list items
+ * without triggering a full re-render of the wall list.
+ */
+function _updateWallListRoomBadges() {
+  const listEl = document.getElementById('wall-list');
+  if (!listEl) return;
+  const walls      = appState.analysisResult?.walls || [];
+  const activeRoom = appState.rooms.find(r => r.id === appState.activeRoomId);
+  const items      = listEl.querySelectorAll('.wall-item');
+
+  walls.forEach((wall, i) => {
+    const item = items[i];
+    if (!item) return;
+
+    const room    = findRoomForWall(wall.id);
+    const badgeEl = item.querySelector('.wall-room-badge');
+    if (badgeEl) {
+      if (room) {
+        badgeEl.textContent            = room.name;
+        badgeEl.style.background       = room.color + '33';
+        badgeEl.style.color            = room.color;
+        badgeEl.style.borderColor      = room.color + '66';
+        badgeEl.classList.remove('hidden');
+      } else {
+        badgeEl.classList.add('hidden');
+      }
+    }
+
+    const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
+    item.classList.toggle('room-assigned', isAssignedToActive);
+    if (isAssignedToActive) {
+      item.style.setProperty('--room-color', activeRoom.color);
+    } else {
+      item.style.removeProperty('--room-color');
+    }
+  });
+}
+
 // ── Render results ──────────────────────────────────────
 function renderResults(data) {
   goToStep(4);
@@ -596,9 +891,14 @@ function renderResults(data) {
 
   const listEl = document.getElementById('wall-list');
   listEl.innerHTML = '';
+  const activeRoom = appState.rooms.find(r => r.id === appState.activeRoomId);
   walls.forEach((wall, i) => {
-    const color = WALL_STROKES[i % WALL_STROKES.length];
-    const item  = document.createElement('div');
+    const color      = WALL_STROKES[i % WALL_STROKES.length];
+    const room       = findRoomForWall(wall.id);
+    const badgeStyle = room
+      ? `style="background:${room.color}33;color:${room.color};border-color:${room.color}66"`
+      : '';
+    const item = document.createElement('div');
     item.className = 'wall-item';
     item.innerHTML = `
       <div class="wall-dot" style="background:${color};opacity:0.9"></div>
@@ -606,6 +906,7 @@ function renderResults(data) {
         <div class="wall-name">${wall.name || wall.id || 'Wall ' + (i + 1)}</div>
         <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
       </div>
+      <span class="wall-room-badge${room ? '' : ' hidden'}" ${badgeStyle}>${room ? room.name : ''}</span>
       <div class="wall-notes">${wall.notes || ''}</div>
       <span class="wall-show-icon" title="Show on plan">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -620,7 +921,18 @@ function renderResults(data) {
       deleteWall(wall.id);
     });
     if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
-    item.addEventListener('click', () => toggleWallVisibility(wall.id, item));
+    const isAssignedToActive = !!(activeRoom && activeRoom.wallIds.includes(wall.id));
+    if (isAssignedToActive) {
+      item.classList.add('room-assigned');
+      item.style.setProperty('--room-color', activeRoom.color);
+    }
+    item.addEventListener('click', () => {
+      if (appState.activeRoomId) {
+        toggleWallRoomAssignment(wall.id);
+      } else {
+        toggleWallVisibility(wall.id, item);
+      }
+    });
     listEl.appendChild(item);
   });
 
@@ -629,6 +941,7 @@ function renderResults(data) {
     document.getElementById('notes-container').classList.remove('hidden');
   }
 
+  renderRoomsPanel();
   drawCanvas();
 }
 

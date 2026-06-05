@@ -28,6 +28,8 @@ const appState = {
   // { wallId, endpointIdx (0=start,1=end), anchorXPct, anchorYPct, unitX, unitY }
   dragState: null,
   hoveredEndpoint: null,     // { wallId, endpointIdx } — endpoint under cursor (hover only)
+  rooms: [],                 // [{ id, name, wallIds: [], color }]
+  activeRoomId: null,        // room currently open for wall-assignment mode
 };
 
 const WALL_STROKES = [

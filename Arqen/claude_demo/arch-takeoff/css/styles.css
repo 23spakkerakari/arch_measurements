@@ -568,6 +568,93 @@ header {
   gap: 8px;
 }
 
+/* ── Rooms panel ─────────────────────────────────────── */
+.rooms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.room-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.room-chip:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+.room-chip.active {
+  background: color-mix(in srgb, var(--room-color, var(--cyan)) 14%, transparent);
+  border-color: var(--room-color, var(--cyan));
+  color: var(--room-color, var(--cyan));
+}
+.room-chip-add {
+  border-style: dashed;
+  color: var(--text-faint);
+}
+.room-chip-add:hover {
+  color: var(--cyan);
+  border-color: var(--border-bright);
+  background: var(--cyan-faint);
+}
+.room-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.room-detail-stats {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.room-detail-actions {
+  display: flex;
+  gap: 4px;
+}
+.room-delete-btn:hover {
+  color: #ff6496 !important;
+  border-color: rgba(255,100,150,0.4) !important;
+}
+.room-assign-hint {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.room-assign-hint strong { color: var(--text-dim); }
+
+/* Room badge on wall items */
+.wall-room-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Wall item tinted left border when assigned to the active room */
+.wall-item.room-assigned {
+  border-left: 3px solid var(--room-color, var(--cyan));
+}
+
 /* ── Utility ─────────────────────────────────────────── */
 .hidden { display: none !important; }
 

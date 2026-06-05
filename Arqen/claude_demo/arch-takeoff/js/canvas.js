@@ -133,6 +133,29 @@ function drawCanvas() {
     const dimLines = data.dimension_lines || [];
     const walls    = data.walls || [];
 
+    // ── Room wall highlights ─────────────────────────────
+    // Draw subtle colored strokes along walls that belong to any room,
+    // with the active room drawn more prominently.
+    appState.rooms.forEach(room => {
+      const isActive = room.id === appState.activeRoomId;
+      room.wallIds.forEach(wallId => {
+        const wall = walls.find(w => w.id === wallId);
+        if (!wall || wall.x1_pct == null) return;
+        const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
+        const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+        ctx.save();
+        ctx.strokeStyle = room.color;
+        ctx.lineWidth   = isActive ? 10 : 5;
+        ctx.lineCap     = 'round';
+        ctx.globalAlpha = isActive ? 0.38 : 0.18;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+      });
+    });
+
     // Draw each pinned wall's measurement independently (supports multi-select).
     if (appState.layers.dims && appState.visibleWalls.size > 0) {
       appState.visibleWalls.forEach(wallId => {
@@ -431,6 +454,40 @@ function _projectEndpoint(wall, endpointIdx, cursorXPct, cursorYPct) {
 }
 
 /**
+ * Return the ID of the wall whose line segment is closest to (canvasX, canvasY),
+ * within HIT_RADIUS pixels, or null if none found.
+ * Used for room wall-assignment clicks.
+ */
+function _findWallLineHit(canvasX, canvasY, W, H) {
+  const HIT_RADIUS = 10;
+  const result = appState.analysisResult;
+  if (!result) return null;
+
+  const walls = result.walls || [];
+  let bestWallId = null;
+  let bestDist   = HIT_RADIUS;
+
+  walls.forEach(wall => {
+    if (wall.x1_pct == null || wall.y1_pct == null) return;
+    const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
+    const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    const t = lenSq > 0
+      ? Math.max(0, Math.min(1, ((canvasX - x1) * dx + (canvasY - y1) * dy) / lenSq))
+      : 0;
+    const px   = x1 + t * dx, py = y1 + t * dy;
+    const dist = Math.sqrt((canvasX - px) ** 2 + (canvasY - py) ** 2);
+    if (dist < bestDist) {
+      bestDist   = dist;
+      bestWallId = wall.id;
+    }
+  });
+
+  return bestWallId;
+}
+
+/**
  * Return the first { wallId, endpointIdx } within HIT_RADIUS pixels of
  * (canvasX, canvasY), or null.
  */
@@ -474,8 +531,38 @@ function _findEndpointHit(canvasX, canvasY, W, H) {
 function _syncCanvasPointerEvents() {
   const canvas = document.getElementById('overlay-canvas');
   if (!canvas) return;
-  const needEvents = appState.drawWallMode || appState.visibleWalls.size > 0;
+  // Enable pointer events whenever there are walls (canvas click highlights them),
+  // or when a special mode is active.
+  const hasWalls = (appState.analysisResult?.walls || []).length > 0;
+  const needEvents = hasWalls || appState.drawWallMode || appState.visibleWalls.size > 0 || !!appState.activeRoomId;
   canvas.style.pointerEvents = needEvents ? 'auto' : 'none';
+}
+
+/**
+ * Toggle a wall's highlight from a canvas click, syncing the sidebar item.
+ * Equivalent to clicking the wall row in the sidebar list.
+ */
+function _toggleWallHighlightFromCanvas(wallId) {
+  const result = appState.analysisResult;
+  if (!result) return;
+  const wallIdx = (result.walls || []).findIndex(w => w.id === wallId);
+  if (wallIdx < 0) return;
+  const listEl = document.getElementById('wall-list');
+  const items  = listEl ? listEl.querySelectorAll('.wall-item') : [];
+  const itemEl = items[wallIdx];
+  if (itemEl) {
+    toggleWallVisibility(wallId, itemEl);
+    // Scroll the sidebar item into view so the user can see it
+    itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  } else {
+    // Sidebar not rendered yet — just update state + canvas
+    if (appState.visibleWalls.has(wallId)) {
+      appState.visibleWalls.delete(wallId);
+    } else {
+      appState.visibleWalls.add(wallId);
+    }
+    drawCanvas();
+  }
 }
 
 /**
@@ -512,20 +599,33 @@ function _initAddWallClickHandler() {
   });
 
   canvas.addEventListener('click', (e) => {
-    if (!appState.drawWallMode) return;
     // Ignore clicks that were actually the end of an endpoint drag
     if (canvas._dragConsumedClick) { canvas._dragConsumedClick = false; return; }
 
     const rect = canvas.getBoundingClientRect();
-    const xCanvas = e.clientX - rect.left;
-    const yCanvas = e.clientY - rect.top;
-    const W = rect.width;
-    const H = rect.height;
-
+    const W = rect.width, H = rect.height;
     if (W === 0 || H === 0) return;
 
-    const xPct = xCanvas / W;
-    const yPct = yCanvas / H;
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    if (!appState.drawWallMode) {
+      const wallId = _findWallLineHit(cx, cy, W, H);
+      if (wallId) {
+        if (appState.activeRoomId) {
+          // Room-assignment mode
+          toggleWallRoomAssignment(wallId);
+        } else {
+          // Highlight mode — show/hide the wall measurement on the plan
+          _toggleWallHighlightFromCanvas(wallId);
+        }
+      }
+      return;
+    }
+
+    // Draw-wall two-click mode
+    const xPct = cx / W;
+    const yPct = cy / H;
 
     if (!appState.drawWallFirstPoint) {
       appState.drawWallFirstPoint = { x: xPct, y: yPct };
@@ -625,14 +725,24 @@ function _initAddWallClickHandler() {
 
     if (appState.drawWallMode) return;
 
-    // Hover detection — show grab cursor near endpoints
-    const hit = _findEndpointHit(cx, cy, W, H);
-    const prev = appState.hoveredEndpoint;
-    const changed = (hit?.wallId !== prev?.wallId) || (hit?.endpointIdx !== prev?.endpointIdx);
-    if (changed) {
-      appState.hoveredEndpoint = hit || null;
-      canvas.style.cursor = hit ? 'grab' : '';
+    // Endpoint hover — grab cursor takes priority
+    const epHit = _findEndpointHit(cx, cy, W, H);
+    const prev  = appState.hoveredEndpoint;
+    const epChanged = (epHit?.wallId !== prev?.wallId) || (epHit?.endpointIdx !== prev?.endpointIdx);
+    if (epChanged) {
+      appState.hoveredEndpoint = epHit || null;
       drawCanvas();
+    }
+
+    // Wall-line hover — pointer cursor when not near an endpoint
+    if (!epHit && !appState.activeRoomId) {
+      const wallHit = _findWallLineHit(cx, cy, W, H);
+      canvas.style.cursor = wallHit ? 'pointer' : '';
+    } else if (epHit) {
+      canvas.style.cursor = 'grab';
+    } else if (appState.activeRoomId) {
+      const wallHit = _findWallLineHit(cx, cy, W, H);
+      canvas.style.cursor = wallHit ? 'crosshair' : '';
     }
   });
 

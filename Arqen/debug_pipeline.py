@@ -277,6 +277,7 @@ def run(args) -> None:
     tracker.check_segments("3-polygon_after_snap", segments)
     _save_segments_stage(segments, mask_full, out_dir,
                          "07_polygon_segments", dict(probes))
+    exterior_segs = list(segments)
 
     # ── Stage 4: Hough supplement with fates ─────────────────────────────────
     pair_gap_range = pp.wall_pair_gap_range(px_per_unit)
@@ -337,6 +338,51 @@ def run(args) -> None:
     _save_segments_stage(survivors, mask_full, out_dir,
                          "11_final_walls", dict(probes), labeled=True)
 
+    # ── Stage 7: room map + exterior wall splits ─────────────────────────────
+    import room_wall_split as rws  # noqa: E402
+
+    fp_bbox = [
+        int(xs_poly.min()), int(ys_poly.min()),
+        int(xs_poly.max()), int(ys_poly.max()),
+    ]
+    room_debug = out_dir / "rooms"
+    rooms, ext_sub_walls = rws.split_exterior_walls_by_room(
+        exterior_segs,
+        wall_pair_mask=mask_full,
+        contour=contour,
+        footprint_bbox=fp_bbox,
+        image_shape=(h, w, 3),
+        px_per_unit=px_per_unit,
+        unit_label="ft",
+        doorway_close_ft=args.doorway_close,
+        debug_dir=str(room_debug),
+    )
+    print(f"room split: {len(rooms)} rooms, {len(ext_sub_walls)} exterior sub-segments")
+
+    if (room_debug / "room_labels_color.png").exists():
+        color_vis = cv2.imread(str(room_debug / "room_labels_color.png"))
+        if color_vis is not None:
+            _save(color_vis, out_dir, "12_room_mask", dict(probes))
+    if (room_debug / "cut_layer.png").exists():
+        cut = cv2.imread(str(room_debug / "cut_layer.png"), cv2.IMREAD_GRAYSCALE)
+        if cut is not None:
+            _save_mask_stage(cut, out_dir, "13_cut_layer", dict(probes))
+
+    canvas = _canvas_from_mask(mask_full)
+    palette = [
+        (0, 0, 255), (0, 160, 0), (255, 0, 0), (0, 200, 255),
+        (255, 0, 255), (0, 128, 255), (128, 0, 255), (0, 255, 128),
+    ]
+    for w in ext_sub_walls:
+        rid = w.get("room_id") or ""
+        idx = int(rid[1:]) if rid.startswith("R") and rid[1:].isdigit() else 0
+        color = palette[idx % len(palette)]
+        coords = w["px_coords"]
+        cv2.line(canvas, coords[:2], coords[2:], color, 6)
+        mid = ((coords[0] + coords[2]) // 2, (coords[1] + coords[3]) // 2)
+        cv2.putText(canvas, w["id"], mid, cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+    _save(canvas, out_dir, "14_exterior_splits", dict(probes))
+
     print()
     print(tracker.report())
     with open(out_dir / "probe_report.json", "w") as f:
@@ -357,6 +403,8 @@ def main():
                          "exclusion zones (user-cropped input)")
     ap.add_argument("--probe", action="append", default=[],
                     help='Probe box "name:x0,y0,x1,y1" in mask fractions')
+    ap.add_argument("--doorway-close", type=float, default=2.5,
+                    help="Seal interior walls across doorways up to N feet")
     args = ap.parse_args()
     if not args.image and not args.mask:
         ap.error("--image or --mask required")

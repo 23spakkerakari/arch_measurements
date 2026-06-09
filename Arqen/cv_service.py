@@ -97,11 +97,14 @@ def cv_analyze():
     dpi = int(data.get("dpi", 150))
     roi_raw = data.get("roi")
     roi = roi_raw if isinstance(roi_raw, dict) else None
+    doorway_close_ft = float(data.get("doorway_close_ft", 2.5))
 
     if DEBUG_DUMP:
         _dump_request(image, scale, dpi, roi)
 
-    result = analyze_page(image, scale, dpi, roi=roi)
+    result = analyze_page(
+        image, scale, dpi, roi=roi, doorway_close_ft=doorway_close_ft,
+    )
 
     # Convert the wall_pair_mask temp file to an inline base64 data-URL so the
     # browser can render the debug overlay without a second round-trip.  The

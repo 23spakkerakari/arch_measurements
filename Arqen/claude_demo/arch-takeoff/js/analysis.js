@@ -53,6 +53,88 @@ async function detectScaleQuick(imageDataUrl) {
  * @param {Array}  walls         - wall objects from CV (must have .id, .*_pct)
  * @returns {Array} walls with .room field populated where detected
  */
+/**
+ * Map geometric room cells (R1, R2, …) to visible plan text labels via Claude.
+ * One label per room centroid — cheaper and more stable than per-wall labeling.
+ *
+ * @param {string} imageDataUrl
+ * @param {Array}  rooms  - from CV rooms[] with centroid_pct
+ * @returns {Array} rooms with .label populated where detected
+ */
+async function assignRoomLabels(imageDataUrl, rooms) {
+  if (!rooms.length) return rooms;
+
+  const roomList = rooms
+    .filter(r => r.centroid_pct)
+    .map(r => {
+      const [mx, my] = r.centroid_pct;
+      return `  {"id":"${r.id}","centroid":[${mx.toFixed(3)},${my.toFixed(3)}]}`;
+    })
+    .join(',\n');
+
+  const prompt = `You are reading an architectural floor plan image.
+Below is a JSON array of detected room cells. Each entry has an "id" (R1, R2, …) and "centroid" as [x,y] fractions of the image (0,0=top-left, 1,1=bottom-right).
+
+Room cells:
+[
+${roomList}
+]
+
+For each room cell, identify the room name or number printed on the plan nearest that centroid (e.g. "MANAGER'S OFFICE", "302", "LOBBY"). Use null if no label is clearly associated.
+
+Return ONLY valid JSON — no markdown, no explanation:
+{"room_labels":[{"id":"<room_id>","label":"<text or null>"}]}`;
+
+  const base64   = imageDataUrl.split(',')[1];
+  const mimeType = imageDataUrl.split(';')[0].replace('data:', '');
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (CONFIG.ANTHROPIC_API_KEY) {
+    headers['x-api-key']          = CONFIG.ANTHROPIC_API_KEY;
+    headers['anthropic-version']  = '2023-06-01';
+  }
+
+  const response = await fetch(CONFIG.API_ENDPOINT, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model:      CONFIG.MODEL,
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+          { type: 'text',  text: prompt },
+        ],
+      }],
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Room label API error ${response.status}`);
+
+  const data    = await response.json();
+  const rawText = data.content.map(c => c.text || '').join('').trim();
+  const parsed  = parseAiJson(rawText);
+
+  if (!parsed.room_labels || !Array.isArray(parsed.room_labels)) return rooms;
+
+  const labelMap = new Map(parsed.room_labels.map(e => [e.id, e.label || null]));
+  return rooms.map(r => ({
+    ...r,
+    label: labelMap.has(r.id) ? labelMap.get(r.id) : (r.label || null),
+  }));
+}
+
+/** Apply room labels from geometric cells onto wall sub-segments. */
+function applyRoomLabelsToWalls(walls, rooms) {
+  if (!rooms.length) return walls;
+  const byId = new Map(rooms.map(r => [r.id, r.label || null]));
+  return walls.map(w => {
+    const label = w.room_id ? byId.get(w.room_id) : null;
+    return { ...w, room: label || w.room || null };
+  });
+}
+
 async function assignRoomsToCvWalls(imageDataUrl, walls) {
   if (!walls.length) return walls;
 
@@ -170,16 +252,21 @@ async function startAnalysis() {
     parsed = applyUserRoiToResult(parsed);
     clearInterval(logTimer);
 
-    // Detect room labels for CV walls via a lightweight Claude call
+    // Map geometric room cells to plan text labels, then tag walls
     try {
       addLog('Detecting room labels…');
-      parsed.walls = await assignRoomsToCvWalls(sourceUrl, parsed.walls || []);
+      if (parsed.rooms && parsed.rooms.length) {
+        parsed.rooms = await assignRoomLabels(sourceUrl, parsed.rooms);
+        parsed.walls = applyRoomLabelsToWalls(parsed.walls || [], parsed.rooms);
+      } else {
+        parsed.walls = await assignRoomsToCvWalls(sourceUrl, parsed.walls || []);
+      }
     } catch (roomErr) {
       addLog('Room detection skipped: ' + roomErr.message);
     }
 
     appState.analysisResult = parsed;
-    buildRoomsFromWalls(parsed.walls || []);
+    buildRoomsFromWalls(parsed.walls || [], parsed.rooms || []);
     addLog('CV analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
     return;
@@ -257,7 +344,7 @@ async function startAnalysis() {
 
 
     appState.analysisResult = parsed;
-    buildRoomsFromWalls(parsed.walls || []);
+    buildRoomsFromWalls(parsed.walls || [], parsed.rooms || []);
     addLog('Analysis complete!');
     setTimeout(() => renderResults(parsed), 400);
 
@@ -969,29 +1056,50 @@ document.addEventListener('keydown', (e) => {
  * Extract unique room names from freshly-analysed walls and build/merge
  * appState.rooms. Only called once per analysis pass, not on re-renders.
  */
-function buildRoomsFromWalls(walls) {
+function buildRoomsFromWalls(walls, cvRooms) {
   const nameToRoom = new Map();
 
-  walls.forEach(wall => {
-    if (!wall.room) return;
-    const name = String(wall.room).trim();
-    if (!name) return;
-    if (!nameToRoom.has(name)) {
-      const existing = appState.rooms.find(r => r.name === name);
-      if (existing) {
-        existing.wallIds = [];
-        nameToRoom.set(name, existing);
-      } else {
+  // Prefer geometric CV room cells when labels are available
+  if (cvRooms && cvRooms.length) {
+    const labelByCvId = new Map(
+      cvRooms.map(r => [r.id, (r.label && String(r.label).trim()) || r.id])
+    );
+    walls.forEach(wall => {
+      if (!wall.room_id) return;
+      const name = labelByCvId.get(wall.room_id) || wall.room_id;
+      if (!nameToRoom.has(name)) {
         nameToRoom.set(name, {
-          id: `room-${Date.now()}-${nameToRoom.size}`,
+          id: wall.room_id,
           name,
           wallIds: [],
           color: WALL_STROKES[nameToRoom.size % WALL_STROKES.length],
+          cvRoomId: wall.room_id,
         });
       }
-    }
-    nameToRoom.get(name).wallIds.push(wall.id);
-  });
+      nameToRoom.get(name).wallIds.push(wall.id);
+    });
+  } else {
+    walls.forEach(wall => {
+      if (!wall.room) return;
+      const name = String(wall.room).trim();
+      if (!name) return;
+      if (!nameToRoom.has(name)) {
+        const existing = appState.rooms.find(r => r.name === name);
+        if (existing) {
+          existing.wallIds = [];
+          nameToRoom.set(name, existing);
+        } else {
+          nameToRoom.set(name, {
+            id: `room-${Date.now()}-${nameToRoom.size}`,
+            name,
+            wallIds: [],
+            color: WALL_STROKES[nameToRoom.size % WALL_STROKES.length],
+          });
+        }
+      }
+      nameToRoom.get(name).wallIds.push(wall.id);
+    });
+  }
 
   if (nameToRoom.size > 0) {
     const builtRooms = Array.from(nameToRoom.values());
@@ -1014,8 +1122,17 @@ function renderRoomsPanel() {
   const scaleStr = result?.detected_scale || '1/4"=1ft';
   const unitLabel = scaleStr.includes(':') ? 'm' : 'ft';
 
+  const unassignedCount = (result?.walls || []).filter(w => {
+    const assigned = new Set(rooms.flatMap(r => r.wallIds));
+    return !assigned.has(w.id);
+  }).length;
+
   let html = `<div class="card-title">ROOMS</div>`;
   html += `<div class="rooms-chips">`;
+  if (unassignedCount > 0) {
+    const isActive = appState.activeRoomId === '__unassigned__';
+    html += `<button class="room-chip room-chip-unassigned${isActive ? ' active' : ''}" onclick="setActiveRoom('__unassigned__')">UNASSIGNED (${unassignedCount})</button>`;
+  }
   rooms.forEach(room => {
     const isActive   = room.id === activeId;
     const colorStyle = isActive ? `style="--room-color:${room.color}"` : '';
@@ -1051,6 +1168,12 @@ function setActiveRoom(roomId) {
   renderRoomsPanel();
   _renderWallList(appState.analysisResult?.walls || []);
   drawCanvas();
+}
+
+function _wallsForActiveFilter(walls) {
+  if (appState.activeRoomId !== '__unassigned__') return walls;
+  const assigned = new Set(appState.rooms.flatMap(r => r.wallIds));
+  return walls.filter(w => !assigned.has(w.id));
 }
 
 function addRoom() {
@@ -1120,36 +1243,44 @@ function toggleWallRoomAssignment(wallId) {
  * Re-render the wall list grouped by room.
  * Called whenever room assignments change (replaces the old badge-only update).
  */
-function _renderWallList(walls) {
+function _renderWallList(allWalls) {
   const listEl = document.getElementById('wall-list');
   if (!listEl) return;
   listEl.innerHTML = '';
 
-  const wallIndexMap = new Map(walls.map((w, i) => [w.id, i]));
+  const walls = _wallsForActiveFilter(allWalls);
+  const wallIndexMap = new Map(allWalls.map((w, i) => [w.id, i]));
   const assignedIds  = new Set(appState.rooms.flatMap(r => r.wallIds));
 
   // Update the card-title badge with unassigned count
   const cardTitle = listEl.closest('.card')?.querySelector('.card-title');
   if (cardTitle) {
-    const unassignedCount = walls.filter(w => !assignedIds.has(w.id)).length;
-    if (unassignedCount > 0 && appState.rooms.length > 0) {
-      cardTitle.innerHTML = `WALL MEASUREMENTS <span class="unassigned-badge">${unassignedCount} unassigned</span>`;
+    const unassignedCount = allWalls.filter(w => !assignedIds.has(w.id)).length;
+    const filterNote = appState.activeRoomId === '__unassigned__'
+      ? ' <span class="unassigned-badge">filtered</span>'
+      : '';
+    if (unassignedCount > 0) {
+      cardTitle.innerHTML = `WALL MEASUREMENTS <span class="unassigned-badge">${walls.length} shown · ${unassignedCount} unassigned</span>${filterNote}`;
     } else {
-      cardTitle.innerHTML = 'WALL MEASUREMENTS';
+      cardTitle.innerHTML = `WALL MEASUREMENTS <span class="unassigned-badge">${walls.length} walls</span>${filterNote}`;
     }
   }
 
-  // Build ordered groups: rooms first (appState.rooms order), then unassigned
+  // Optional flat list when UNASSIGNED chip is active; otherwise show every wall grouped.
   const groups = [];
+  if (appState.activeRoomId === '__unassigned__') {
+    walls.forEach((wall, i) => _renderWallItem(listEl, wall, i));
+    return;
+  }
+
+  const unassigned = walls.filter(w => !assignedIds.has(w.id));
+  if (unassigned.length > 0) groups.push({ type: 'unassigned', walls: unassigned });
   appState.rooms.forEach(room => {
     const roomWalls = room.wallIds.map(id => walls.find(w => w.id === id)).filter(Boolean);
     if (roomWalls.length > 0) groups.push({ type: 'room', room, walls: roomWalls });
   });
-  const unassigned = walls.filter(w => !assignedIds.has(w.id));
-  if (unassigned.length > 0) groups.push({ type: 'unassigned', walls: unassigned });
 
   if (groups.length === 0) {
-    // No rooms yet — flat list
     walls.forEach((wall, i) => _renderWallItem(listEl, wall, i));
     return;
   }
@@ -1188,18 +1319,24 @@ function _renderWallList(walls) {
 
 function _renderWallItem(containerEl, wall, colorIdx) {
   const assignedRoom = findRoomForWall(wall.id);
-  const dotColor = assignedRoom ? assignedRoom.color : WALL_STROKES[colorIdx % WALL_STROKES.length];
+  const isInterior = wall.is_exterior === false;
+  const dotColor = assignedRoom
+    ? assignedRoom.color
+    : (isInterior ? '#4a9eff' : '#ff8c42');
   const roomBadge = assignedRoom
     ? `<span class="wall-room-badge" style="color:${assignedRoom.color};border-color:${assignedRoom.color};background:color-mix(in srgb,${assignedRoom.color} 10%,transparent)">${assignedRoom.name}</span>`
-    : '';
+    : `<span class="wall-room-badge wall-room-badge-unassigned">No room</span>`;
+  const typeBadge = isInterior
+    ? '<span class="wall-type-badge">Interior</span>'
+    : (wall.is_exterior ? '<span class="wall-type-badge">Exterior</span>' : '');
 
   const item = document.createElement('div');
-  item.className = 'wall-item';
+  item.className = 'wall-item' + (assignedRoom ? '' : ' wall-item-unassigned');
   item.dataset.wallId = wall.id;
   item.innerHTML = `
     <div class="wall-dot" style="background:${dotColor};opacity:0.9"></div>
     <div class="wall-info">
-      <div class="wall-name">${wall.name || wall.id || 'Wall'}${roomBadge}</div>
+      <div class="wall-name">${wall.name || wall.id || 'Wall'}${typeBadge}${roomBadge}</div>
       <div class="wall-dims">${wall.facing || '—'} · ${wall.length || '—'}</div>
     </div>
     <div class="wall-notes">${wall.notes || ''}</div>

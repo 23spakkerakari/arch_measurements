@@ -294,10 +294,28 @@ function cvResultToAnalysis(cv) {
     length_raw: w.length_raw,
     angle_deg: w.angle_deg,
     px_coords: w.px_coords,
+    room_id: w.room_id || null,
+    parent_wall_id: w.parent_wall_id || null,
+    segment_index: w.segment_index || null,
+    segment_count: w.segment_count || null,
+    is_exterior: w.is_exterior != null ? w.is_exterior : null,
     x1_pct: w.px_coords[0] / imgW,
     y1_pct: w.px_coords[1] / imgH,
     x2_pct: w.px_coords[2] / imgW,
     y2_pct: w.px_coords[3] / imgH,
+  }));
+
+  const rooms = (cv.rooms || []).map(r => ({
+    id: r.id,
+    area: r.area,
+    area_raw: r.area_raw,
+    area_px: r.area_px,
+    centroid_px: r.centroid_px,
+    centroid_pct: r.centroid_px
+      ? [r.centroid_px[0] / imgW, r.centroid_px[1] / imgH]
+      : null,
+    bbox_px: r.bbox_px,
+    label: r.label || null,
   }));
 
   let footprint_bbox = null;
@@ -349,6 +367,7 @@ function cvResultToAnalysis(cv) {
     total_area: cv.total_area,
     units: cv.units || 'imperial',
     walls,
+    rooms,
     dimension_lines,
     footprint_bbox,
     footprint_bbox_cv: footprint_bbox,

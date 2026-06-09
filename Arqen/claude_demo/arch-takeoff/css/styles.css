@@ -651,8 +651,36 @@ header {
   background: color-mix(in srgb, var(--group-color, var(--cyan)) 10%, transparent);
 }
 .room-group-unassigned {
-  border-left-color: var(--border);
+  border-left-color: #ff8c42;
+  color: #ff8c42;
+  background: color-mix(in srgb, #ff8c42 8%, transparent);
+}
+.room-chip-unassigned {
+  border-color: color-mix(in srgb, #ff8c42 50%, var(--border)) !important;
+  color: #ff8c42 !important;
+}
+.room-chip-unassigned.active {
+  background: color-mix(in srgb, #ff8c42 15%, transparent) !important;
+}
+.wall-item-unassigned {
+  border-color: color-mix(in srgb, #ff8c42 35%, var(--border));
+}
+.wall-room-badge-unassigned {
+  color: var(--text-faint) !important;
+  border-color: var(--border) !important;
+  background: transparent !important;
+}
+.wall-type-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
   color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  vertical-align: middle;
 }
 .room-group-name { flex: 1; }
 .room-group-count {

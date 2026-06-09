@@ -133,9 +133,27 @@ function drawCanvas() {
     const dimLines = data.dimension_lines || [];
     const walls    = data.walls || [];
 
+    // ── All detected walls (visible even without a room) ─
+    walls.forEach((wall, i) => {
+      if (wall.x1_pct == null) return;
+      if (findRoomForWall(wall.id)) return;
+      const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
+      const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+      const isInterior = wall.is_exterior === false;
+      ctx.save();
+      ctx.strokeStyle = isInterior ? '#4a9eff' : '#ff8c42';
+      ctx.lineWidth   = isInterior ? 4 : 5;
+      ctx.lineCap     = 'round';
+      ctx.globalAlpha = isInterior ? 0.42 : 0.55;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    });
+
     // ── Room wall highlights ─────────────────────────────
-    // Draw subtle colored strokes along walls that belong to any room,
-    // with the expanded room drawn more prominently.
+    // Draw colored strokes on exterior sub-segments (and other assigned walls).
     appState.rooms.forEach(room => {
       const isActive = room.id === appState.activeRoomId;
       room.wallIds.forEach(wallId => {
@@ -143,37 +161,18 @@ function drawCanvas() {
         if (!wall || wall.x1_pct == null) return;
         const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
         const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
+        const isExterior = wall.is_exterior !== false;
         ctx.save();
         ctx.strokeStyle = room.color;
-        ctx.lineWidth   = isActive ? 10 : 5;
+        ctx.lineWidth   = isActive ? 10 : (isExterior ? 7 : 5);
         ctx.lineCap     = 'round';
-        ctx.globalAlpha = isActive ? 0.38 : 0.18;
+        ctx.globalAlpha = isActive ? 0.45 : (isExterior ? 0.32 : 0.18);
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
         ctx.restore();
       });
-    });
-
-    // ── Dashed stroke on unassigned walls ────────────────
-    // Makes it obvious at a glance which walls still need a room.
-    walls.forEach(wall => {
-      if (wall.x1_pct == null) return;
-      if (findRoomForWall(wall.id)) return;
-      const x1 = wall.x1_pct * W, y1 = wall.y1_pct * H;
-      const x2 = wall.x2_pct * W, y2 = wall.y2_pct * H;
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 5]);
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
     });
 
     // ── Canvas-focused wall highlight ────────────────────

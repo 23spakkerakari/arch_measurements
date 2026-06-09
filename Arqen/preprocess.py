@@ -30,6 +30,7 @@ import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
 from extract_wall_segments_class import extract_wall_segments
+from room_wall_split import split_exterior_walls_by_room
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -1304,7 +1305,14 @@ def _shift_px_coords(coords: list, offset: tuple[int, int]) -> list:
     return [x1 + ox, y1 + oy, x2 + ox, y2 + oy]
 
 
-def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict] = None) -> dict:
+def analyze_page(
+    image: np.ndarray,
+    scale_str: str,
+    dpi: int,
+    roi: Optional[dict] = None,
+    doorway_close_ft: float = 2.5,
+    room_debug_dir: Optional[str] = None,
+) -> dict:
     full_w = image.shape[1]
     full_h = image.shape[0]
     roi_offset = (0, 0)
@@ -1375,17 +1383,40 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     segments = snap_segments_to_walls(segments, wall_pair_mask, px_per_unit=px_per_unit)
     print(f"  [pipeline] segments after snap={len(segments)}", file=sys.stderr)
 
-    # Supplement with Hough lines detected directly on the wall_pair_mask so that
-    # interior walls and recesses smoothed out by approxPolyDP are also captured.
-    # pair_gap_range mirrors the gap range used in _extract_wall_lines so Hough
-    # candidates must belong to a double-line wall pair.
-    # Interior walls (restrooms, closets) are commonly 5–10 ft, well under the
-    # 12-unit polygon minimum, so the Hough pass uses its own 6-unit minimum.
+    exterior_segs = list(segments)
+
+    xs_poly = polygon[:, 0]
+    ys_poly = polygon[:, 1]
+    fp_bbox_for_facing = [
+        int(xs_poly.min()), int(ys_poly.min()),
+        int(xs_poly.max()), int(ys_poly.max()),
+    ]
+
+    # Split exterior walls into per-room sub-segments using a geometric room map.
+    t0 = time.time()
+    rooms, exterior_walls = split_exterior_walls_by_room(
+        exterior_segs,
+        wall_pair_mask=wall_pair_mask,
+        contour=contour,
+        footprint_bbox=fp_bbox_for_facing,
+        image_shape=image.shape,
+        px_per_unit=px_per_unit,
+        unit_label=unit_label,
+        doorway_close_ft=doorway_close_ft,
+        debug_dir=room_debug_dir,
+    )
+    print(
+        f"  [pipeline] room split: {time.time()-t0:.1f}s "
+        f"({len(rooms)} rooms, {len(exterior_walls)} exterior sub-segments)",
+        file=sys.stderr,
+    )
+
+    # Supplement with Hough lines for interior walls missed by the polygon.
     pair_gap_range = wall_pair_gap_range(px_per_unit)
     hough_min_px = max(60, int(6 * px_per_unit))
     hough_dedup_tol = dedup_axis_tol_px(px_per_unit)
     hough_segs = _hough_supplement(
-        wall_pair_mask, segments,
+        wall_pair_mask, exterior_segs,
         min_length_px=hough_min_px,
         dedup_tol_px=hough_dedup_tol,
         pair_gap_range=pair_gap_range,
@@ -1395,41 +1426,38 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
             hough_segs, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac
         )
         hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask, px_per_unit=px_per_unit)
-        print(f"  [pipeline] Hough supplement: +{len(hough_segs)} segments "
-              f"(total will be {len(segments) + len(hough_segs)})", file=sys.stderr)
-        segments = segments + hough_segs
+        print(f"  [pipeline] Hough supplement: +{len(hough_segs)} interior segments",
+              file=sys.stderr)
 
-    # Deduplicate and merge the combined segment list.  Two common sources of
-    # overlap are collapsed here:
-    #   • Double-lined walls: polygon and Hough each detect a different ink
-    #     line of the same drawn wall → coaxial merge within axis_tol_px.
-    #   • Window/door stubs: polygon spans the full wall; Hough finds the two
-    #     stubs on either side of the opening → subsumed into the longer span.
-    # Dedup axis tol is tighter than wall-pair max to collapse double ink lines
-    # without chain-merging distinct parallel walls (see dedup_axis_tol_px).
     axis_tol_px = dedup_axis_tol_px(px_per_unit)
     gap_tol_px = max(5, int(0.3 * px_per_unit))
-    before_dedup = len(segments)
-    segments = merge_and_deduplicate_segments(
-        segments, axis_tol_px=axis_tol_px, gap_tol_px=gap_tol_px
-    )
-    print(f"  [pipeline] dedup: {before_dedup} → {len(segments)} segments "
-          f"(axis_tol={axis_tol_px}px, gap_tol={gap_tol_px}px)", file=sys.stderr)
+    if hough_segs:
+        before_dedup = len(hough_segs)
+        hough_segs = merge_and_deduplicate_segments(
+            hough_segs, axis_tol_px=axis_tol_px, gap_tol_px=gap_tol_px
+        )
+        print(f"  [pipeline] interior dedup: {before_dedup} → {len(hough_segs)} segments",
+              file=sys.stderr)
 
-    xs_poly = polygon[:, 0]
-    ys_poly = polygon[:, 1]
-    fp_bbox_for_facing = [
-        int(xs_poly.min()), int(ys_poly.min()),
-        int(xs_poly.max()), int(ys_poly.max()),
-    ]
-    walls = measure_walls(
-        segments, px_per_unit, unit_label,
+    interior_walls = measure_walls(
+        hough_segs, px_per_unit, unit_label,
         contour=contour, footprint_bbox=fp_bbox_for_facing,
     )
+    interior_id_base = len(exterior_segs)
+    for i, w in enumerate(interior_walls):
+        w["id"] = f"w{interior_id_base + i + 1}"
+        w["name"] = f"{w['facing']} Wall {interior_id_base + i + 1}"
+        w["is_exterior"] = False
+
+    walls = exterior_walls + interior_walls
     min_real = 8.0 if unit_label == "ft" else 2.5
     walls_before_len = list(walls)
     if roi:
-        walls = [w for w in walls if w["length_raw"] >= min_real]
+        # Keep all exterior sub-segments — room split already merges slivers.
+        exterior_kept = [w for w in walls if w.get("is_exterior")]
+        interior_kept = [w for w in walls if not w.get("is_exterior")
+                         and w["length_raw"] >= min_real]
+        walls = exterior_kept + interior_kept
         if len(walls) < 8:
             walls = sorted(walls_before_len, key=lambda w: -w["length_raw"])[:20]
 
@@ -1437,6 +1465,11 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
         ox, oy = roi_offset
         for w in walls:
             w["px_coords"] = _shift_px_coords(w["px_coords"], roi_offset)
+        for r in rooms:
+            cx, cy = r["centroid_px"]
+            r["centroid_px"] = [cx + ox, cy + oy]
+            x0, y0, x1, y1 = r["bbox_px"]
+            r["bbox_px"] = [x0 + ox, y0 + oy, x1 + ox, y1 + oy]
         polygon = polygon + np.array([ox, oy])
         contour_shifted = contour + np.array([[ox, oy]])
         total_area_px = cv2.contourArea(contour_shifted)
@@ -1473,6 +1506,7 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
         "image_size_px": [full_w, full_h],
         "footprint_bbox_px": fp_bbox,
         "px_per_ft": round(px_per_unit, 2),
+        "rooms": rooms,
         "walls": walls,
         "mask_cache_path": mask_cache_path,
         # roi_offset is the pixel offset of the cropped image within the full image.

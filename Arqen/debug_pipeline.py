@@ -19,6 +19,8 @@ Two input modes:
 Usage:
   python debug_pipeline.py --mask debug_runs/trdi_wall_pair_mask.png \
       --px-per-unit 18 --out debug_runs/diag \
+      --probe "top:0.05,0.02,0.95,0.12" \
+      --probe "west:0.02,0.10,0.12,0.90" \
       --probe "topright:0.70,0.08,0.95,0.16" \
       --probe "bottomleft:0.06,0.92,0.42,1.0" \
       --probe "bottomctr:0.50,0.90,0.76,1.0"
@@ -185,7 +187,7 @@ def run(args) -> None:
             excl = pp._build_exclusion_mask(h, w)
             masked = mask_full.copy()
             masked[excl > 0] = 0
-            mask_filtered = pp._strip_spanning_grid_lines(masked, span_frac=0.65)
+            mask_filtered = pp._strip_spanning_grid_lines(masked, span_frac=0.98)
 
     h, w = mask_full.shape
     print(f"mask size: {w}x{h}, px_per_unit={px_per_unit}")
@@ -267,9 +269,11 @@ def run(args) -> None:
                   (200, 120, 0), 4)
     _save(canvas, out_dir, "06_polygon_and_poly_roi", dict(probes))
 
-    segments = pp._filter_wall_segments(segments, w, h, roi=poly_roi, max_span_frac=0.95)
+    filter_roi = pp._expand_poly_roi(poly_roi, mask_full, w, h) if args.no_margins else poly_roi
+    max_span_frac = 1.0 if args.no_margins else 0.95
+    segments = pp._filter_wall_segments(segments, w, h, roi=filter_roi, max_span_frac=max_span_frac)
     tracker.check_segments("3-polygon_after_filter", segments)
-    segments = pp.snap_segments_to_walls(segments, mask_full)
+    segments = pp.snap_segments_to_walls(segments, mask_full, px_per_unit=px_per_unit)
     tracker.check_segments("3-polygon_after_snap", segments)
     _save_segments_stage(segments, mask_full, out_dir,
                          "07_polygon_segments", dict(probes))
@@ -282,7 +286,7 @@ def run(args) -> None:
     hough_segs = pp._hough_supplement(
         mask_full, segments,
         min_length_px=hough_min_px,
-        dedup_tol_px=pair_gap_range[1],
+        dedup_tol_px=pp.dedup_axis_tol_px(px_per_unit),
         pair_gap_range=pair_gap_range,
         fates=fates,
     )
@@ -302,12 +306,12 @@ def run(args) -> None:
 
     if hough_segs:
         before = list(hough_segs)
-        hough_segs = pp._filter_wall_segments(hough_segs, w, h, roi=poly_roi,
-                                              max_span_frac=0.95)
+        hough_segs = pp._filter_wall_segments(hough_segs, w, h, roi=filter_roi,
+                                              max_span_frac=max_span_frac)
         roi_dropped = [s for s in before if s not in hough_segs]
         tracker.check_segments("4-hough_after_roi_filter", hough_segs)
         tracker.check_segments("4-hough_dropped_by_roi", roi_dropped)
-        hough_segs = pp.snap_segments_to_walls(hough_segs, mask_full)
+        hough_segs = pp.snap_segments_to_walls(hough_segs, mask_full, px_per_unit=px_per_unit)
         tracker.check_segments("4-hough_after_snap", hough_segs)
         segments = segments + hough_segs
 
@@ -316,7 +320,7 @@ def run(args) -> None:
                          "09_combined_before_dedup", dict(probes))
 
     # ── Stage 5: dedup ───────────────────────────────────────────────────────
-    axis_tol_px = pair_gap_range[1]
+    axis_tol_px = pp.dedup_axis_tol_px(px_per_unit)
     gap_tol_px = max(5, int(0.3 * px_per_unit))
     merged = pp.merge_and_deduplicate_segments(
         segments, axis_tol_px=axis_tol_px, gap_tol_px=gap_tol_px)

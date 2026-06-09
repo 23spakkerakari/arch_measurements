@@ -57,6 +57,19 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 DOWNSCALE = 4  # heavy morphology runs on 1/4-res image for speed
 
 
+def dedup_axis_tol_px(px_per_unit: float) -> int:
+    """
+    Perpendicular tolerance for coaxial segment merge in dedup.
+
+    ~8 real inches: enough to collapse the two ink strokes of one double-drawn
+    wall, but below the typical face-to-face wall thickness at px_per_unit
+    (12 in) so the north exterior's two parallel lines are not merged into a
+    single segment at the wrong y.  Complete-linkage clustering prevents
+    chain-merging distinct walls farther apart.
+    """
+    return max(12, int(0.6 * px_per_unit))
+
+
 def wall_pair_gap_range(px_per_unit: float) -> tuple[int, int]:
     """
     Perpendicular gap range (px) between the two ink strokes of a drawn wall.
@@ -174,25 +187,33 @@ def _blank_sheet_margins(gray: np.ndarray) -> np.ndarray:
     return out
 
 
-def _strip_spanning_grid_lines(mask: np.ndarray, span_frac: float = 0.42) -> np.ndarray:
+def _strip_spanning_grid_lines(
+    mask: np.ndarray,
+    span_frac: float = 0.42,
+    strip_vertical: bool = True,
+) -> np.ndarray:
     """
     Remove long H/V runs that span most of the sheet (structural grid, borders).
     span_frac controls the threshold: 0.42 for margin-aware passes (walls shorter
     than ~40 % of sheet); 0.90 for snap-mask passes so long exterior wall pixel
     runs are NOT stripped before snap_segments_to_walls uses them.
+
+    strip_vertical=False skips the vertical pass — used in ROI crops where west/
+    east exterior walls legitimately span ~90–100 % of crop height.
     """
     h, w = mask.shape
     out = mask.copy()
     kw = max(40, int(w * span_frac))
-    kh = max(40, int(h * span_frac))
     long_h = cv2.morphologyEx(
         mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (kw, 1))
     )
-    long_v = cv2.morphologyEx(
-        mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, kh))
-    )
     out = cv2.bitwise_and(out, cv2.bitwise_not(long_h))
-    out = cv2.bitwise_and(out, cv2.bitwise_not(long_v))
+    if strip_vertical:
+        kh = max(40, int(h * span_frac))
+        long_v = cv2.morphologyEx(
+            mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, kh))
+        )
+        out = cv2.bitwise_and(out, cv2.bitwise_not(long_v))
     return out
 
 
@@ -253,8 +274,16 @@ def _extract_wall_lines(
     # snap_segments_to_walls can find them; raise threshold to 0.90 for that pass.
     # Footprint pass raised to 0.65 so exterior walls spanning 42–65% of the sheet
     # are not incorrectly stripped as structural grid lines.
-    span_frac = 0.65 if apply_margins else 0.90
-    return _strip_spanning_grid_lines(combined, span_frac=span_frac)
+    # ROI crops (apply_margins=False): use 0.98 for horizontal stripping only —
+    # north exterior walls span 90%+ of crop width; west/east walls span 90%+
+    # of crop height and must not be stripped as vertical grid lines.
+    if apply_margins:
+        span_frac, strip_vertical = 0.65, True
+    else:
+        span_frac, strip_vertical = 0.98, False
+    return _strip_spanning_grid_lines(
+        combined, span_frac=span_frac, strip_vertical=strip_vertical
+    )
 
 
 def preprocess(
@@ -442,11 +471,19 @@ def find_footprint(binary: np.ndarray, use_exclusion: bool = True):
 
         return best_label
 
-    best_label = _score_components(allow_edge_touch=False)
-    if best_label is None:
-        print("  [find_footprint] pass 1 found nothing; retrying with edge-touching blobs allowed",
-              file=sys.stderr)
+    # ROI crops: building exterior walls touch the crop boundary (especially the
+    # top edge).  Prefer edge-touching pass first so the footprint polygon
+    # includes the north wall; full-sheet mode keeps the conservative order.
+    if not use_exclusion:
         best_label = _score_components(allow_edge_touch=True)
+        if best_label is None:
+            best_label = _score_components(allow_edge_touch=False)
+    else:
+        best_label = _score_components(allow_edge_touch=False)
+        if best_label is None:
+            print("  [find_footprint] pass 1 found nothing; retrying with edge-touching blobs allowed",
+                  file=sys.stderr)
+            best_label = _score_components(allow_edge_touch=True)
 
     if best_label is None:
         return None
@@ -514,6 +551,33 @@ def pixel_length(x1: int, y1: int, x2: int, y2: int) -> float:
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
+def _expand_poly_roi(
+    poly_roi: dict,
+    wall_mask: np.ndarray,
+    img_w: int,
+    img_h: int,
+    pad_frac: float = 0.04,
+) -> dict:
+    """
+    Expand footprint bbox filter to include wall-pair ink near the polygon edge.
+
+    The footprint polygon is traced on a morphologically closed mask and can sit
+    slightly inside real wall pixels — especially the north exterior run in a
+    tight ROI.  Union the polygon bbox with the wall_mask ink extent so Hough
+    segments on the true top edge are not clipped.
+    """
+    rows = np.where((wall_mask > 0).any(axis=1))[0]
+    cols = np.where((wall_mask > 0).any(axis=0))[0]
+    if len(rows) == 0 or len(cols) == 0:
+        return poly_roi
+    return {
+        "x0_pct": max(0.0, min(poly_roi["x0_pct"], cols[0] / img_w - pad_frac)),
+        "y0_pct": max(0.0, min(poly_roi["y0_pct"], rows[0] / img_h - pad_frac)),
+        "x1_pct": min(1.0, max(poly_roi["x1_pct"], (cols[-1] + 1) / img_w + pad_frac)),
+        "y1_pct": min(1.0, max(poly_roi["y1_pct"], (rows[-1] + 1) / img_h + pad_frac)),
+    }
+
+
 def _filter_wall_segments(
     segments: list[tuple],
     img_w: int,
@@ -522,7 +586,6 @@ def _filter_wall_segments(
     roi: Optional[dict] = None,
 ) -> list[tuple]:
     """Drop title-block/grid segments outside the building footprint."""
-    max_span = min(img_w, img_h) * max_span_frac
     kept = []
     for x1, y1, x2, y2 in segments:
         mx, my = (x1 + x2) / 2, (y1 + y2) / 2
@@ -537,7 +600,11 @@ def _filter_wall_segments(
                 continue
         elif _point_in_exclusion(mx, my, img_w, img_h):
             continue
-        if pixel_length(x1, y1, x2, y2) > max_span:
+        # Use the axis-aligned extent for span check: a north exterior wall can
+        # be wider than min(w,h) in a landscape ROI crop.
+        is_horiz = abs(x2 - x1) >= abs(y2 - y1)
+        axis_extent = img_w if is_horiz else img_h
+        if pixel_length(x1, y1, x2, y2) > axis_extent * max_span_frac:
             continue
         kept.append((x1, y1, x2, y2))
     return kept
@@ -570,6 +637,7 @@ def snap_segments_to_walls(
     wall_mask: np.ndarray,
     search_radius: int = 80,
     min_pixels: int = 10,
+    px_per_unit: float = 18.0,
 ) -> list[tuple]:
     """
     Shift each polygon-derived segment onto the nearest actual wall-pair pixels.
@@ -581,33 +649,48 @@ def snap_segments_to_walls(
     Falls back to the original position when no wall pixels are found.
     """
     h, w = wall_mask.shape
+    radius = max(search_radius, int(2 * px_per_unit))
+    edge_frac = 0.12
     snapped = []
     for (x1, y1, x2, y2) in segments:
         is_horiz = abs(x2 - x1) >= abs(y2 - y1)
         if is_horiz:
             cy = (y1 + y2) // 2
-            y_lo = max(0, cy - search_radius)
-            y_hi = min(h - 1, cy + search_radius)
+            y_lo = max(0, cy - radius)
+            y_hi = min(h - 1, cy + radius)
             x_lo = max(0, min(x1, x2) + 5)
             x_hi = min(w - 1, max(x1, x2) - 5)
             if x_lo < x_hi and y_lo < y_hi:
                 strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
                 ys, _ = np.where(strip > 0)
                 if len(ys) >= min_pixels:
-                    ny = int(np.median(ys)) + y_lo
+                    # Near the crop top, snap to the outermost wall-pair row
+                    # (minimum y) instead of the median — median lands on the
+                    # inner face or a dimension row below the north wall.
+                    if cy < h * edge_frac:
+                        ny = int(np.min(ys)) + y_lo
+                    elif cy > h * (1 - edge_frac):
+                        ny = int(np.max(ys)) + y_lo
+                    else:
+                        ny = int(np.median(ys)) + y_lo
                     snapped.append((x1, ny, x2, ny))
                     continue
         else:
             cx = (x1 + x2) // 2
-            x_lo = max(0, cx - search_radius)
-            x_hi = min(w - 1, cx + search_radius)
+            x_lo = max(0, cx - radius)
+            x_hi = min(w - 1, cx + radius)
             y_lo = max(0, min(y1, y2) + 5)
             y_hi = min(h - 1, max(y1, y2) - 5)
             if x_lo < x_hi and y_lo < y_hi:
                 strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
                 _, xs = np.where(strip > 0)
                 if len(xs) >= min_pixels:
-                    nx = int(np.median(xs)) + x_lo
+                    if cx < w * edge_frac:
+                        nx = int(np.min(xs)) + x_lo
+                    elif cx > w * (1 - edge_frac):
+                        nx = int(np.max(xs)) + x_lo
+                    else:
+                        nx = int(np.median(xs)) + x_lo
                     snapped.append((nx, y1, nx, y2))
                     continue
         snapped.append((x1, y1, x2, y2))
@@ -671,12 +754,20 @@ def merge_and_deduplicate_segments(
 
         segs.sort(key=lambda s: _perp(s, is_horiz))
 
+        # Complete-linkage clustering: a segment joins a cluster only if the
+        # cluster's full perpendicular span stays within axis_tol_px.  Single-
+        # linkage allowed chain-merging walls A→B→C when A–C exceeded the tol.
         clusters: list[list[tuple]] = []
         for seg in segs:
             p = _perp(seg, is_horiz)
-            if clusters and p - _perp(clusters[-1][-1], is_horiz) <= axis_tol_px:
-                clusters[-1].append(seg)
-            else:
+            placed = False
+            for cluster in clusters:
+                perps = [_perp(s, is_horiz) for s in cluster] + [p]
+                if max(perps) - min(perps) <= axis_tol_px:
+                    cluster.append(seg)
+                    placed = True
+                    break
+            if not placed:
                 clusters.append([seg])
 
         for cluster in clusters:
@@ -1047,9 +1138,13 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
         "x1_pct": min(1.0, float(xs_poly.max() + pad) / img_w),
         "y1_pct": min(1.0, float(ys_poly.max() + pad) / img_h),
     }
-    segments = _filter_wall_segments(segments, img_w, img_h, roi=poly_roi, max_span_frac=0.95)
+    filter_roi = _expand_poly_roi(poly_roi, wall_pair_mask, img_w, img_h) if user_roi else poly_roi
+    # ROI crops often fill the box: north exterior walls legitimately span ~100 %
+    # of crop width and were dropped by the old 0.95 × min(w,h) cap.
+    max_span_frac = 1.0 if user_roi else 0.95
+    segments = _filter_wall_segments(segments, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac)
     print(f"  [pipeline] segments: raw={raw_count} after_filter={len(segments)}", file=sys.stderr)
-    segments = snap_segments_to_walls(segments, wall_pair_mask)
+    segments = snap_segments_to_walls(segments, wall_pair_mask, px_per_unit=px_per_unit)
     print(f"  [pipeline] segments after snap={len(segments)}", file=sys.stderr)
 
     # Supplement with Hough lines detected directly on the wall_pair_mask so that
@@ -1060,17 +1155,18 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     # 12-unit polygon minimum, so the Hough pass uses its own 6-unit minimum.
     pair_gap_range = wall_pair_gap_range(px_per_unit)
     hough_min_px = max(60, int(6 * px_per_unit))
+    hough_dedup_tol = dedup_axis_tol_px(px_per_unit)
     hough_segs = _hough_supplement(
         wall_pair_mask, segments,
         min_length_px=hough_min_px,
-        dedup_tol_px=pair_gap_range[1],
+        dedup_tol_px=hough_dedup_tol,
         pair_gap_range=pair_gap_range,
     )
     if hough_segs:
         hough_segs = _filter_wall_segments(
-            hough_segs, img_w, img_h, roi=poly_roi, max_span_frac=0.95
+            hough_segs, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac
         )
-        hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask)
+        hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask, px_per_unit=px_per_unit)
         print(f"  [pipeline] Hough supplement: +{len(hough_segs)} segments "
               f"(total will be {len(segments) + len(hough_segs)})", file=sys.stderr)
         segments = segments + hough_segs
@@ -1081,9 +1177,9 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     #     line of the same drawn wall → coaxial merge within axis_tol_px.
     #   • Window/door stubs: polygon spans the full wall; Hough finds the two
     #     stubs on either side of the opening → subsumed into the longer span.
-    # axis_tol must cover the full wall-pair gap so both ink lines of one wall
-    # collapse — but no more, or distinct parallel walls get chain-merged.
-    axis_tol_px = pair_gap_range[1]
+    # Dedup axis tol is tighter than wall-pair max to collapse double ink lines
+    # without chain-merging distinct parallel walls (see dedup_axis_tol_px).
+    axis_tol_px = dedup_axis_tol_px(px_per_unit)
     gap_tol_px = max(5, int(0.3 * px_per_unit))
     before_dedup = len(segments)
     segments = merge_and_deduplicate_segments(

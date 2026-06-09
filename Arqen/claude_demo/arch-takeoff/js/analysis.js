@@ -760,18 +760,14 @@ function clearLassoSelection() {
 }
 
 /**
- * Open the room picker popover anchored near (pageX, pageY).
+ * Build room-list HTML for a wall (shared by sidebar picker and canvas action popover).
  */
-function renderRoomPickerPopover(wallId, pageX, pageY) {
-  const popover = document.getElementById('room-picker-popover');
-  if (!popover) return;
-
+function _buildRoomPickerListHtml(wallId, onAssignCallback) {
   const currentRoom = findRoomForWall(wallId);
-
   let listHtml = '';
 
   if (appState.rooms.length === 0) {
-    listHtml += `<div class="rpp-option rpp-add" onclick="addRoom();closeRoomPickerPopover();">
+    listHtml += `<div class="rpp-option rpp-add" onclick="addRoom();${onAssignCallback}();">
       <span class="rpp-dot"></span><span>Add a room…</span>
     </div>`;
   } else {
@@ -779,7 +775,7 @@ function renderRoomPickerPopover(wallId, pageX, pageY) {
       const isCurrent = currentRoom && currentRoom.id === room.id;
       listHtml += `<div class="rpp-option${isCurrent ? ' rpp-selected' : ''}"
         style="color:${room.color}"
-        onclick="assignWallToRoom('${wallId}','${room.id}');closeRoomPickerPopover();">
+        onclick="assignWallToRoom('${wallId}','${room.id}');${onAssignCallback}();">
         <span class="rpp-dot"></span>
         <span style="color:var(--text)">${room.name}</span>
         ${isCurrent ? '<span class="rpp-check">✓</span>' : ''}
@@ -788,24 +784,24 @@ function renderRoomPickerPopover(wallId, pageX, pageY) {
     if (currentRoom) {
       listHtml += `<div class="rpp-divider"></div>
       <div class="rpp-option rpp-none"
-        onclick="assignWallToRoom('${wallId}',null);closeRoomPickerPopover();">
+        onclick="assignWallToRoom('${wallId}',null);${onAssignCallback}();">
         <span class="rpp-dot"></span><span>No room</span>
       </div>`;
     }
     listHtml += `<div class="rpp-divider"></div>
     <div class="rpp-option rpp-add"
-      onclick="addRoom();closeRoomPickerPopover();">
+      onclick="addRoom();${onAssignCallback}();">
       <span class="rpp-dot"></span><span>Add room…</span>
     </div>`;
   }
 
-  popover.innerHTML = `<div class="rpp-title">Assign to room</div><div class="rpp-list">${listHtml}</div>`;
-  popover.classList.remove('hidden');
+  return listHtml;
+}
 
-  // Position near cursor; clamp to viewport using the CSS max-height (280px)
+function _positionPopover(popover, pageX, pageY) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const pW = 200;
+  const pW = 220;
   const pH = 280;
   let left = pageX + 10;
   let top  = pageY - 6;
@@ -815,16 +811,158 @@ function renderRoomPickerPopover(wallId, pageX, pageY) {
   popover.style.top  = `${top}px`;
 }
 
-function closeRoomPickerPopover() {
+/**
+ * Clear canvas wall focus, resize mode, and close the action popover.
+ */
+function clearCanvasWallFocus() {
+  appState.canvasFocusedWallId = null;
+  appState.resizeWallId = null;
+  closeWallActionPopover();
+  drawCanvas();
+}
+
+function closeWallActionPopover() {
   const popover = document.getElementById('room-picker-popover');
   if (popover) popover.classList.add('hidden');
 }
 
-// Dismiss the popover when clicking anywhere outside it.
+/**
+ * Open the canvas wall action popover (View A: assign / delete / resize).
+ */
+function openWallActionPopover(wallId, pageX, pageY) {
+  const popover = document.getElementById('room-picker-popover');
+  if (!popover) return;
+
+  appState.canvasFocusedWallId = wallId;
+  appState.resizeWallId = null;
+
+  const wall = (appState.analysisResult?.walls || []).find(w => w.id === wallId);
+  const wallLabel = wall ? (wall.name || wall.id) : wallId;
+  const wallDims  = wall ? `${wall.facing || '—'} · ${wall.length || '—'}` : '';
+
+  popover.innerHTML = `
+    <div class="wap-header">
+      <div class="wap-wall-name">${wallLabel}</div>
+      <div class="wap-wall-dims">${wallDims}</div>
+    </div>
+    <div class="wap-actions">
+      <button type="button" class="wap-action" onclick="showRoomPickerInPopover('${wallId}')">
+        <span class="wap-icon">⊕</span> Add to room
+      </button>
+      <button type="button" class="wap-action wap-action-danger" onclick="deleteWallFromCanvas('${wallId}')">
+        <span class="wap-icon">✕</span> Delete wall
+      </button>
+      <button type="button" class="wap-action" onclick="enterWallResizeMode('${wallId}')">
+        <span class="wap-icon">↔</span> Resize wall
+      </button>
+    </div>`;
+
+  popover.classList.remove('hidden');
+  appState._popoverPos = { x: pageX, y: pageY };
+  _positionPopover(popover, pageX, pageY);
+  drawCanvas();
+}
+
+/**
+ * Swap the action popover to View B: room list.
+ */
+function showRoomPickerInPopover(wallId) {
+  const popover = document.getElementById('room-picker-popover');
+  if (!popover) return;
+
+  const pos = appState._popoverPos || { x: popover.offsetLeft, y: popover.offsetTop };
+  const listHtml = _buildRoomPickerListHtml(wallId, 'clearCanvasWallFocus');
+  popover.innerHTML = `
+    <div class="rpp-title">
+      <button class="wap-back" type="button"
+        onclick="openWallActionPopover('${wallId}', ${pos.x}, ${pos.y})">←</button>
+      Assign to room
+    </div>
+    <div class="rpp-list">${listHtml}</div>`;
+}
+
+/**
+ * Enter resize mode: show endpoint handles and enable drag.
+ */
+function enterWallResizeMode(wallId) {
+  appState.canvasFocusedWallId = wallId;
+  appState.resizeWallId = wallId;
+  closeWallActionPopover();
+  drawCanvas();
+}
+
+/**
+ * Delete a wall from the canvas action popover.
+ */
+function deleteWallFromCanvas(wallId) {
+  deleteWall(wallId);
+  clearCanvasWallFocus();
+}
+
+/**
+ * Open the room picker popover anchored near (pageX, pageY).
+ * Used by sidebar wall row clicks only.
+ */
+function renderRoomPickerPopover(wallId, pageX, pageY) {
+  const popover = document.getElementById('room-picker-popover');
+  if (!popover) return;
+
+  const listHtml = _buildRoomPickerListHtml(wallId, 'closeRoomPickerPopover');
+
+  popover.innerHTML = `<div class="rpp-title">Assign to room</div><div class="rpp-list">${listHtml}</div>`;
+  popover.classList.remove('hidden');
+  appState._popoverPos = { x: pageX, y: pageY };
+  _positionPopover(popover, pageX, pageY);
+}
+
+function closeRoomPickerPopover() {
+  closeWallActionPopover();
+}
+
+function _initPopoverClickGuard() {
+  const popover = document.getElementById('room-picker-popover');
+  if (popover && !popover._clickGuardAttached) {
+    popover._clickGuardAttached = true;
+    popover.addEventListener('click', (e) => e.stopPropagation());
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initPopoverClickGuard);
+} else {
+  _initPopoverClickGuard();
+}
+
 document.addEventListener('click', (e) => {
   const popover = document.getElementById('room-picker-popover');
-  if (!popover || popover.classList.contains('hidden')) return;
-  if (!popover.contains(e.target)) closeRoomPickerPopover();
+  const canvas  = document.getElementById('overlay-canvas');
+  const popoverOpen = popover && !popover.classList.contains('hidden');
+
+  if (popoverOpen && !popover.contains(e.target)) {
+    closeWallActionPopover();
+  }
+
+  // Clear canvas focus when clicking outside canvas and popover (unless resize mode)
+  if (!appState.canvasFocusedWallId && !appState.resizeWallId) return;
+  if (popoverOpen && popover.contains(e.target)) return;
+  if (canvas && canvas.contains(e.target)) return;
+  if (appState.resizeWallId) {
+    // Keep focus highlight during resize; only clear resize on outside click
+    appState.resizeWallId = null;
+    drawCanvas();
+    return;
+  }
+  clearCanvasWallFocus();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (appState.resizeWallId || appState.canvasFocusedWallId) {
+      clearCanvasWallFocus();
+    } else {
+      closeWallActionPopover();
+      closeRoomPickerPopover();
+    }
+  }
 });
 
 /**

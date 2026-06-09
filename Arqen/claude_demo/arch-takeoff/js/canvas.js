@@ -176,6 +176,47 @@ function drawCanvas() {
       ctx.restore();
     });
 
+    // ── Canvas-focused wall highlight ────────────────────
+    if (appState.canvasFocusedWallId) {
+      const focusedWall = walls.find(w => w.id === appState.canvasFocusedWallId);
+      if (focusedWall && focusedWall.x1_pct != null) {
+        // Dim the rest of the plan so the selected wall stands out
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+
+        const x1 = focusedWall.x1_pct * W, y1 = focusedWall.y1_pct * H;
+        const x2 = focusedWall.x2_pct * W, y2 = focusedWall.y2_pct * H;
+        const FOCUS_COLOR = '#ffb432';
+
+        ctx.save();
+        // Glow halo
+        ctx.strokeStyle = FOCUS_COLOR + '66';
+        ctx.lineWidth = 14;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        // Main stroke
+        ctx.strokeStyle = FOCUS_COLOR;
+        ctx.lineWidth = 4;
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Endpoint handles when in resize mode
+        if (appState.resizeWallId === focusedWall.id) {
+          drawWallEndpointHandles(ctx, x1, y1, x2, y2, FOCUS_COLOR, focusedWall.id);
+        }
+      }
+    }
+
     // ── Lasso-selected wall highlights ───────────────────
     if (appState.selectedWalls && appState.selectedWalls.size > 0) {
       appState.selectedWalls.forEach(wallId => {
@@ -323,7 +364,15 @@ function drawHighlightedDimLine(ctx, dl, idx, W, H, wallId) {
   drawArrowheadColored(ctx, x2, y2, x1, y1, color);
   drawWitnessLinesColored(ctx, x1, y1, x2, y2, color);
 
-  // Endpoint dots — enlarged + ring when hovered or actively dragged
+  drawWallEndpointHandles(ctx, x1, y1, x2, y2, color, wallId);
+
+  if (appState.layers.labels && dl.label) {
+    drawDimLabelColored(ctx, dl.label, x1, y1, x2, y2, color);
+  }
+}
+
+/** Draw draggable endpoint handles for a wall segment. */
+function drawWallEndpointHandles(ctx, x1, y1, x2, y2, color, wallId) {
   [[x1, y1], [x2, y2]].forEach(([px, py], epIdx) => {
     const isHovered  = appState.hoveredEndpoint
       && appState.hoveredEndpoint.wallId === wallId
@@ -332,9 +381,8 @@ function drawHighlightedDimLine(ctx, dl, idx, W, H, wallId) {
       && appState.dragState.wallId === wallId
       && appState.dragState.endpointIdx === epIdx;
     const active = isHovered || isDragging;
-    const r = active ? 7 : 4;
+    const r = active ? 7 : 5;
 
-    // Outer glow ring when active
     if (active) {
       ctx.beginPath();
       ctx.arc(px, py, r + 4, 0, Math.PI * 2);
@@ -353,10 +401,6 @@ function drawHighlightedDimLine(ctx, dl, idx, W, H, wallId) {
     ctx.lineWidth = active ? 2.5 : 1.5;
     ctx.stroke();
   });
-
-  if (appState.layers.labels && dl.label) {
-    drawDimLabelColored(ctx, dl.label, x1, y1, x2, y2, color);
-  }
 }
 
 function drawArrowheadColored(ctx, tipX, tipY, fromX, fromY, color) {
@@ -568,23 +612,38 @@ function _findEndpointHit(canvasX, canvasY, W, H) {
   let bestDist = HIT_RADIUS;
 
   appState.visibleWalls.forEach(wallId => {
-    const wall = walls.find(w => w.id === wallId);
-    if (!wall) return;
-
-    const pts = [
-      { x: wall.x1_pct * W, y: wall.y1_pct * H, idx: 0 },
-      { x: wall.x2_pct * W, y: wall.y2_pct * H, idx: 1 },
-    ];
-    pts.forEach(({ x, y, idx }) => {
-      const d = Math.sqrt((canvasX - x) ** 2 + (canvasY - y) ** 2);
-      if (d < bestDist) {
-        bestDist = d;
-        best = { wallId, endpointIdx: idx };
+    _checkWallEndpoints(wallId, walls, canvasX, canvasY, W, H, (hit, dist) => {
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = hit;
       }
     });
   });
 
+  if (appState.resizeWallId) {
+    _checkWallEndpoints(appState.resizeWallId, walls, canvasX, canvasY, W, H, (hit, dist) => {
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = hit;
+      }
+    });
+  }
+
   return best;
+}
+
+function _checkWallEndpoints(wallId, walls, canvasX, canvasY, W, H, onHit) {
+  const wall = walls.find(w => w.id === wallId);
+  if (!wall) return;
+
+  const pts = [
+    { x: wall.x1_pct * W, y: wall.y1_pct * H, idx: 0 },
+    { x: wall.x2_pct * W, y: wall.y2_pct * H, idx: 1 },
+  ];
+  pts.forEach(({ x, y, idx }) => {
+    const d = Math.sqrt((canvasX - x) ** 2 + (canvasY - y) ** 2);
+    onHit({ wallId, endpointIdx: idx }, d);
+  });
 }
 
 /**
@@ -601,7 +660,8 @@ function _syncCanvasPointerEvents() {
   // Enable pointer events whenever there are walls (canvas click highlights them),
   // or when a special mode is active.
   const hasWalls = (appState.analysisResult?.walls || []).length > 0;
-  const needEvents = hasWalls || appState.drawWallMode || appState.visibleWalls.size > 0;
+  const needEvents = hasWalls || appState.drawWallMode || appState.visibleWalls.size > 0
+    || appState.resizeWallId != null;
   canvas.style.pointerEvents = needEvents ? 'auto' : 'none';
 }
 
@@ -640,6 +700,7 @@ function toggleDrawWallMode(btn) {
   appState.drawWallMode = !appState.drawWallMode;
   appState.drawWallFirstPoint = null;
   appState._drawCursor = null;
+  if (appState.drawWallMode) clearCanvasWallFocus();
   btn.classList.toggle('active', appState.drawWallMode);
   const canvas = document.getElementById('overlay-canvas');
   canvas.style.cursor = appState.drawWallMode ? 'crosshair' : '';
@@ -696,9 +757,10 @@ function _initAddWallClickHandler() {
     if (!appState.drawWallMode) {
       const wallId = _findWallLineHit(cx, cy, W, H);
       if (wallId) {
-        // Always open the room picker popover — wall-first assignment
         e.stopPropagation();
-        renderRoomPickerPopover(wallId, e.clientX, e.clientY);
+        openWallActionPopover(wallId, e.clientX, e.clientY);
+      } else {
+        clearCanvasWallFocus();
       }
       return;
     }
@@ -734,6 +796,7 @@ function _initAddWallClickHandler() {
     // Shift+drag starts a lasso selection
     if (e.shiftKey) {
       e.preventDefault();
+      clearCanvasWallFocus();
       appState.lassoState = { x1: cx / W, y1: cy / H, x2: cx / W, y2: cy / H, active: true };
       canvas._dragConsumedClick = true;
       return;
@@ -862,6 +925,9 @@ function _initAddWallClickHandler() {
         const wallIds = _getWallsInRect(minX, minY, maxX, maxY);
         if (wallIds.length > 0) {
           appState.selectedWalls = new Set(wallIds);
+          appState.canvasFocusedWallId = null;
+          appState.resizeWallId = null;
+          closeWallActionPopover();
           _showLassoBar();
         }
       }

@@ -32,6 +32,8 @@ const appState = {
   activeRoomId: null,        // room chip whose detail card is currently expanded
   selectedWalls: new Set(),  // wall IDs selected by shift-drag lasso
   lassoState: null,          // { x1, y1, x2, y2, active } while lasso is being drawn
+  canvasFocusedWallId: null, // wall selected by canvas click; drives highlight + action popover
+  resizeWallId: null,        // wall in resize mode; enables endpoint drag without pinning dims
 };
 
 const WALL_STROKES = [

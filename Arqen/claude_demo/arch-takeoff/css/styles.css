@@ -723,6 +723,64 @@ header {
 .rpp-add { color: var(--cyan-dim) !important; }
 .rpp-add .rpp-dot { border-style: dashed !important; border-color: var(--cyan-dim) !important; }
 
+/* ── Wall action popover (canvas click) ─────────────── */
+.wap-header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.wap-wall-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.wap-wall-dims {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+.wap-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+.wap-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+  transition: background 0.1s;
+}
+.wap-action:hover { background: var(--bg2); }
+.wap-action-danger { color: #ff6b6b; }
+.wap-action-danger:hover { background: rgba(255,107,107,0.08); }
+.wap-icon {
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.wap-back {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 0 6px 0 0;
+  vertical-align: middle;
+}
+.wap-back:hover { color: var(--text); }
+.rpp-title .wap-back { display: inline; }
+
 /* ── Lasso assign bar ───────────────────────────────── */
 .lasso-assign-bar {
   position: absolute;

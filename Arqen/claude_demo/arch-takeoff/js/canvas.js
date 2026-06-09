@@ -56,26 +56,22 @@ function drawCanvas() {
   const canvas = document.getElementById('overlay-canvas');
 
   const render = () => {
-    const container = img.parentElement;
-    const imgRect   = img.getBoundingClientRect();
-    const boxRect   = container.getBoundingClientRect();
-
-    // Pin overlay to the displayed image, not the full scrollable container.
-    canvas.style.left   = `${imgRect.left - boxRect.left + container.scrollLeft}px`;
-    canvas.style.top    = `${imgRect.top - boxRect.top + container.scrollTop}px`;
-    canvas.style.width  = `${imgRect.width}px`;
-    canvas.style.height = `${imgRect.height}px`;
+    // Layout size inside plan-stage (pre-transform); stage CSS transform handles zoom/pan.
+    const stage = document.getElementById('result-plan-stage');
+    const W = stage ? stage.offsetWidth : img.offsetWidth;
+    const H = stage ? stage.offsetHeight : img.offsetHeight;
+    if (!W || !H) return;
 
     const dpr = window.devicePixelRatio || 1;
-    canvas.width  = Math.round(imgRect.width  * dpr);
-    canvas.height = Math.round(imgRect.height * dpr);
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    // Bitmap is HiDPI; CSS size must match the image/stage or overlays drift on retina displays.
+    canvas.style.width  = `${W}px`;
+    canvas.style.height = `${H}px`;
 
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, imgRect.width, imgRect.height);
-
-    const W = imgRect.width;
-    const H = imgRect.height;
+    ctx.clearRect(0, 0, W, H);
 
     // ── CV wall-pair mask overlay ────────────────────────
     // Renders the raw OpenCV wall_pair_mask as a semi-transparent green tint.

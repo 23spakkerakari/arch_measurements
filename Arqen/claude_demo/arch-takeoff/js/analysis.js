@@ -1397,6 +1397,7 @@ function renderResults(data) {
   }
 
   renderRoomsPanel();
-  drawCanvas();
+  if (typeof resetViewport === 'function') resetViewport();
+  else drawCanvas();
 }
 

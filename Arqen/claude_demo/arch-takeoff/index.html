@@ -131,8 +131,10 @@
           <button class="tool-btn" id="btn-show-mask" onclick="toggleLayer('mask',this)" title="Show CV wall-pair mask — highlights pixels OpenCV detected as wall pairs">CV MASK</button>
           <button class="tool-btn" id="btn-draw-wall" onclick="toggleDrawWallMode(this)" title="Click two points to draw a wall manually (no CV needed)">DRAW WALL</button>
         </div>
-        <img id="result-img" src="" alt="Plan">
-        <canvas id="overlay-canvas"></canvas>
+        <div class="plan-stage" id="result-plan-stage">
+          <img id="result-img" src="" alt="Plan">
+          <canvas id="overlay-canvas"></canvas>
+        </div>
         <div id="lasso-assign-bar" class="lasso-assign-bar hidden"></div>
         <div class="scale-badge" id="scale-badge">SCALE: —</div>
       </div>
@@ -203,6 +205,7 @@
 <script src="js/roi.js"></script>
 <script src="js/coords.js"></script>
 <script src="js/analysis.js"></script>
+<script src="js/viewport.js"></script>
 <script src="js/canvas.js"></script>
 <script src="js/export.js"></script>
 </body>

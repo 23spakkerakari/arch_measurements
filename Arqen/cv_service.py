@@ -11,7 +11,9 @@ Environment variables:
 """
 
 import base64
+import json
 import os
+import time
 
 import cv2
 import numpy as np
@@ -22,6 +24,30 @@ from preprocess import analyze_page  # noqa: E402 — same directory as this fil
 app = Flask(__name__)
 
 SECRET = os.environ.get("SERVICE_SECRET", "")
+
+# When ARQEN_DEBUG_DUMP=1, each /cv-analyze request is saved to
+# debug_runs/<timestamp>/ (image.png + request.json) for offline replay
+# with debug_pipeline.py.
+DEBUG_DUMP = os.environ.get("ARQEN_DEBUG_DUMP", "") == "1"
+
+
+def _dump_request(image: np.ndarray, scale: str, dpi: int, roi) -> None:
+    try:
+        run_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "debug_runs",
+            time.strftime("%Y%m%d-%H%M%S"),
+        )
+        os.makedirs(run_dir, exist_ok=True)
+        cv2.imwrite(
+            os.path.join(run_dir, "image.png"),
+            cv2.cvtColor(image, cv2.COLOR_RGB2BGR),
+        )
+        with open(os.path.join(run_dir, "request.json"), "w") as f:
+            json.dump({"scale": scale, "dpi": dpi, "roi": roi}, f, indent=2)
+        print(f"  [debug-dump] saved request to {run_dir}", flush=True)
+    except Exception as e:
+        print(f"  [debug-dump] failed: {e}", flush=True)
 
 
 def _check_secret():
@@ -71,6 +97,9 @@ def cv_analyze():
     dpi = int(data.get("dpi", 150))
     roi_raw = data.get("roi")
     roi = roi_raw if isinstance(roi_raw, dict) else None
+
+    if DEBUG_DUMP:
+        _dump_request(image, scale, dpi, roi)
 
     result = analyze_page(image, scale, dpi, roi=roi)
 

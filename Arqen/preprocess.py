@@ -57,6 +57,26 @@ def pdf_to_images(path: str, dpi: int = DPI) -> list[np.ndarray]:
 DOWNSCALE = 4  # heavy morphology runs on 1/4-res image for speed
 
 
+def wall_pair_gap_range(px_per_unit: float) -> tuple[int, int]:
+    """
+    Perpendicular gap range (px) between the two ink strokes of a drawn wall.
+
+    min = 2 real inches (thinnest wall face-to-face gap) = px_per_unit / 6
+    max = 12 real inches + 50% margin = 1.5 * px_per_unit
+
+    The old code floored max at a hard 55 px (tuned for 1/4"=1ft @ 150 DPI,
+    px_per_unit≈37.5 → 1.5x≈56, same value). At smaller scales such as
+    px_per_unit=18 that floor was 3 real feet: dimension strings 2–3 ft from a
+    wall got "paired", and — used as the dedup axis tolerance — two distinct
+    parallel walls up to 3 ft apart were chain-merged into one, deleting real
+    walls. Deriving it from px_per_unit keeps it at ~12–18 real inches at
+    every scale.
+    """
+    min_gap_px = max(3, int(px_per_unit / 6))
+    max_gap_px = max(12, int(1.5 * px_per_unit))
+    return min_gap_px, max_gap_px
+
+
 def _find_wall_pairs(
     mask: np.ndarray,
     scan_rows: bool,
@@ -221,15 +241,9 @@ def _extract_wall_lines(
 
     # Keep only lines that have a close parallel partner — the two faces of a wall.
     # Single-stroke annotation lines (dimensions, borders, grid) have no partner
-    # and are discarded here.
-    # Gap range is derived from px_per_unit so it scales with drawing scale & DPI:
-    #   min = 2 real inches  (thinnest possible wall face-to-face gap)
-    #   max = 12 real inches (thickest typical exterior wall)
-    # At 1/4"=1ft / 150 DPI (px_per_unit≈37.5): min=6, max=55 (same as old hardcoded).
-    # At 1/4"=1ft / 300 DPI (px_per_unit≈75): min=12, max=75 (catches thick walls).
-    # At 1/8"=1ft / 150 DPI (px_per_unit≈18.75): min=3 (catches thin pairs at small scale).
-    min_gap_px = max(3, int(px_per_unit / 6))   # 2 inches = px_per_unit/6
-    max_gap_px = max(55, int(px_per_unit))        # 12 inches = px_per_unit
+    # and are discarded here. Gap range is derived from px_per_unit so it scales
+    # with drawing scale & DPI (see wall_pair_gap_range).
+    min_gap_px, max_gap_px = wall_pair_gap_range(px_per_unit)
     print(f"  [wall-pairs] gap range {min_gap_px}–{max_gap_px} px "
           f"(px_per_unit={px_per_unit:.1f}, margins={apply_margins})", file=sys.stderr)
     horiz_walls = _find_wall_pairs(horiz, scan_rows=True, min_gap_px=min_gap_px, max_gap_px=max_gap_px)
@@ -247,6 +261,7 @@ def preprocess(
     image: np.ndarray,
     blank_right_frac: Optional[float] = None,
     px_per_unit: float = 18.0,
+    apply_margins: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Two-pass preprocessing:
@@ -261,21 +276,32 @@ def preprocess(
     px_per_unit drives the adaptive closing kernel so windows and doors
     (up to 12 real-world units wide) are always bridged regardless of scale/DPI.
 
+    apply_margins=False is used when the caller already cropped the image to a
+    user-drawn ROI: the hard-coded sheet-fraction exclusion zones (top 12 %,
+    bottom 18 %, bottom-right quadrant, …) are sized for a full sheet with a
+    title block, and applied to a tight crop they erase real building walls —
+    the footprint then never extends to those walls and every segment found
+    there is later discarded by the polygon-bbox filter.
+
     Returns (big, wall_pair_mask_full).
     """
     t0 = time.time()
-    # Filtered mask: used for footprint morphology (excludes sheet margins).
-    wall_pair_mask_filtered = _extract_wall_lines(
-        image, blank_right_frac=blank_right_frac, apply_margins=True,
-        px_per_unit=px_per_unit,
-    )
     # Full mask: used for snapping — exterior wall pixels near the sheet edge
     # must NOT be erased, otherwise snap_segments_to_walls finds nothing there.
     wall_pair_mask_full = _extract_wall_lines(
         image, blank_right_frac=blank_right_frac, apply_margins=False,
         px_per_unit=px_per_unit,
     )
-    print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
+    if apply_margins:
+        # Filtered mask: used for footprint morphology (excludes sheet margins).
+        wall_pair_mask_filtered = _extract_wall_lines(
+            image, blank_right_frac=blank_right_frac, apply_margins=True,
+            px_per_unit=px_per_unit,
+        )
+    else:
+        wall_pair_mask_filtered = wall_pair_mask_full
+    print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s "
+          f"(margins={apply_margins})", file=sys.stderr)
 
     h, w = wall_pair_mask_filtered.shape
     small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
@@ -291,12 +317,20 @@ def preprocess(
     )
 
     # Adaptive closing kernel: bridge window/door gaps up to 12 real-world units.
-    # At 1/8"=1'/144 DPI: 12*18/4=54; at 1/4"=1'/144 DPI: 12*36/4=108.
-    # The hard-coded 25 only bridged ~2.7 ft gaps, causing flood-fill leakage.
+    # At 1/8"=1'/144 DPI: 12*18/4=54; at 3/8"=1'/144 DPI: 12*54/4=162.
     close_k_size = max(25, int(12 * px_per_unit / DOWNSCALE))
+    # Cap relative to the downscaled crop — at high px_per_unit an oversized
+    # square close merges the entire ROI into one blob (area_frac≈1.0) and
+    # find_footprint rejects it as the sheet border.
+    close_k_size = min(close_k_size, min(small_w, small_h) // 6)
+    close_k_size = max(close_k_size, 25)
     print(f"  [preprocess] adaptive close_k_size={close_k_size} (px_per_unit={px_per_unit:.1f})", file=sys.stderr)
-    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (close_k_size, close_k_size))
-    small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, close_k, iterations=1)
+    # Directional close bridges H/V doorway gaps separately; a square kernel
+    # also connects distant parallel wall rows into one solid block.
+    kh = cv2.getStructuringElement(cv2.MORPH_RECT, (close_k_size, 1))
+    kv = cv2.getStructuringElement(cv2.MORPH_RECT, (1, close_k_size))
+    small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, kh, iterations=1)
+    small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, kv, iterations=1)
 
     big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
     print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
@@ -330,10 +364,14 @@ def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
     return cv2.bitwise_or(binary, interior)
 
 
-def find_footprint(binary: np.ndarray):
+def find_footprint(binary: np.ndarray, use_exclusion: bool = True):
     """
     Pick the building footprint: the largest connected component that
     is NOT the sheet border/title block.
+
+    use_exclusion=False skips the sheet-fraction exclusion-zone checks; pass
+    this when the image is a user-drawn ROI crop, where those zones cover real
+    building area instead of the title block.
 
     Strategy:
       - Pass 1: reject components that touch the image edge (sheet border artifacts).
@@ -385,15 +423,16 @@ def find_footprint(binary: np.ndarray):
                 if touches_edge:
                     continue
 
-            comp = (labels == label).astype(np.uint8)
-            overlap = np.logical_and(comp, excl > 0).sum() / max(comp.sum(), 1)
-            if overlap > 0.12:
-                continue
+            if use_exclusion:
+                comp = (labels == label).astype(np.uint8)
+                overlap = np.logical_and(comp, excl > 0).sum() / max(comp.sum(), 1)
+                if overlap > 0.12:
+                    continue
 
-            cx = x + width / 2
-            cy = y + height / 2
-            if _point_in_exclusion(cx, cy, w, h):
-                continue
+                cx = x + width / 2
+                cy = y + height / 2
+                if _point_in_exclusion(cx, cy, w, h):
+                    continue
 
             compactness = area / max(width * height, 1)
             score = area * compactness
@@ -737,6 +776,7 @@ def _hough_supplement(
     max_gap_px: int = 20,
     dedup_tol_px: int = 22,
     pair_gap_range: Optional[tuple[int, int]] = None,
+    fates: Optional[list] = None,
 ) -> list[tuple]:
     """
     Run HoughLinesP on wall_mask to find wall segments missed by the polygon approach.
@@ -750,6 +790,10 @@ def _hough_supplement(
     validation: each candidate must have a parallel partner stroke in the
     undilated wall_mask within that perpendicular gap range along most of its
     length, rejecting single-stroke dimension/annotation lines.
+
+    fates, when given an empty list, is filled with (segment, fate) tuples for
+    every raw Hough candidate: 'accepted', 'rejected-non-orthogonal',
+    'rejected-duplicate', or 'rejected-no-pair'. Used by debug tooling.
 
     Returns a list of new (x1, y1, x2, y2) tuples in image-pixel coordinates.
     """
@@ -807,6 +851,8 @@ def _hough_supplement(
         is_horiz = angle < 10
         is_vert = angle > 80
         if not (is_horiz or is_vert):
+            if fates is not None:
+                fates.append(((x1, y1, x2, y2), "rejected-non-orthogonal"))
             continue
 
         # Snap to exact H or V so coordinates are axis-aligned.
@@ -821,14 +867,20 @@ def _hough_supplement(
 
         seg = (x1, y1, x2, y2)
         if _is_duplicate(seg):
+            if fates is not None:
+                fates.append((seg, "rejected-duplicate"))
             continue
         if pair_gap_range is not None and not _has_parallel_partner(
             wall_mask, seg, pair_gap_range[0], pair_gap_range[1]
         ):
             rejected_no_pair += 1
+            if fates is not None:
+                fates.append((seg, "rejected-no-pair"))
             continue
         accepted.append(seg)
         all_check.append(seg)
+        if fates is not None:
+            fates.append((seg, "accepted"))
 
     if rejected_no_pair:
         print(f"  [hough] rejected {rejected_no_pair} single-stroke segments "
@@ -947,12 +999,19 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     is_metric = unit_label == "m"
     area_unit = f"{unit_label}²"
 
+    # With a user-drawn ROI the title block/margins are already cropped away;
+    # the sheet-fraction exclusion zones would erase real walls (bottom 18 %,
+    # top 12 %, bottom-right quadrant of the crop), clip the footprint, and
+    # cause every wall segment in those areas to be dropped downstream.
+    user_roi = roi is not None
     t0 = time.time()
-    binary, wall_pair_mask = preprocess(image, px_per_unit=px_per_unit)
+    binary, wall_pair_mask = preprocess(
+        image, px_per_unit=px_per_unit, apply_margins=not user_roi
+    )
     print(f"  [pipeline] preprocess total: {time.time()-t0:.1f}s", file=sys.stderr)
 
     t0 = time.time()
-    component_mask = find_footprint(binary)
+    component_mask = find_footprint(binary, use_exclusion=not user_roi)
     print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
 
     if component_mask is None:
@@ -995,13 +1054,16 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
 
     # Supplement with Hough lines detected directly on the wall_pair_mask so that
     # interior walls and recesses smoothed out by approxPolyDP are also captured.
-    # pair_gap_range mirrors the gap range used in _extract_wall_lines (2–12 real
-    # inches) so Hough candidates must belong to a double-line wall pair.
-    pair_gap_range = (max(3, int(px_per_unit / 6)), max(55, int(px_per_unit)))
+    # pair_gap_range mirrors the gap range used in _extract_wall_lines so Hough
+    # candidates must belong to a double-line wall pair.
+    # Interior walls (restrooms, closets) are commonly 5–10 ft, well under the
+    # 12-unit polygon minimum, so the Hough pass uses its own 6-unit minimum.
+    pair_gap_range = wall_pair_gap_range(px_per_unit)
+    hough_min_px = max(60, int(6 * px_per_unit))
     hough_segs = _hough_supplement(
         wall_pair_mask, segments,
-        min_length_px=min_seg_px,
-        dedup_tol_px=max(55, int(px_per_unit)),
+        min_length_px=hough_min_px,
+        dedup_tol_px=pair_gap_range[1],
         pair_gap_range=pair_gap_range,
     )
     if hough_segs:
@@ -1019,7 +1081,9 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     #     line of the same drawn wall → coaxial merge within axis_tol_px.
     #   • Window/door stubs: polygon spans the full wall; Hough finds the two
     #     stubs on either side of the opening → subsumed into the longer span.
-    axis_tol_px = max(55, int(px_per_unit))   # must cover full wall-pair gap so both ink lines collapse
+    # axis_tol must cover the full wall-pair gap so both ink lines of one wall
+    # collapse — but no more, or distinct parallel walls get chain-merged.
+    axis_tol_px = pair_gap_range[1]
     gap_tol_px = max(5, int(0.3 * px_per_unit))
     before_dedup = len(segments)
     segments = merge_and_deduplicate_segments(

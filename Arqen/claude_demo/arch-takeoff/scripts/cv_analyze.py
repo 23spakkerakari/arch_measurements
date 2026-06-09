@@ -121,6 +121,24 @@ def main():
                 "y1_pct": parts[3],
             }
 
+    # Debug capture: when ARQEN_DEBUG_DUMP=1 or a debug_runs/.capture marker
+    # exists, save the exact request (image + scale + dpi + roi) so the run can
+    # be replayed offline with Arqen/debug_pipeline.py.
+    import os
+    import shutil
+    import time
+    capture_marker = ARQEN_ROOT / "debug_runs" / ".capture"
+    if os.environ.get("ARQEN_DEBUG_DUMP") == "1" or capture_marker.exists():
+        try:
+            run_dir = ARQEN_ROOT / "debug_runs" / time.strftime("%Y%m%d-%H%M%S")
+            run_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy(args.image, run_dir / "image.png")
+            with open(run_dir / "request.json", "w") as f:
+                json.dump({"scale": args.scale, "dpi": args.dpi, "roi": roi}, f, indent=2)
+            print(f"  [debug-dump] saved request to {run_dir}", file=sys.stderr)
+        except Exception as e:
+            print(f"  [debug-dump] failed: {e}", file=sys.stderr)
+
     result = analyze_page(image, args.scale, args.dpi, roi=roi)
     print(json.dumps(result))
 

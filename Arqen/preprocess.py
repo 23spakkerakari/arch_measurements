@@ -62,6 +62,7 @@ def _find_wall_pairs(
     scan_rows: bool,
     min_gap_px: int = 2,
     max_gap_px: int = 60,
+    strip_px: int = 128,
 ) -> np.ndarray:
     """
     Retain only pixels that belong to a double-line (wall) pair.
@@ -71,32 +72,49 @@ def _find_wall_pairs(
     Single-stroke lines — dimension strings, title block borders, grid lines,
     scale bars — have no parallel partner and are filtered out.
 
+    Pairing is evaluated per strip of ``strip_px`` along the line direction
+    (X strips for horizontal lines, Y strips for vertical) rather than over a
+    whole-image projection. A real wall's two parallel strokes co-exist in
+    every strip along their run, so they always pair locally; an isolated
+    dimension string only pairs if unrelated ink happens to sit within the
+    gap range in the *same* strip — instead of anywhere on the sheet — which
+    eliminates most annotation-line false positives.
+
     scan_rows=True  → horizontal lines: look for row pairs close in Y
     scan_rows=False → vertical lines:   look for column pairs close in X
     """
-    if scan_rows:
-        projection = (mask > 0).any(axis=1)   # (H,): True if row has any pixel
-    else:
-        projection = (mask > 0).any(axis=0)   # (W,): True if col has any pixel
+    h, w = mask.shape
+    out = np.zeros_like(mask)
+    extent = w if scan_rows else h
 
-    active = np.where(projection)[0]
-    keep = np.zeros(len(projection), dtype=bool)
+    for s0 in range(0, extent, strip_px):
+        s1 = min(extent, s0 + strip_px)
+        strip = mask[:, s0:s1] if scan_rows else mask[s0:s1, :]
+        if scan_rows:
+            projection = (strip > 0).any(axis=1)   # (H,): True if row has any pixel
+        else:
+            projection = (strip > 0).any(axis=0)   # (W,): True if col has any pixel
 
-    n = len(active)
-    i = 0
-    while i < n:
-        j = i + 1
-        while j < n and (active[j] - active[i]) <= max_gap_px:
-            if (active[j] - active[i]) >= min_gap_px:
-                keep[active[i]] = True
-                keep[active[j]] = True
-            j += 1
-        i += 1
+        active = np.where(projection)[0]
+        keep = np.zeros(len(projection), dtype=bool)
 
-    if scan_rows:
-        return mask * keep[:, np.newaxis].astype(np.uint8)
-    else:
-        return mask * keep[np.newaxis, :].astype(np.uint8)
+        n = len(active)
+        i = 0
+        while i < n:
+            j = i + 1
+            while j < n and (active[j] - active[i]) <= max_gap_px:
+                if (active[j] - active[i]) >= min_gap_px:
+                    keep[active[i]] = True
+                    keep[active[j]] = True
+                j += 1
+            i += 1
+
+        if scan_rows:
+            out[:, s0:s1] = strip * keep[:, np.newaxis].astype(np.uint8)
+        else:
+            out[s0:s1, :] = strip * keep[np.newaxis, :].astype(np.uint8)
+
+    return out
 
 
 def _build_exclusion_mask(h: int, w: int) -> np.ndarray:
@@ -668,12 +686,57 @@ def merge_and_deduplicate_segments(
     return final
 
 
+def _has_parallel_partner(
+    wall_mask: np.ndarray,
+    seg: tuple,
+    min_gap_px: int,
+    max_gap_px: int,
+    n_samples: int = 20,
+    min_coverage: float = 0.5,
+) -> bool:
+    """
+    True if seg looks like one face of a double-line wall: sampling points
+    along the segment, a parallel mask stroke must exist within
+    [min_gap_px, max_gap_px] perpendicular to the segment at >= min_coverage
+    of samples. Single-stroke annotation lines (dimension strings, leaders,
+    grid lines) have no such partner and fail this check.
+    """
+    h, w = wall_mask.shape
+    x1, y1, x2, y2 = seg
+    is_horiz = abs(x2 - x1) >= abs(y2 - y1)
+
+    hits = 0
+    for k in range(n_samples):
+        t = (k + 0.5) / n_samples
+        px = int(round(x1 + t * (x2 - x1)))
+        py = int(round(y1 + t * (y2 - y1)))
+        if is_horiz:
+            lo_a = max(0, py - max_gap_px)
+            hi_a = max(0, py - min_gap_px)
+            lo_b = min(h - 1, py + min_gap_px)
+            hi_b = min(h - 1, py + max_gap_px)
+            above = wall_mask[lo_a:hi_a + 1, px]
+            below = wall_mask[lo_b:hi_b + 1, px]
+        else:
+            lo_a = max(0, px - max_gap_px)
+            hi_a = max(0, px - min_gap_px)
+            lo_b = min(w - 1, px + min_gap_px)
+            hi_b = min(w - 1, px + max_gap_px)
+            above = wall_mask[py, lo_a:hi_a + 1]
+            below = wall_mask[py, lo_b:hi_b + 1]
+        if (above > 0).any() or (below > 0).any():
+            hits += 1
+
+    return hits >= n_samples * min_coverage
+
+
 def _hough_supplement(
     wall_mask: np.ndarray,
     existing_segments: list[tuple],
     min_length_px: float = 60,
     max_gap_px: int = 20,
     dedup_tol_px: int = 22,
+    pair_gap_range: Optional[tuple[int, int]] = None,
 ) -> list[tuple]:
     """
     Run HoughLinesP on wall_mask to find wall segments missed by the polygon approach.
@@ -682,6 +745,11 @@ def _hough_supplement(
     interior walls and recesses smoothed away by approxPolyDP are invisible to it.
     This supplement detects all significant H/V runs in the wall_pair_mask and adds any
     that are not already represented in existing_segments.
+
+    pair_gap_range, when given as (min_gap_px, max_gap_px), enables a wall-pair
+    validation: each candidate must have a parallel partner stroke in the
+    undilated wall_mask within that perpendicular gap range along most of its
+    length, rejecting single-stroke dimension/annotation lines.
 
     Returns a list of new (x1, y1, x2, y2) tuples in image-pixel coordinates.
     """
@@ -728,6 +796,7 @@ def _hough_supplement(
 
     accepted: list[tuple] = []
     all_check = list(existing_segments)  # grows as new segs are accepted
+    rejected_no_pair = 0
 
     for line in lines:
         # Cast to Python int immediately — numpy.intc from HoughLinesP is not JSON-serializable.
@@ -751,10 +820,19 @@ def _hough_supplement(
             x1 = x2 = cx
 
         seg = (x1, y1, x2, y2)
-        if not _is_duplicate(seg):
-            accepted.append(seg)
-            all_check.append(seg)
+        if _is_duplicate(seg):
+            continue
+        if pair_gap_range is not None and not _has_parallel_partner(
+            wall_mask, seg, pair_gap_range[0], pair_gap_range[1]
+        ):
+            rejected_no_pair += 1
+            continue
+        accepted.append(seg)
+        all_check.append(seg)
 
+    if rejected_no_pair:
+        print(f"  [hough] rejected {rejected_no_pair} single-stroke segments "
+              f"(no parallel wall partner)", file=sys.stderr)
     return accepted
 
 
@@ -917,10 +995,14 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
 
     # Supplement with Hough lines detected directly on the wall_pair_mask so that
     # interior walls and recesses smoothed out by approxPolyDP are also captured.
+    # pair_gap_range mirrors the gap range used in _extract_wall_lines (2–12 real
+    # inches) so Hough candidates must belong to a double-line wall pair.
+    pair_gap_range = (max(3, int(px_per_unit / 6)), max(55, int(px_per_unit)))
     hough_segs = _hough_supplement(
         wall_pair_mask, segments,
         min_length_px=min_seg_px,
         dedup_tol_px=max(55, int(px_per_unit)),
+        pair_gap_range=pair_gap_range,
     )
     if hough_segs:
         hough_segs = _filter_wall_segments(

@@ -43,7 +43,7 @@ import numpy as np
 
 from preprocess import (
     _extract_wall_lines,
-    angle_to_facing,
+    assign_segment_facings,
     find_footprint,
     find_footprint_contour,
     pdf_to_images,
@@ -405,6 +405,7 @@ def walk_wall_and_split_by_room(
 def runs_to_sub_segments(
     wall_id, name_prefix, ext_wall, runs,
     px_per_unit, unit_label,
+    contour, footprint_bbox,
 ):
     """
     Convert a list of (t0, t1, room_label_int) runs into wall-sub-segment
@@ -423,7 +424,9 @@ def runs_to_sub_segments(
         px_len = math.hypot(sx2 - sx1, sy2 - sy1)
         real_len = px_len / px_per_unit
         angle = wall_angle_deg(sx1, sy1, sx2, sy2)
-        facing = angle_to_facing(angle)
+        facing = assign_segment_facings(
+            [(sx1, sy1, sx2, sy2)], contour, footprint_bbox, px_per_unit,
+        )[0]
         room_id = f"R{room_lbl}" if room_lbl > 0 else None
 
         sub_segments.append({
@@ -518,17 +521,18 @@ def analyze_page(
 
     min_seg_px = min_segment_ft * px_per_unit
     all_sub_segments = []
+    parent_facings = assign_segment_facings(
+        exterior_segs, contour, bbox, px_per_unit,
+    )
     for i, ext in enumerate(exterior_segs):
-        x1, y1, x2, y2 = ext
-        wall_ang = wall_angle_deg(x1, y1, x2, y2)
-        facing = angle_to_facing(wall_ang)
+        facing = parent_facings[i]
         runs = walk_wall_and_split_by_room(
             ext, room_labels, contour,
             probe_offsets_px, min_segment_px=min_seg_px,
         )
         subs = runs_to_sub_segments(
             f"w{i+1}", f"{facing} Wall {i+1}", ext, runs,
-            px_per_unit, unit_label,
+            px_per_unit, unit_label, contour, bbox,
         )
         all_sub_segments.extend(subs)
 

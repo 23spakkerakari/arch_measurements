@@ -87,13 +87,17 @@ def main():
         if seg is None:
             print(json.dumps({"wall": None}))
         else:
-            from preprocess import pixel_length, wall_angle_deg, angle_to_facing  # noqa
+            from preprocess import pixel_length, wall_angle_deg  # noqa
             # Translate segment coords from crop space back to full-image space.
             cx1, cy1, cx2, cy2 = seg["px_coords"]
             x1, y1, x2, y2 = cx1 + ox, cy1 + oy, cx2 + ox, cy2 + oy
             real_len = pixel_length(x1, y1, x2, y2) / px_per_unit
             angle = wall_angle_deg(x1, y1, x2, y2)
-            facing = angle_to_facing(angle)
+            facing = seg.get("facing") or (
+                "North" if (y1 + y2) / 2 < h // 2 else "South"
+                if abs(x2 - x1) >= abs(y2 - y1)
+                else "West" if (x1 + x2) / 2 < w // 2 else "East"
+            )
             result = {
                 "wall": {
                     "px_coords": [x1, y1, x2, y2],

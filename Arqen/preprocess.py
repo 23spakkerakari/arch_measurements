@@ -523,28 +523,225 @@ def wall_angle_deg(x1: int, y1: int, x2: int, y2: int) -> float:
     return angle
 
 
-def angle_to_facing(angle_deg: float) -> str:
-    """
-    The wall *faces* perpendicular to its run direction (outward normal).
-    A wall running East–West has its outer face pointing North or South.
-
-    We compute the wall's run angle, then assign the facing as the
-    outward-perpendicular (+90°) snapped to the nearest cardinal direction.
-    """
-    # Outward normal is ambiguous without winding order — we assume the
-    # contour is CCW in image coords (CW in math coords), so +90° points
-    # outward.
-    normal_angle = (angle_deg + 90) % 360
-
-    if 315 <= normal_angle or normal_angle < 45:
+def angle_to_facing(normal_angle_deg: float) -> str:
+    """Snap a normal direction angle (clockwise from North) to a cardinal facing."""
+    normal_angle_deg = normal_angle_deg % 360
+    if 315 <= normal_angle_deg or normal_angle_deg < 45:
         return "North"
-    elif 45 <= normal_angle < 135:
+    elif 45 <= normal_angle_deg < 135:
         return "East"
-    elif 135 <= normal_angle < 225:
+    elif 135 <= normal_angle_deg < 225:
         return "South"
     else:
         return "West"
 
+
+def vector_to_facing(nx: float, ny: float) -> str:
+    """Cardinal facing for a unit normal in image coordinates (y increases downward)."""
+    angle = math.degrees(math.atan2(nx, -ny)) % 360
+    return angle_to_facing(angle)
+
+
+def point_in_footprint(px: float, py: float, contour: np.ndarray) -> bool:
+    return cv2.pointPolygonTest(
+        contour.reshape(-1, 1, 2).astype(np.float32),
+        (float(px), float(py)),
+        measureDist=False,
+    ) >= 0
+
+
+def _segment_is_horizontal(x1: int, y1: int, x2: int, y2: int) -> bool:
+    return abs(x2 - x1) >= abs(y2 - y1)
+
+
+def outward_facing(
+    x1: int, y1: int, x2: int, y2: int,
+    contour: np.ndarray,
+    probe_px: float = 12.0,
+) -> Optional[str]:
+    """
+    Facing from the outward normal: probe both sides of the segment midpoint
+    and pick the direction outside the footprint.  Returns None when both
+    probes land inside (interior partition).
+    """
+    dx, dy = x2 - x1, y2 - y1
+    length = math.hypot(dx, dy) or 1.0
+    n1x, n1y = -dy / length, dx / length
+    mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+    inside1 = point_in_footprint(mx + probe_px * n1x, my + probe_px * n1y, contour)
+    inside2 = point_in_footprint(mx - probe_px * n1x, my - probe_px * n1y, contour)
+    if inside1 and not inside2:
+        return vector_to_facing(-n1x, -n1y)
+    if inside2 and not inside1:
+        return vector_to_facing(n1x, n1y)
+    return None
+
+
+def _on_footprint_edge(mx: float, my: float, bbox: list[int], edge_tol_px: float) -> bool:
+    x_min, y_min, x_max, y_max = bbox
+    return (
+        mx - x_min <= edge_tol_px
+        or x_max - mx <= edge_tol_px
+        or my - y_min <= edge_tol_px
+        or y_max - my <= edge_tol_px
+    )
+
+
+def bbox_edge_facing(
+    x1: int, y1: int, x2: int, y2: int,
+    bbox: list[int],
+    edge_tol_px: float,
+) -> Optional[str]:
+    """Assign facing from proximity to footprint bbox edges."""
+    mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+    x_min, y_min, x_max, y_max = bbox
+    if _segment_is_horizontal(x1, y1, x2, y2):
+        if my - y_min <= edge_tol_px:
+            return "North"
+        if y_max - my <= edge_tol_px:
+            return "South"
+    else:
+        if mx - x_min <= edge_tol_px:
+            return "West"
+        if x_max - mx <= edge_tol_px:
+            return "East"
+    return None
+
+
+def _endpoints_near(seg_a: tuple, seg_b: tuple, tol: float) -> bool:
+    pts_a = [(seg_a[0], seg_a[1]), (seg_a[2], seg_a[3])]
+    pts_b = [(seg_b[0], seg_b[1]), (seg_b[2], seg_b[3])]
+    for ax, ay in pts_a:
+        for bx, by in pts_b:
+            if math.hypot(ax - bx, ay - by) <= tol:
+                return True
+    return False
+
+
+def _point_on_segment(
+    px: float, py: float, seg: tuple, tol: float,
+) -> bool:
+    x1, y1, x2, y2 = seg
+    dx, dy = x2 - x1, y2 - y1
+    seg_len_sq = dx * dx + dy * dy
+    if seg_len_sq < 1:
+        return False
+    t = ((px - x1) * dx + (py - y1) * dy) / seg_len_sq
+    if t < -0.02 or t > 1.02:
+        return False
+    proj_x = x1 + t * dx
+    proj_y = y1 + t * dy
+    return math.hypot(px - proj_x, py - proj_y) <= tol
+
+
+def build_wall_adjacency(segments: list[tuple], corner_tol_px: float) -> list[list[int]]:
+    """Index segments that meet at corners or T-junctions."""
+    n = len(segments)
+    adj: list[list[int]] = [[] for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            linked = _endpoints_near(segments[i], segments[j], corner_tol_px)
+            if not linked:
+                for px, py in [(segments[i][0], segments[i][1]), (segments[i][2], segments[i][3])]:
+                    if _point_on_segment(px, py, segments[j], corner_tol_px):
+                        linked = True
+                        break
+                if not linked:
+                    for px, py in [(segments[j][0], segments[j][1]), (segments[j][2], segments[j][3])]:
+                        if _point_on_segment(px, py, segments[i], corner_tol_px):
+                            linked = True
+                            break
+            if linked:
+                adj[i].append(j)
+                adj[j].append(i)
+    return adj
+
+
+_HORIZ_FACINGS = frozenset({"North", "South"})
+_VERT_FACINGS = frozenset({"East", "West"})
+
+
+def classify_interior_facing(
+    seg_idx: int,
+    seg: tuple,
+    adjacency: list[list[int]],
+    facings: list[Optional[str]],
+    footprint_bbox: list[int],
+) -> str:
+    """Derive facing for an interior segment from adjacent classified walls."""
+    x1, y1, x2, y2 = seg
+    mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+    x_min, y_min, x_max, y_max = footprint_bbox
+    cx, cy = (x_min + x_max) / 2.0, (y_min + y_max) / 2.0
+    is_horiz = _segment_is_horizontal(x1, y1, x2, y2)
+    neighbor_facings = [
+        facings[j] for j in adjacency[seg_idx]
+        if facings[j] is not None
+    ]
+
+    if is_horiz:
+        for f in neighbor_facings:
+            if f in _HORIZ_FACINGS:
+                return f
+        for j in adjacency[seg_idx]:
+            nf = facings[j]
+            if nf in _VERT_FACINGS:
+                return "North" if my < cy else "South"
+        return "North" if my < cy else "South"
+
+    for f in neighbor_facings:
+        if f in _VERT_FACINGS:
+            return f
+    for j in adjacency[seg_idx]:
+        nf = facings[j]
+        if nf in _HORIZ_FACINGS:
+            return "East" if mx > cx else "West"
+    return "West" if mx < cx else "East"
+
+
+def assign_segment_facings(
+    segments: list[tuple],
+    contour: np.ndarray,
+    footprint_bbox: list[int],
+    px_per_unit: float,
+) -> list[str]:
+    """Two-pass exterior (outward probe) then interior (adjacency) facing assignment."""
+    probe_px = max(8.0, 0.5 * px_per_unit)
+    corner_tol_px = max(8, int(0.75 * px_per_unit))
+    edge_tol_px = max(12, int(1.0 * px_per_unit))
+
+    n = len(segments)
+    facings: list[Optional[str]] = [None] * n
+
+    for i, seg in enumerate(segments):
+        x1, y1, x2, y2 = seg
+        facing = outward_facing(x1, y1, x2, y2, contour, probe_px)
+        if facing is None:
+            mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+            if _on_footprint_edge(mx, my, footprint_bbox, edge_tol_px):
+                facing = bbox_edge_facing(x1, y1, x2, y2, footprint_bbox, edge_tol_px)
+        facings[i] = facing
+
+    adjacency = build_wall_adjacency(segments, corner_tol_px)
+
+    for i, seg in enumerate(segments):
+        if facings[i] is None:
+            facings[i] = classify_interior_facing(
+                i, seg, adjacency, facings, footprint_bbox,
+            )
+
+    x_min, y_min, x_max, y_max = footprint_bbox
+    cx, cy = (x_min + x_max) / 2.0, (y_min + y_max) / 2.0
+    for i, seg in enumerate(segments):
+        if facings[i] is None:
+            x1, y1, x2, y2 = seg
+            mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+            if _segment_is_horizontal(x1, y1, x2, y2):
+                facings[i] = "North" if my < cy else "South"
+            else:
+                facings[i] = "West" if mx < cx else "East"
+
+    return [f or "South" for f in facings]
 
 
 def pixel_length(x1: int, y1: int, x2: int, y2: int) -> float:
@@ -610,13 +807,27 @@ def _filter_wall_segments(
     return kept
 
 
-def measure_walls(segments: list[tuple], px_per_unit: float, unit_label: str) -> list[dict]:
+def measure_walls(
+    segments: list[tuple],
+    px_per_unit: float,
+    unit_label: str,
+    contour: Optional[np.ndarray] = None,
+    footprint_bbox: Optional[list[int]] = None,
+) -> list[dict]:
+    if contour is not None and footprint_bbox is not None:
+        facings = assign_segment_facings(segments, contour, footprint_bbox, px_per_unit)
+    else:
+        facings = [
+            angle_to_facing(wall_angle_deg(x1, y1, x2, y2) + 90)
+            for x1, y1, x2, y2 in segments
+        ]
+
     walls = []
     for i, (x1, y1, x2, y2) in enumerate(segments):
         px_len = pixel_length(x1, y1, x2, y2)
         real_len = px_len / px_per_unit
         angle = wall_angle_deg(x1, y1, x2, y2)
-        facing = angle_to_facing(angle)
+        facing = facings[i]
 
         walls.append({
             "id": f"w{i + 1}",
@@ -985,6 +1196,9 @@ def detect_wall_at_point(
     y_px: int,
     search_radius: int = 150,
     min_run_px: int = 15,
+    contour: Optional[np.ndarray] = None,
+    footprint_bbox: Optional[list[int]] = None,
+    px_per_unit: float = 18.0,
 ) -> Optional[dict]:
     """
     Find the wall segment closest to (x_px, y_px) in wall_pair_mask.
@@ -1037,8 +1251,15 @@ def detect_wall_at_point(
         if len(near_xs) < min_run_px:
             return None
         x1, x2 = int(near_xs[0]), int(near_xs[-1])
-        facing = "North" if wall_row < h // 2 else "South"
-        return {"px_coords": [x1, wall_row, x2, wall_row], "facing": facing}
+        px_coords = [x1, wall_row, x2, wall_row]
+        if contour is not None and footprint_bbox is not None:
+            facing = outward_facing(x1, wall_row, x2, wall_row, contour) or bbox_edge_facing(
+                x1, wall_row, x2, wall_row, footprint_bbox,
+                max(12, int(1.0 * px_per_unit)),
+            ) or ("North" if wall_row < h // 2 else "South")
+        else:
+            facing = "North" if wall_row < h // 2 else "South"
+        return {"px_coords": px_coords, "facing": facing}
     else:
         region = wall_pair_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
         _, xs = np.where(region > 0)
@@ -1052,8 +1273,15 @@ def detect_wall_at_point(
         if len(near_ys) < min_run_px:
             return None
         y1, y2 = int(near_ys[0]), int(near_ys[-1])
-        facing = "West" if wall_col < w // 2 else "East"
-        return {"px_coords": [wall_col, y1, wall_col, y2], "facing": facing}
+        px_coords = [wall_col, y1, wall_col, y2]
+        if contour is not None and footprint_bbox is not None:
+            facing = outward_facing(wall_col, y1, wall_col, y2, contour) or bbox_edge_facing(
+                wall_col, y1, wall_col, y2, footprint_bbox,
+                max(12, int(1.0 * px_per_unit)),
+            ) or ("West" if wall_col < w // 2 else "East")
+        else:
+            facing = "West" if wall_col < w // 2 else "East"
+        return {"px_coords": px_coords, "facing": facing}
 
 
 # ─── Main pipeline ──────────────────────────────────────────────────────────
@@ -1188,7 +1416,16 @@ def analyze_page(image: np.ndarray, scale_str: str, dpi: int, roi: Optional[dict
     print(f"  [pipeline] dedup: {before_dedup} → {len(segments)} segments "
           f"(axis_tol={axis_tol_px}px, gap_tol={gap_tol_px}px)", file=sys.stderr)
 
-    walls = measure_walls(segments, px_per_unit, unit_label)
+    xs_poly = polygon[:, 0]
+    ys_poly = polygon[:, 1]
+    fp_bbox_for_facing = [
+        int(xs_poly.min()), int(ys_poly.min()),
+        int(xs_poly.max()), int(ys_poly.max()),
+    ]
+    walls = measure_walls(
+        segments, px_per_unit, unit_label,
+        contour=contour, footprint_bbox=fp_bbox_for_facing,
+    )
     min_real = 8.0 if unit_label == "ft" else 2.5
     walls_before_len = list(walls)
     if roi:

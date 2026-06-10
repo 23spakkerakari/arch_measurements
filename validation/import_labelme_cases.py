@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT.parent / "Arqen"))
 
-from arqen_validation.labelme import import_labelme_case  # noqa: E402
+from arqen_validation.labelme import import_labelme_case, recalibrate_case  # noqa: E402
 
 
 def _print_score_summary(report: dict) -> None:
@@ -60,7 +60,7 @@ def _print_score_summary(report: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--labelme-dir", required=True,
+        "--labelme-dir", default=None,
         help="Folder containing LabelMe JSON files (FP_*.json)",
     )
     parser.add_argument(
@@ -93,8 +93,52 @@ def main() -> int:
         "--run-score", action="store_true",
         help="Run pipeline + scorer after import",
     )
+    parser.add_argument(
+        "--recalibrate", action="store_true",
+        help="Refresh scale/dpi in existing labelme_* manifests (no re-import)",
+    )
     args = parser.parse_args()
 
+    if args.recalibrate:
+        cases_root = Path(args.cases_root)
+        case_dirs = sorted(
+            p for p in cases_root.iterdir()
+            if p.is_dir() and p.name.startswith(args.case_prefix)
+        )
+        if not case_dirs:
+            print(f"No {args.case_prefix}* cases under {cases_root}")
+            return 1
+        for case_dir in case_dirs:
+            try:
+                info = recalibrate_case(case_dir, assumed_span_ft=args.assumed_span_ft)
+            except FileNotFoundError as exc:
+                print(f"  SKIP {case_dir.name}: {exc}")
+                continue
+            print(
+                f"[recalibrate] {info['case_id']}: "
+                f"px/ft={info['inferred_px_per_ft']} "
+                f"(hyp={info['calibration_hypothesis_ft']} ft, dpi={info['dpi']})"
+            )
+        if args.run_score:
+            from arqen_validation.runner import run_case_pipeline  # noqa: E402
+            from arqen_validation.score import score_prediction  # noqa: E402
+
+            for case_dir in case_dirs:
+                print(f"[pipeline] {case_dir.name} ...")
+                prediction = run_case_pipeline(case_dir)
+                if prediction.get("error"):
+                    print(f"  ERROR: {prediction['error']}")
+                    continue
+                gt = json.loads((case_dir / "ground_truth.json").read_text(encoding="utf-8"))
+                report = score_prediction(gt, prediction, case_id=case_dir.name)
+                (case_dir / "report.json").write_text(
+                    json.dumps(report, indent=2), encoding="utf-8",
+                )
+                _print_score_summary(report)
+        return 0
+
+    if not args.labelme_dir:
+        parser.error("--labelme-dir is required unless --recalibrate")
     labelme_dir = Path(args.labelme_dir)
     if not labelme_dir.is_dir():
         parser.error(f"Not a directory: {labelme_dir}")

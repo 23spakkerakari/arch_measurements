@@ -24,6 +24,7 @@
     "w22",
     "w23"
   ],
-  "inferred_px_per_ft": 72.0,
-  "inferred_dpi": 72
+  "inferred_px_per_ft": 43.22,
+  "inferred_dpi": 43,
+  "calibration_hypothesis_ft": 100.0
 }

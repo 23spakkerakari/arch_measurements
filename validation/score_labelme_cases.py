@@ -25,14 +25,15 @@ def main() -> int:
     print(f"Scoring {len(cases)} labelme case(s)...\n")
     rows = []
     door_tp = door_fp = door_fn = 0
+    wall_cov_recalls: list[float] = []
     for case_dir in cases:
         try:
             pred = run_case_pipeline(case_dir)
         except Exception as exc:
-            rows.append((case_dir.name, f"ERROR: {exc}", "", "", "", "", ""))
+            rows.append((case_dir.name, f"ERROR: {exc}", "", "", "", "", "", "", "", ""))
             continue
         if pred.get("error"):
-            rows.append((case_dir.name, pred["error"], "", "", "", "", ""))
+            rows.append((case_dir.name, pred["error"], "", "", "", "", "", "", "", ""))
             continue
         gt = json.loads((case_dir / "ground_truth.json").read_text(encoding="utf-8"))
         report = score_prediction(gt, pred, case_id=case_dir.name)
@@ -41,31 +42,40 @@ def main() -> int:
         rooms = report["categories"]["rooms"]
         walls = report["categories"]["walls"]
         doors = report["categories"]["doors"]
+        wall_cov = walls.get("coverage") or {}
         cov = (report.get("closure") or {}).get("interior_coverage") or {}
         door_tp += doors["counts"]["true_positives"]
         door_fp += doors["counts"]["false_positives"]
         door_fn += doors["counts"]["false_negatives"]
+        wc_r = wall_cov.get("recall") or 0.0
+        wc_p = wall_cov.get("precision") or 0.0
+        wall_cov_recalls.append(wc_r)
         rows.append((
             case_dir.name,
             f"{len(pred.get('rooms', []))}/{len(gt.get('rooms', []))}",
             f"{rooms['recall']:.2f}",
             f"{walls['recall']:.2f}",
+            f"{wc_r:.2f}",
+            f"{wc_p:.2f}",
             f"{doors['recall']:.2f}",
             f"{doors['precision']:.2f}",
             f"{(cov.get('coverage') or 0):.2f}",
         ))
 
     print(f"{'case':<22} {'pred/gt rooms':<14} {'room R':<8} {'wall R':<8} "
-          f"{'door R':<8} {'door P':<8} {'coverage'}")
-    print("-" * 80)
+          f"{'wcov R':<8} {'wcov P':<8} {'door R':<8} {'door P':<8} {'coverage'}")
+    print("-" * 100)
     for row in rows:
         print(f"{row[0]:<22} {row[1]:<14} {row[2]:<8} {row[3]:<8} "
-              f"{row[4]:<8} {row[5]:<8} {row[6]}")
+              f"{row[4]:<8} {row[5]:<8} {row[6]:<8} {row[7]:<8} {row[8]}")
     total_doors = door_tp + door_fn
     if total_doors:
         prec = door_tp / (door_tp + door_fp) if (door_tp + door_fp) else 0.0
         print(f"\nDoors overall: {door_tp}/{total_doors} matched "
               f"(recall {door_tp / total_doors:.2f}, precision {prec:.2f})")
+    if wall_cov_recalls:
+        import statistics
+        print(f"Wall span-coverage recall median: {statistics.median(wall_cov_recalls):.2f}")
     return 0
 
 

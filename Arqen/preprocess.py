@@ -2356,6 +2356,7 @@ def analyze_page(
     roi: Optional[dict] = None,
     doorway_close_ft: float = 2.5,
     room_debug_dir: Optional[str] = None,
+    crop_mode: bool = False,
 ) -> dict:
     full_w = image.shape[1]
     full_h = image.shape[0]
@@ -2403,9 +2404,17 @@ def analyze_page(
     analyze_page._last_polygon = polygon
     img_h, img_w = image.shape[:2]
     # Scale-adaptive minimum: walls shorter than 12 real-world units are polygon
-    # artifacts, not real exterior walls. At 1/8"=1'/144 DPI this is 216 px.
-    min_seg_px = max(60, int(12 * px_per_unit))
-    print(f"  [pipeline] min_seg_px={min_seg_px} (px_per_unit={px_per_unit:.1f})", file=sys.stderr)
+    # artifacts on full sheets. LabelMe crops are already tight — use 6 ft so
+    # partial exterior edges on large dorm crops are not discarded.
+    if crop_mode:
+        min_seg_px = max(36, int(6 * px_per_unit))
+    else:
+        min_seg_px = max(60, int(12 * px_per_unit))
+    print(
+        f"  [pipeline] min_seg_px={min_seg_px} (px_per_unit={px_per_unit:.1f}, "
+        f"crop_mode={crop_mode})",
+        file=sys.stderr,
+    )
     segments = extract_wall_segments(polygon, min_length_px=min_seg_px)
     raw_count = len(segments)
 
@@ -2461,6 +2470,7 @@ def analyze_page(
         unit_label=unit_label,
         doorway_close_ft=doorway_close_ft,
         debug_dir=room_debug_dir,
+        crop_mode=crop_mode,
     )
     print(
         f"  [pipeline] room split: {time.time()-t0:.1f}s "
@@ -2473,7 +2483,10 @@ def analyze_page(
     dedup_ref = ext_sub_segs + exterior_segs
     near_tol = max(15, int(0.5 * px_per_unit))
     pair_gap_range = wall_pair_gap_range(px_per_unit)
-    hough_min_px = max(60, int(6 * px_per_unit))
+    if crop_mode:
+        hough_min_px = max(36, int(3 * px_per_unit))
+    else:
+        hough_min_px = max(60, int(6 * px_per_unit))
     hough_dedup_tol = dedup_axis_tol_px(px_per_unit)
     hough_segs = _hough_supplement(
         wall_pair_mask, dedup_ref,

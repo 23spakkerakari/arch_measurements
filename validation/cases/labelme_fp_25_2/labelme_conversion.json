@@ -6,6 +6,7 @@
   "wall_centerline_warnings": [
     "w1"
   ],
-  "inferred_px_per_ft": 47.12,
-  "inferred_dpi": 47
+  "inferred_px_per_ft": 33.66,
+  "inferred_dpi": 34,
+  "calibration_hypothesis_ft": 70.0
 }

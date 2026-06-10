@@ -221,18 +221,14 @@ def convert_labelme_document(
     return gt, report
 
 
-def infer_crop_calibration(
-    gt: dict,
-    image_width: int,
-    image_height: int,
-    assumed_span_ft: float = 50.0,
-) -> tuple[str, int, float]:
-    """Pick scale/dpi so px_per_ft suits a LabelMe crop (not a full sheet).
+_SPAN_HYPOTHESES_FT = (30.0, 50.0, 70.0, 100.0, 150.0)
+# Plausible building footprint span for scoring hypotheses (ft).
+_SPAN_PLAUSIBLE_LO = 15.0
+_SPAN_PLAUSIBLE_HI = 400.0
+_PX_PER_FT_MIN = 12.0
 
-    Cropped PNGs are already in pixel space. We use ``1in=1ft`` with a synthetic
-    DPI equal to the inferred px_per_ft so wall-pair gaps and min-length
-    filters land in a sensible range (~12–72 px/ft).
-    """
+
+def _annotation_span_px(gt: dict, image_width: int, image_height: int) -> float:
     xs: list[float] = []
     ys: list[float] = []
     for room in gt.get("rooms") or []:
@@ -249,15 +245,87 @@ def infer_crop_calibration(
         if len(c) >= 4:
             xs.extend([c[0], c[2]])
             ys.extend([c[1], c[3]])
-
     if xs and ys:
-        span_px = max(max(xs) - min(xs), max(ys) - min(ys))
-    else:
-        span_px = 0.85 * max(image_width, image_height)
+        return max(max(xs) - min(xs), max(ys) - min(ys))
+    return 0.85 * max(image_width, image_height)
 
-    px_per_ft = max(12.0, min(72.0, span_px / assumed_span_ft))
+
+def _median_wall_length_px(gt: dict) -> float | None:
+    lengths: list[float] = []
+    for wall in gt.get("walls") or []:
+        c = wall.get("px_coords") or []
+        if len(c) < 4:
+            continue
+        lengths.append(math.hypot(c[2] - c[0], c[3] - c[1]))
+    if len(lengths) < 3:
+        return None
+    lengths.sort()
+    return lengths[len(lengths) // 2]
+
+
+def _px_per_ft_cap(span_px: float) -> float:
+    """Large dorm crops can exceed the old 72 px/ft ceiling."""
+    return max(72.0, min(120.0, span_px / 25.0))
+
+
+def _hypothesis_score(span_px: float, assumed_span_ft: float) -> tuple[float, float]:
+    """Lower score is better. Returns (score, px_per_ft)."""
+    cap = _px_per_ft_cap(span_px)
+    px_per_ft = max(_PX_PER_FT_MIN, min(cap, span_px / assumed_span_ft))
+    span_ft = span_px / px_per_ft
+    score = 0.0
+    if span_ft < _SPAN_PLAUSIBLE_LO:
+        score += (_SPAN_PLAUSIBLE_LO - span_ft) * 2.0
+    elif span_ft > _SPAN_PLAUSIBLE_HI:
+        score += (span_ft - _SPAN_PLAUSIBLE_HI) * 2.0
+    # Prefer mid-range px/ft (~24–60) for morphological filters.
+    target = 40.0
+    score += abs(px_per_ft - target) * 0.05
+    return score, px_per_ft
+
+
+def infer_crop_calibration(
+    gt: dict,
+    image_width: int,
+    image_height: int,
+    assumed_span_ft: float = 50.0,
+) -> tuple[str, int, float, float]:
+    """Pick scale/dpi so px_per_ft suits a LabelMe crop (not a full sheet).
+
+    Returns (scale_str, dpi, px_per_ft, chosen_hypothesis_ft).
+
+    Cropped PNGs are already in pixel space. We use ``1in=1ft`` with a synthetic
+    DPI equal to the inferred px_per_ft so wall-pair gaps and min-length
+    filters land in a sensible range. Multiple span hypotheses are scored against
+    a plausible footprint band; a wall-length prior nudges the result when
+    enough annotated walls exist.
+    """
+    span_px = _annotation_span_px(gt, image_width, image_height)
+
+    hypotheses = list(_SPAN_HYPOTHESES_FT)
+    if assumed_span_ft not in hypotheses:
+        hypotheses.append(assumed_span_ft)
+
+    best_score = float("inf")
+    best_px = max(_PX_PER_FT_MIN, min(_px_per_ft_cap(span_px), span_px / 50.0))
+    best_hyp = 50.0
+    for hyp in hypotheses:
+        score, px = _hypothesis_score(span_px, hyp)
+        if score < best_score:
+            best_score = score
+            best_px = px
+            best_hyp = hyp
+
+    median_wall_px = _median_wall_length_px(gt)
+    if median_wall_px is not None:
+        # Typical interior partition ~8 ft; blend 30 % toward wall-derived px/ft.
+        wall_px_per_ft = median_wall_px / 8.0
+        wall_px_per_ft = max(_PX_PER_FT_MIN, min(_px_per_ft_cap(span_px), wall_px_per_ft))
+        best_px = 0.7 * best_px + 0.3 * wall_px_per_ft
+
+    px_per_ft = max(_PX_PER_FT_MIN, min(_px_per_ft_cap(span_px), best_px))
     dpi = int(round(px_per_ft))
-    return "1in=1ft", dpi, px_per_ft
+    return "1in=1ft", dpi, px_per_ft, best_hyp
 
 
 def import_labelme_case(
@@ -293,7 +361,7 @@ def import_labelme_case(
 
     img_w, img_h = gt["image_size_px"]
     if scale is None or dpi is None:
-        auto_scale, auto_dpi, px_per_ft = infer_crop_calibration(
+        auto_scale, auto_dpi, px_per_ft, hyp_ft = infer_crop_calibration(
             gt, img_w, img_h, assumed_span_ft=assumed_span_ft,
         )
         if scale is None:
@@ -302,6 +370,7 @@ def import_labelme_case(
             dpi = auto_dpi
         report["inferred_px_per_ft"] = round(px_per_ft, 2)
         report["inferred_dpi"] = dpi
+        report["calibration_hypothesis_ft"] = hyp_ft
     gt["scale"] = scale
 
     image_dest = case_dir / "image.png"
@@ -329,6 +398,8 @@ def import_labelme_case(
     }
     if report.get("inferred_px_per_ft") is not None:
         manifest["inferred_px_per_ft"] = report["inferred_px_per_ft"]
+    if report.get("calibration_hypothesis_ft") is not None:
+        manifest["calibration_hypothesis_ft"] = report["calibration_hypothesis_ft"]
 
     (case_dir / "ground_truth.json").write_text(
         json.dumps(gt, indent=2), encoding="utf-8",
@@ -348,4 +419,44 @@ def import_labelme_case(
             "rooms", "walls", "doors", "windows", "labels", "dimensions",
         )},
         "report": report,
+    }
+
+
+def recalibrate_case(case_dir: Path, *, assumed_span_ft: float = 50.0) -> dict:
+    """Refresh scale/dpi in manifest from existing ground_truth (no image copy)."""
+    case_dir = Path(case_dir)
+    gt_path = case_dir / "ground_truth.json"
+    manifest_path = case_dir / "manifest.json"
+    if not gt_path.exists() or not manifest_path.exists():
+        raise FileNotFoundError(f"Missing ground_truth or manifest in {case_dir}")
+
+    gt = json.loads(gt_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    img_w, img_h = gt.get("image_size_px") or manifest.get("image_size_px") or [0, 0]
+
+    scale, dpi, px_per_ft, hyp_ft = infer_crop_calibration(
+        gt, int(img_w), int(img_h), assumed_span_ft=assumed_span_ft,
+    )
+    manifest["scale"] = scale
+    manifest["dpi"] = dpi
+    manifest["inferred_px_per_ft"] = round(px_per_ft, 2)
+    manifest["calibration_hypothesis_ft"] = hyp_ft
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    conv_path = case_dir / "labelme_conversion.json"
+    if conv_path.exists():
+        report = json.loads(conv_path.read_text(encoding="utf-8"))
+    else:
+        report = {}
+    report["inferred_px_per_ft"] = round(px_per_ft, 2)
+    report["inferred_dpi"] = dpi
+    report["calibration_hypothesis_ft"] = hyp_ft
+    conv_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+    return {
+        "case_id": case_dir.name,
+        "scale": scale,
+        "dpi": dpi,
+        "inferred_px_per_ft": round(px_per_ft, 2),
+        "calibration_hypothesis_ft": hyp_ft,
     }

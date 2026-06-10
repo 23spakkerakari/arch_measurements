@@ -33,7 +33,28 @@ Each case lands in `validation/cases/labelme_fp_XX/` with `image.png`, `manifest
 
 ## Scale
 
-Cropped PNGs have no embedded scale. The importer defaults to `1in=1ft` in `manifest.json`. **Room/wall matching uses pixel geometry**, so scores are meaningful even before scale is corrected. Edit `scale` per case when you know the drawing scale.
+Cropped PNGs have no embedded scale. The importer auto-infers `scale`/`dpi` via
+multi-hypothesis calibration (`infer_crop_calibration` in
+`validation/arqen_validation/labelme.py`). Re-run without re-importing:
+
+```bash
+python validation/import_labelme_cases.py --recalibrate --cases-root validation/cases
+```
+
+Edit `scale`/`dpi` in `manifest.json` per case when you know the true drawing scale.
+
+## Scoring and triage
+
+**Wall span-coverage recall** (`report.json` → `categories.walls.coverage.recall`)
+is the fair wall metric on these crops — strict 1:1 wall recall is misleading when
+only a few walls are annotated (see `sparse_gt` bucket in triage).
+
+```bash
+python validation/score_labelme_cases.py
+python validation/triage_labelme_cases.py
+```
+
+Annotate **all interior partitions** as Wall shapes (not just rooms) for meaningful strict wall scores.
 
 ## After import
 
@@ -42,4 +63,5 @@ python validation/run_score.py --case labelme_fp_86_2
 python validation/capture_baseline.py --case labelme_fp_86_2
 ```
 
-Read `report.json` → `missing_objects` and `false_positives` to prioritize pipeline fixes (#6 footprint, #7 doors, interior walls).
+Read `report.json` → `missing_objects` and `false_positives`, and
+`validation/reports/labelme_triage.md` for per-case failure buckets.

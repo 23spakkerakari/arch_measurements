@@ -18,5 +18,6 @@
   "imported_from": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-annotated\\FP_36_2.json",
   "labelme_image": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-cropped\\FP_36_2.png",
   "labelme_crop": true,
-  "inferred_px_per_ft": 32.38
+  "inferred_px_per_ft": 32.38,
+  "calibration_hypothesis_ft": 50.0
 }

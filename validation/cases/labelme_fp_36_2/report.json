@@ -212,7 +212,7 @@
           "is_exterior": false
         },
         {
-          "id": "w7",
+          "id": "w12",
           "px_coords": [
             928.0,
             1219.0,
@@ -224,7 +224,7 @@
           "is_exterior": false
         },
         {
-          "id": "w8",
+          "id": "w13",
           "px_coords": [
             993.0,
             517.0,
@@ -236,7 +236,7 @@
           "is_exterior": false
         },
         {
-          "id": "w9",
+          "id": "w15",
           "px_coords": [
             2305.0,
             517.0,
@@ -248,7 +248,7 @@
           "is_exterior": false
         },
         {
-          "id": "w10",
+          "id": "w16",
           "px_coords": [
             2382.0,
             659.0,
@@ -260,7 +260,7 @@
           "is_exterior": false
         },
         {
-          "id": "w11",
+          "id": "w17",
           "px_coords": [
             2447.0,
             517.0,
@@ -634,28 +634,28 @@
           ]
         },
         {
-          "wall_id": "w7",
+          "wall_id": "w12",
           "endpoint_px": [
             928.0,
             1219.0
           ]
         },
         {
-          "wall_id": "w10",
+          "wall_id": "w16",
           "endpoint_px": [
             2382.0,
             659.0
           ]
         },
         {
-          "wall_id": "w10",
+          "wall_id": "w16",
           "endpoint_px": [
             2382.0,
             1237.0
           ]
         },
         {
-          "wall_id": "w11",
+          "wall_id": "w17",
           "endpoint_px": [
             2447.0,
             1237.0

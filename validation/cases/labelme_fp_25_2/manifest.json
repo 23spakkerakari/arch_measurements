@@ -3,7 +3,7 @@
   "description": "Imported from LabelMe (FP_25_2.json). Verify scale in manifest if lengths matter.",
   "image": "image.png",
   "scale": "1in=1ft",
-  "dpi": 47,
+  "dpi": 34,
   "roi": {
     "x0_pct": 0.0,
     "y0_pct": 0.0,
@@ -18,5 +18,6 @@
   "imported_from": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-annotated\\FP_25_2.json",
   "labelme_image": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-cropped\\FP_25_2.png",
   "labelme_crop": true,
-  "inferred_px_per_ft": 47.12
+  "inferred_px_per_ft": 33.66,
+  "calibration_hypothesis_ft": 70.0
 }

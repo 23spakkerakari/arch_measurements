@@ -5,6 +5,7 @@
     "w1",
     "w2"
   ],
-  "inferred_px_per_ft": 19.9,
-  "inferred_dpi": 20
+  "inferred_px_per_ft": 33.16,
+  "inferred_dpi": 33,
+  "calibration_hypothesis_ft": 30.0
 }

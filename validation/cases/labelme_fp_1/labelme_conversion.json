@@ -15,6 +15,7 @@
     "w12",
     "w13"
   ],
-  "inferred_px_per_ft": 72.0,
-  "inferred_dpi": 72
+  "inferred_px_per_ft": 55.83,
+  "inferred_dpi": 56,
+  "calibration_hypothesis_ft": 100.0
 }

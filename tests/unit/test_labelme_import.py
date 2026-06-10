@@ -4,7 +4,11 @@ import json
 
 import pytest
 
-from arqen_validation.labelme import convert_labelme_document
+from arqen_validation.labelme import (
+    _px_per_ft_cap,
+    convert_labelme_document,
+    infer_crop_calibration,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -60,3 +64,23 @@ def test_real_labelme_stub():
     assert len(gt["rooms"]) == 2
     assert len(gt["walls"]) == 2
     assert gt["image_size_px"] == [1422, 742]
+
+
+def test_px_per_ft_cap_allows_above_legacy_72():
+    assert _px_per_ft_cap(5000) > 72.0
+    assert _px_per_ft_cap(5000) <= 120.0
+
+
+def test_infer_crop_calibration_picks_plausible_hypothesis():
+    gt = {"rooms": [{"bbox_px": [0, 0, 3600, 2000]}]}
+    _, dpi, px_per_ft, hyp = infer_crop_calibration(gt, 4000, 2200)
+    assert 12.0 <= px_per_ft <= 120.0
+    assert hyp in (30.0, 50.0, 70.0, 100.0, 150.0)
+    assert dpi == int(round(px_per_ft))
+    assert 30.0 <= 3600 / px_per_ft <= 400.0
+
+
+def test_infer_crop_calibration_small_crop_stays_above_min():
+    gt = {"rooms": [{"bbox_px": [10, 10, 500, 400]}]}
+    _, _, px_per_ft, _ = infer_crop_calibration(gt, 600, 500)
+    assert px_per_ft >= 12.0

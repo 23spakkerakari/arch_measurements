@@ -623,6 +623,7 @@ def split_exterior_walls_by_room(
     min_segment_ft: float = 4.0,
     interior_segments: Optional[list[tuple]] = None,
     debug_dir: Optional[str] = None,
+    crop_mode: bool = False,
 ) -> tuple[list[dict], list[dict]]:
     """
     Split snapped polygon exterior walls into per-room sub-segments.
@@ -635,6 +636,9 @@ def split_exterior_walls_by_room(
         return [], []
 
     wall_thickness_px = max(int(round(0.5 * px_per_unit)), 6)
+    if crop_mode:
+        min_room_ft2 = max(min_room_ft2, 30.0)
+        min_corridor_ft2 = max(min_corridor_ft2, 10.0)
     min_room_area_px = int(round(min_room_ft2 * px_per_unit ** 2))
     min_corridor_area_px = int(round(min_corridor_ft2 * px_per_unit ** 2))
     endpoint_extend_px = max(int(round(1.0 * px_per_unit)), 8)
@@ -655,8 +659,9 @@ def split_exterior_walls_by_room(
         debug_dir=debug_dir,
     )
 
+    envelope_margin = wall_thickness_px * (2 if crop_mode else 1)
     rooms, room_labels = drop_rooms_outside_exterior(
-        rooms, room_labels, exterior_segments, margin_px=wall_thickness_px,
+        rooms, room_labels, exterior_segments, margin_px=envelope_margin,
     )
 
     if debug_dir is not None:

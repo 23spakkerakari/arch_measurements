@@ -241,8 +241,8 @@
       "is_exterior": false
     },
     {
-      "id": "w7",
-      "name": "South Wall 7",
+      "id": "w12",
+      "name": "South Wall 12",
       "facing": "South",
       "length": "43.03 ft",
       "length_raw": 43.03,
@@ -256,8 +256,8 @@
       "is_exterior": false
     },
     {
-      "id": "w8",
-      "name": "West Wall 8",
+      "id": "w13",
+      "name": "West Wall 13",
       "facing": "West",
       "length": "21.94 ft",
       "length_raw": 21.94,
@@ -271,8 +271,8 @@
       "is_exterior": false
     },
     {
-      "id": "w9",
-      "name": "East Wall 9",
+      "id": "w15",
+      "name": "East Wall 15",
       "facing": "East",
       "length": "21.94 ft",
       "length_raw": 21.94,
@@ -286,8 +286,8 @@
       "is_exterior": false
     },
     {
-      "id": "w10",
-      "name": "East Wall 10",
+      "id": "w16",
+      "name": "East Wall 16",
       "facing": "East",
       "length": "18.06 ft",
       "length_raw": 18.06,
@@ -301,8 +301,8 @@
       "is_exterior": false
     },
     {
-      "id": "w11",
-      "name": "East Wall 11",
+      "id": "w17",
+      "name": "East Wall 17",
       "facing": "East",
       "length": "22.50 ft",
       "length_raw": 22.5,
@@ -344,5 +344,5 @@
     ],
     "suggested_dpi": null
   },
-  "runtime_s": 0.4
+  "runtime_s": 0.42
 }

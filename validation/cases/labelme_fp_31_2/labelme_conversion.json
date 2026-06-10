@@ -20,6 +20,7 @@
     "w16",
     "w24"
   ],
-  "inferred_px_per_ft": 72.0,
-  "inferred_dpi": 72
+  "inferred_px_per_ft": 53.18,
+  "inferred_dpi": 53,
+  "calibration_hypothesis_ft": 100.0
 }

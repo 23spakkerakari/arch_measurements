@@ -2,36 +2,36 @@
   "case_id": "labelme_fp_10",
   "summary": {
     "macro": {
-      "precision": 0.2596,
-      "recall": 0.3301,
-      "f1": 0.2821
+      "precision": 0.2695,
+      "recall": 0.3429,
+      "f1": 0.2913
     },
     "micro": {
-      "precision": 0.1974,
-      "recall": 0.0685,
-      "f1": 0.1017,
-      "true_positives": 15,
-      "false_positives": 61,
-      "false_negatives": 204
+      "precision": 0.2051,
+      "recall": 0.0731,
+      "f1": 0.1077,
+      "true_positives": 16,
+      "false_positives": 62,
+      "false_negatives": 203
     },
-    "mean_iou": 0.8303
+    "mean_iou": 0.8122
   },
   "categories": {
     "rooms": {
       "category": "rooms",
       "counts": {
         "true_positives": 12,
-        "false_positives": 12,
+        "false_positives": 10,
         "false_negatives": 4
       },
-      "precision": 0.5,
+      "precision": 0.5455,
       "recall": 0.75,
-      "f1": 0.6,
-      "mean_iou": 0.8578,
+      "f1": 0.6316,
+      "mean_iou": 0.8726,
       "matches": [
         {
           "ground_truth_id": "R2",
-          "predicted_id": "R5",
+          "predicted_id": "R4",
           "score": 0.9822,
           "ground_truth": {
             "id": "R2",
@@ -43,8 +43,8 @@
             ]
           },
           "predicted": {
-            "id": "R5",
-            "area_raw": 111.34,
+            "id": "R4",
+            "area_raw": 109.57,
             "bbox_px": [
               1668.0,
               1376.0,
@@ -52,8 +52,8 @@
               2159.0
             ],
             "centroid_px": [
-              2066,
-              1744
+              2069,
+              1740
             ]
           }
         },
@@ -72,7 +72,7 @@
           },
           "predicted": {
             "id": "R8",
-            "area_raw": 106.79,
+            "area_raw": 101.9,
             "bbox_px": [
               1668.0,
               2194.0,
@@ -80,15 +80,15 @@
               2939.0
             ],
             "centroid_px": [
-              2073,
-              2541
+              2059,
+              2550
             ]
           }
         },
         {
           "ground_truth_id": "R1",
           "predicted_id": "R2",
-          "score": 0.9623,
+          "score": 0.9731,
           "ground_truth": {
             "id": "R1",
             "bbox_px": [
@@ -100,23 +100,51 @@
           },
           "predicted": {
             "id": "R2",
-            "area_raw": 338.37,
+            "area_raw": 324.55,
             "bbox_px": [
               1668.0,
               376.0,
               3577.0,
-              1352.0
+              1341.0
             ],
             "centroid_px": [
-              2611,
-              856
+              2609,
+              854
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "R6",
+          "predicted_id": "R10",
+          "score": 0.9492,
+          "ground_truth": {
+            "id": "R6",
+            "bbox_px": [
+              4290.7558139534885,
+              2609.116279069768,
+              5004.709302325582,
+              3430.0465116279074
+            ]
+          },
+          "predicted": {
+            "id": "R10",
+            "area_raw": 91.74,
+            "bbox_px": [
+              4306.0,
+              2627.0,
+              5002.0,
+              3434.0
+            ],
+            "centroid_px": [
+              4646,
+              3009
             ]
           }
         },
         {
           "ground_truth_id": "R4",
           "predicted_id": "R12",
-          "score": 0.9489,
+          "score": 0.9466,
           "ground_truth": {
             "id": "R4",
             "bbox_px": [
@@ -128,15 +156,15 @@
           },
           "predicted": {
             "id": "R12",
-            "area_raw": 100.7,
+            "area_raw": 97.63,
             "bbox_px": [
               1668.0,
               2974.0,
-              2476.0,
+              2474.0,
               3720.0
             ],
             "centroid_px": [
-              2077,
+              2076,
               3307
             ]
           }
@@ -144,7 +172,7 @@
         {
           "ground_truth_id": "R5",
           "predicted_id": "R9",
-          "score": 0.9457,
+          "score": 0.9419,
           "ground_truth": {
             "id": "R5",
             "bbox_px": [
@@ -182,51 +210,23 @@
           },
           "predicted": {
             "id": "R9",
-            "area_raw": 101.51,
+            "area_raw": 99.07,
             "bbox_px": [
               3491.0,
               2627.0,
-              4237.0,
-              3417.0
+              4235.0,
+              3416.0
             ],
             "centroid_px": [
-              3867,
-              3038
-            ]
-          }
-        },
-        {
-          "ground_truth_id": "R6",
-          "predicted_id": "R10",
-          "score": 0.9394,
-          "ground_truth": {
-            "id": "R6",
-            "bbox_px": [
-              4290.7558139534885,
-              2609.116279069768,
-              5004.709302325582,
-              3430.0465116279074
-            ]
-          },
-          "predicted": {
-            "id": "R10",
-            "area_raw": 88.34,
-            "bbox_px": [
-              4288.0,
-              2627.0,
-              4983.0,
-              3435.0
-            ],
-            "centroid_px": [
-              4619,
-              3011
+              3863,
+              3031
             ]
           }
         },
         {
           "ground_truth_id": "R7",
           "predicted_id": "R11",
-          "score": 0.9055,
+          "score": 0.9044,
           "ground_truth": {
             "id": "R7",
             "bbox_px": [
@@ -238,12 +238,12 @@
           },
           "predicted": {
             "id": "R11",
-            "area_raw": 100.84,
+            "area_raw": 98.47,
             "bbox_px": [
               5037.0,
               2627.0,
               5783.0,
-              3432.0
+              3433.0
             ],
             "centroid_px": [
               5400,
@@ -252,71 +252,9 @@
           }
         },
         {
-          "ground_truth_id": "R15",
-          "predicted_id": "R18",
-          "score": 0.8463,
-          "ground_truth": {
-            "id": "R15",
-            "bbox_px": [
-              5093.586956521738,
-              4849.434782608696,
-              5860.978260869564,
-              5499.434782608696
-            ],
-            "polygon_px": [
-              [
-                5858.804347826086,
-                5499.434782608696
-              ],
-              [
-                5860.978260869564,
-                4958.130434782609
-              ],
-              [
-                5821.847826086956,
-                4951.608695652174
-              ],
-              [
-                5821.847826086956,
-                4979.869565217391
-              ],
-              [
-                5717.499999999999,
-                4975.521739130435
-              ],
-              [
-                5721.847826086956,
-                4858.130434782609
-              ],
-              [
-                5095.760869565217,
-                4849.434782608696
-              ],
-              [
-                5093.586956521738,
-                5499.434782608696
-              ]
-            ]
-          },
-          "predicted": {
-            "id": "R18",
-            "area_raw": 59.99,
-            "bbox_px": [
-              5143.0,
-              4869.0,
-              5814.0,
-              5501.0
-            ],
-            "centroid_px": [
-              5500,
-              5154
-            ]
-          }
-        },
-        {
           "ground_truth_id": "R16",
           "predicted_id": "R6",
-          "score": 0.8318,
+          "score": 0.8315,
           "ground_truth": {
             "id": "R16",
             "bbox_px": [
@@ -370,23 +308,85 @@
           },
           "predicted": {
             "id": "R6",
-            "area_raw": 1195.21,
+            "area_raw": 1166.19,
             "bbox_px": [
               2521.0,
-              1389.0,
+              1390.0,
               5814.0,
               5482.0
             ],
             "centroid_px": [
               3860,
-              3641
+              3669
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "R15",
+          "predicted_id": "R17",
+          "score": 0.7684,
+          "ground_truth": {
+            "id": "R15",
+            "bbox_px": [
+              5093.586956521738,
+              4849.434782608696,
+              5860.978260869564,
+              5499.434782608696
+            ],
+            "polygon_px": [
+              [
+                5858.804347826086,
+                5499.434782608696
+              ],
+              [
+                5860.978260869564,
+                4958.130434782609
+              ],
+              [
+                5821.847826086956,
+                4951.608695652174
+              ],
+              [
+                5821.847826086956,
+                4979.869565217391
+              ],
+              [
+                5717.499999999999,
+                4975.521739130435
+              ],
+              [
+                5721.847826086956,
+                4858.130434782609
+              ],
+              [
+                5095.760869565217,
+                4849.434782608696
+              ],
+              [
+                5093.586956521738,
+                5499.434782608696
+              ]
+            ]
+          },
+          "predicted": {
+            "id": "R17",
+            "area_raw": 54.11,
+            "bbox_px": [
+              5132.0,
+              4875.0,
+              5814.0,
+              5437.0
+            ],
+            "centroid_px": [
+              5505,
+              5138
             ]
           }
         },
         {
           "ground_truth_id": "R9",
-          "predicted_id": "R17",
-          "score": 0.7003,
+          "predicted_id": "R16",
+          "score": 0.7593,
           "ground_truth": {
             "id": "R9",
             "bbox_px": [
@@ -447,86 +447,24 @@
             ]
           },
           "predicted": {
-            "id": "R17",
-            "area_raw": 64.4,
+            "id": "R16",
+            "area_raw": 70.59,
             "bbox_px": [
-              3624.0,
-              4764.0,
-              4265.0,
-              5414.0
+              3660.0,
+              4758.0,
+              4284.0,
+              5482.0
             ],
             "centroid_px": [
-              3932,
-              5075
-            ]
-          }
-        },
-        {
-          "ground_truth_id": "R12",
-          "predicted_id": "R22",
-          "score": 0.6804,
-          "ground_truth": {
-            "id": "R12",
-            "bbox_px": [
-              781.4534883720933,
-              5576.692307692308,
-              2961.0897435897436,
-              6604.975609756098
-            ],
-            "polygon_px": [
-              [
-                781.4534883720933,
-                5660.279069767442
-              ],
-              [
-                1245.3846153846157,
-                5661.307692307692
-              ],
-              [
-                1248.269230769231,
-                5576.692307692308
-              ],
-              [
-                2959.166666666667,
-                5581.5
-              ],
-              [
-                2961.0897435897436,
-                6529.897435897436
-              ],
-              [
-                2450.4268292682927,
-                6526.926829268293
-              ],
-              [
-                2452.0528455284557,
-                6604.975609756098
-              ],
-              [
-                786.6358024691361,
-                6602.641975308642
-              ]
-            ]
-          },
-          "predicted": {
-            "id": "R22",
-            "area_raw": 224.58,
-            "bbox_px": [
-              787.0,
-              5806.0,
-              2698.0,
-              6604.0
-            ],
-            "centroid_px": [
-              1692,
-              6230
+              3958,
+              5112
             ]
           }
         },
         {
           "ground_truth_id": "R14",
-          "predicted_id": "R14",
-          "score": 0.5714,
+          "predicted_id": "R15",
+          "score": 0.7558,
           "ground_truth": {
             "id": "R14",
             "bbox_px": [
@@ -603,17 +541,79 @@
             ]
           },
           "predicted": {
-            "id": "R14",
-            "area_raw": 563.31,
+            "id": "R15",
+            "area_raw": 363.62,
             "bbox_px": [
-              0.0,
-              3426.0,
+              898.0,
+              3445.0,
               2495.0,
-              5089.0
+              5085.0
             ],
             "centroid_px": [
-              1201,
-              4211
+              1627,
+              4266
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "R12",
+          "predicted_id": "R19",
+          "score": 0.68,
+          "ground_truth": {
+            "id": "R12",
+            "bbox_px": [
+              781.4534883720933,
+              5576.692307692308,
+              2961.0897435897436,
+              6604.975609756098
+            ],
+            "polygon_px": [
+              [
+                781.4534883720933,
+                5660.279069767442
+              ],
+              [
+                1245.3846153846157,
+                5661.307692307692
+              ],
+              [
+                1248.269230769231,
+                5576.692307692308
+              ],
+              [
+                2959.166666666667,
+                5581.5
+              ],
+              [
+                2961.0897435897436,
+                6529.897435897436
+              ],
+              [
+                2450.4268292682927,
+                6526.926829268293
+              ],
+              [
+                2452.0528455284557,
+                6604.975609756098
+              ],
+              [
+                786.6358024691361,
+                6602.641975308642
+              ]
+            ]
+          },
+          "predicted": {
+            "id": "R19",
+            "area_raw": 216.77,
+            "bbox_px": [
+              787.0,
+              5806.0,
+              2697.0,
+              6604.0
+            ],
+            "centroid_px": [
+              1695,
+              6230
             ]
           }
         }
@@ -761,169 +761,141 @@
       "false_positives": [
         {
           "id": "R1",
-          "area_raw": 140.39,
+          "area_raw": 136.49,
           "bbox_px": [
-            1207.0,
+            1203.0,
             0.0,
-            3605.0,
+            3601.0,
             304.0
           ],
           "centroid_px": [
-            2404,
+            2399,
             151
           ]
         },
         {
           "id": "R3",
-          "area_raw": 52.31,
+          "area_raw": 51.35,
           "bbox_px": [
-            1043.0,
+            1039.0,
             680.0,
             1633.0,
             1354.0
           ],
           "centroid_px": [
-            1303,
-            956
+            1301,
+            957
           ]
         },
         {
-          "id": "R4",
-          "area_raw": 65.02,
+          "id": "R5",
+          "area_raw": 62.66,
           "bbox_px": [
-            1043.0,
-            1358.0,
+            1039.0,
+            1389.0,
             1633.0,
-            2141.0
+            2138.0
           ],
           "centroid_px": [
-            1320,
-            1697
+            1317,
+            1704
           ]
         },
         {
           "id": "R7",
-          "area_raw": 60.35,
+          "area_raw": 60.26,
           "bbox_px": [
-            1043.0,
-            2176.0,
+            1039.0,
+            2175.0,
             1633.0,
             3028.0
           ],
           "centroid_px": [
-            1319,
-            2501
+            1318,
+            2504
           ]
         },
         {
           "id": "R13",
-          "area_raw": 37.15,
+          "area_raw": 38.21,
           "bbox_px": [
-            1043.0,
+            1039.0,
             3033.0,
             1633.0,
             3411.0
           ],
           "centroid_px": [
-            1349,
-            3244
+            1341,
+            3237
           ]
         },
         {
-          "id": "R15",
-          "area_raw": 88.26,
+          "id": "R14",
+          "area_raw": 171.8,
           "bbox_px": [
-            5958.0,
-            4190.0,
-            6435.0,
-            5539.0
+            0.0,
+            3422.0,
+            867.0,
+            5023.0
           ],
           "centroid_px": [
-            6254,
-            5010
+            322,
+            4099
           ]
         },
         {
-          "id": "R16",
-          "area_raw": 34.61,
+          "id": "R18",
+          "area_raw": 44.45,
           "bbox_px": [
-            2687.0,
-            4732.0,
-            3401.0,
-            5065.0
-          ],
-          "centroid_px": [
-            3090,
-            4885
-          ]
-        },
-        {
-          "id": "R19",
-          "area_raw": 32.27,
-          "bbox_px": [
-            1270.0,
-            4851.0,
-            1634.0,
-            5482.0
-          ],
-          "centroid_px": [
-            1486,
-            5197
-          ]
-        },
-        {
-          "id": "R20",
-          "area_raw": 28.61,
-          "bbox_px": [
-            2069.0,
-            5090.0,
-            2480.0,
-            5482.0
-          ],
-          "centroid_px": [
-            2287,
-            5297
-          ]
-        },
-        {
-          "id": "R21",
-          "area_raw": 32.15,
-          "bbox_px": [
-            1673.0,
+            1332.0,
             5598.0,
-            2480.0,
+            2477.0,
             5805.0
           ],
           "centroid_px": [
-            2076,
+            1904,
             5701
           ]
         },
         {
-          "id": "R23",
-          "area_raw": 42.68,
+          "id": "R20",
+          "area_raw": 39.75,
           "bbox_px": [
             2993.0,
             5901.0,
-            3438.0,
-            6516.0
+            3407.0,
+            6510.0
           ],
           "centroid_px": [
-            3193,
-            6228
+            3185,
+            6225
           ]
         },
         {
-          "id": "R24",
-          "area_raw": 89.32,
+          "id": "R21",
+          "area_raw": 24.74,
           "bbox_px": [
-            2216.0,
-            6360.0,
-            3408.0,
-            7035.0
+            3609.0,
+            6380.0,
+            3829.0,
+            7247.0
           ],
           "centroid_px": [
-            2859,
+            3727,
+            6928
+          ]
+        },
+        {
+          "id": "R22",
+          "area_raw": 85.1,
+          "bbox_px": [
+            2212.0,
+            6540.0,
+            3406.0,
+            7031.0
+          ],
+          "centroid_px": [
+            2853,
             6777
           ]
         }
@@ -932,18 +904,18 @@
     "walls": {
       "category": "walls",
       "counts": {
-        "true_positives": 3,
-        "false_positives": 49,
-        "false_negatives": 10
+        "true_positives": 4,
+        "false_positives": 52,
+        "false_negatives": 9
       },
-      "precision": 0.0577,
-      "recall": 0.2308,
-      "f1": 0.0923,
-      "mean_iou": 0.8029,
+      "precision": 0.0714,
+      "recall": 0.3077,
+      "f1": 0.1159,
+      "mean_iou": 0.7517,
       "matches": [
         {
           "ground_truth_id": "w3",
-          "predicted_id": "w19",
+          "predicted_id": "w27",
           "score": 0.9711,
           "ground_truth": {
             "id": "w3",
@@ -955,7 +927,7 @@
             ]
           },
           "predicted": {
-            "id": "w19",
+            "id": "w27",
             "px_coords": [
               2801.0,
               1357.0,
@@ -963,13 +935,13 @@
               1357.0
             ],
             "facing": "North",
-            "length_raw": 10.97,
+            "length_raw": 10.82,
             "is_exterior": false
           }
         },
         {
           "ground_truth_id": "w9",
-          "predicted_id": "w55",
+          "predicted_id": "w105",
           "score": 0.7657,
           "ground_truth": {
             "id": "w9",
@@ -981,7 +953,7 @@
             ]
           },
           "predicted": {
-            "id": "w55",
+            "id": "w105",
             "px_coords": [
               4326.0,
               4467.0,
@@ -989,14 +961,14 @@
               5510.0
             ],
             "facing": "East",
-            "length_raw": 14.49,
+            "length_raw": 14.29,
             "is_exterior": false
           }
         },
         {
           "ground_truth_id": "w6",
-          "predicted_id": "w38",
-          "score": 0.6719,
+          "predicted_id": "w69",
+          "score": 0.6725,
           "ground_truth": {
             "id": "w6",
             "px_coords": [
@@ -1007,15 +979,41 @@
             ]
           },
           "predicted": {
-            "id": "w38",
+            "id": "w69",
             "px_coords": [
-              729.0,
+              730.0,
               5852.0,
-              3711.0,
+              3713.0,
               5852.0
             ],
             "facing": "South",
-            "length_raw": 41.42,
+            "length_raw": 40.86,
+            "is_exterior": false
+          }
+        },
+        {
+          "ground_truth_id": "w7",
+          "predicted_id": "w101",
+          "score": 0.5976,
+          "ground_truth": {
+            "id": "w7",
+            "px_coords": [
+              3501.74658203125,
+              8007.013671875,
+              3543.6904296875,
+              7118.60302734375
+            ]
+          },
+          "predicted": {
+            "id": "w101",
+            "px_coords": [
+              3521.0,
+              6993.0,
+              3521.0,
+              7724.0
+            ],
+            "facing": "East",
+            "length_raw": 10.01,
             "is_exterior": false
           }
         }
@@ -1055,15 +1053,6 @@
             5449.07373046875,
             6286.97161039955,
             5449.07373046875
-          ]
-        },
-        {
-          "id": "w7",
-          "px_coords": [
-            3501.74658203125,
-            8007.013671875,
-            3543.6904296875,
-            7118.60302734375
           ]
         },
         {
@@ -1116,51 +1105,51 @@
         {
           "id": "w1.s1",
           "px_coords": [
-            1163.0,
+            1160.0,
             341.0,
-            1163.0,
+            1160.0,
             680.0
           ],
           "facing": "West",
-          "length_raw": 4.71,
+          "length_raw": 4.64,
           "is_exterior": true
         },
         {
           "id": "w1.s2",
           "px_coords": [
-            1163.0,
+            1160.0,
             680.0,
-            1163.0,
-            1358.0
+            1160.0,
+            1391.0
           ],
           "facing": "West",
-          "length_raw": 9.42,
+          "length_raw": 9.74,
           "is_exterior": true,
           "room_id": "R3"
         },
         {
           "id": "w1.s3",
           "px_coords": [
-            1163.0,
-            1358.0,
-            1163.0,
-            2178.0
+            1160.0,
+            1391.0,
+            1160.0,
+            2175.0
           ],
           "facing": "West",
-          "length_raw": 11.39,
+          "length_raw": 10.74,
           "is_exterior": true,
-          "room_id": "R4"
+          "room_id": "R5"
         },
         {
           "id": "w1.s4",
           "px_coords": [
-            1163.0,
-            2178.0,
-            1163.0,
+            1160.0,
+            2175.0,
+            1160.0,
             3102.0
           ],
           "facing": "West",
-          "length_raw": 12.83,
+          "length_raw": 12.7,
           "is_exterior": true,
           "room_id": "R7"
         },
@@ -1169,11 +1158,11 @@
           "px_coords": [
             378.0,
             3467.0,
-            1020.0,
+            1016.0,
             3467.0
           ],
           "facing": "North",
-          "length_raw": 8.92,
+          "length_raw": 8.74,
           "is_exterior": true,
           "room_id": "R14"
         },
@@ -1181,130 +1170,180 @@
           "id": "w3.s1",
           "px_coords": [
             0.0,
-            3408.0,
+            3404.0,
             0.0,
-            5043.0
+            5039.0
           ],
           "facing": "West",
-          "length_raw": 22.71,
+          "length_raw": 22.4,
           "is_exterior": true,
           "room_id": "R14"
         },
         {
           "id": "w4.s1",
           "px_coords": [
+            378.0,
+            5001.0,
+            443.0,
+            5001.0
+          ],
+          "facing": "South",
+          "length_raw": 0.89,
+          "is_exterior": true,
+          "room_id": "R14"
+        },
+        {
+          "id": "w5.s1",
+          "px_coords": [
             729.0,
-            5685.0,
+            5681.0,
             729.0,
             6655.0
           ],
           "facing": "West",
-          "length_raw": 13.47,
+          "length_raw": 13.34,
           "is_exterior": true,
-          "room_id": "R22"
+          "room_id": "R19"
         },
         {
-          "id": "w4.s2",
+          "id": "w5.s2",
           "px_coords": [
             729.0,
             6655.0,
             729.0,
             7039.0
           ],
-          "facing": "East",
-          "length_raw": 5.33,
+          "facing": "West",
+          "length_raw": 5.26,
           "is_exterior": true
-        },
-        {
-          "id": "w5.s1",
-          "px_coords": [
-            729.0,
-            6655.0,
-            1784.0,
-            6655.0
-          ],
-          "facing": "South",
-          "length_raw": 14.65,
-          "is_exterior": true,
-          "room_id": "R22"
-        },
-        {
-          "id": "w5.s2",
-          "px_coords": [
-            1784.0,
-            6655.0,
-            2192.0,
-            6655.0
-          ],
-          "facing": "South",
-          "length_raw": 5.67,
-          "is_exterior": true,
-          "room_id": "R22"
         },
         {
           "id": "w6.s1",
           "px_coords": [
-            2253.0,
-            6854.0,
-            2253.0,
-            7047.0
+            729.0,
+            6655.0,
+            1783.0,
+            6655.0
           ],
-          "facing": "West",
-          "length_raw": 2.68,
-          "is_exterior": true
+          "facing": "South",
+          "length_raw": 14.44,
+          "is_exterior": true,
+          "room_id": "R19"
+        },
+        {
+          "id": "w6.s2",
+          "px_coords": [
+            1783.0,
+            6655.0,
+            2188.0,
+            6655.0
+          ],
+          "facing": "South",
+          "length_raw": 5.55,
+          "is_exterior": true,
+          "room_id": "R19"
         },
         {
           "id": "w7.s1",
           "px_coords": [
-            2443.0,
-            6993.0,
-            3526.0,
-            6993.0
+            2253.0,
+            6854.0,
+            2253.0,
+            7554.0
           ],
-          "facing": "South",
-          "length_raw": 15.04,
-          "is_exterior": true,
-          "room_id": "R24"
+          "facing": "West",
+          "length_raw": 9.59,
+          "is_exterior": true
         },
         {
           "id": "w8.s1",
           "px_coords": [
-            3526.0,
-            6993.0,
-            3526.0,
-            7263.0
+            1958.0,
+            7554.0,
+            2416.0,
+            7554.0
           ],
-          "facing": "West",
-          "length_raw": 3.75,
+          "facing": "North",
+          "length_raw": 6.27,
           "is_exterior": true
         },
         {
           "id": "w9.s1",
           "px_coords": [
-            3711.0,
-            5510.0,
-            3711.0,
-            6562.0
+            2639.0,
+            7367.0,
+            2639.0,
+            7598.0
           ],
-          "facing": "East",
-          "length_raw": 14.61,
+          "facing": "West",
+          "length_raw": 3.16,
           "is_exterior": true
         },
         {
           "id": "w10.s1",
           "px_coords": [
-            3858.0,
+            2439.0,
+            6993.0,
+            3521.0,
+            6993.0
+          ],
+          "facing": "South",
+          "length_raw": 14.82,
+          "is_exterior": true,
+          "room_id": "R22"
+        },
+        {
+          "id": "w11.s1",
+          "px_coords": [
+            3526.0,
+            6993.0,
+            3526.0,
+            7259.0
+          ],
+          "facing": "West",
+          "length_raw": 3.64,
+          "is_exterior": true
+        },
+        {
+          "id": "w12.s1",
+          "px_coords": [
+            3545.0,
+            7264.0,
+            3845.0,
+            7243.0
+          ],
+          "facing": "South",
+          "length_raw": 4.12,
+          "is_exterior": true,
+          "room_id": "R21"
+        },
+        {
+          "id": "w13.s1",
+          "px_coords": [
+            3713.0,
+            5589.0,
+            3713.0,
+            6562.0
+          ],
+          "facing": "East",
+          "length_raw": 13.33,
+          "is_exterior": true
+        },
+        {
+          "id": "w14.s1",
+          "px_coords": [
+            3713.0,
             5589.0,
             4326.0,
             5589.0
           ],
           "facing": "South",
-          "length_raw": 6.5,
+          "length_raw": 8.4,
           "is_exterior": true,
-          "room_id": "R17"
+          "room_id": "R16"
         },
         {
-          "id": "w10.s2",
+          "id": "w14.s2",
           "px_coords": [
             4326.0,
             5589.0,
@@ -1312,12 +1351,12 @@
             5589.0
           ],
           "facing": "South",
-          "length_raw": 10.49,
+          "length_raw": 10.34,
           "is_exterior": true,
           "room_id": "R6"
         },
         {
-          "id": "w10.s3",
+          "id": "w14.s3",
           "px_coords": [
             5081.0,
             5589.0,
@@ -1325,11 +1364,11 @@
             5589.0
           ],
           "facing": "South",
-          "length_raw": 3.93,
+          "length_raw": 3.88,
           "is_exterior": true
         },
         {
-          "id": "w10.s4",
+          "id": "w14.s4",
           "px_coords": [
             5364.0,
             5589.0,
@@ -1337,12 +1376,12 @@
             5589.0
           ],
           "facing": "South",
-          "length_raw": 7.92,
+          "length_raw": 7.81,
           "is_exterior": true,
-          "room_id": "R18"
+          "room_id": "R17"
         },
         {
-          "id": "w10.s5",
+          "id": "w14.s5",
           "px_coords": [
             5934.0,
             5589.0,
@@ -1350,51 +1389,61 @@
             5589.0
           ],
           "facing": "South",
-          "length_raw": 4.92,
-          "is_exterior": true,
-          "room_id": "R15"
+          "length_raw": 4.85,
+          "is_exterior": true
         },
         {
-          "id": "w11.s1",
+          "id": "w15.s1",
           "px_coords": [
-            6434.0,
-            4172.0,
-            6434.0,
-            5667.0
+            6288.0,
+            4265.0,
+            6288.0,
+            5589.0
           ],
           "facing": "East",
-          "length_raw": 20.76,
-          "is_exterior": true,
-          "room_id": "R15"
+          "length_raw": 18.14,
+          "is_exterior": true
         },
         {
-          "id": "w12.s1",
+          "id": "w16.s1",
+          "px_coords": [
+            5934.0,
+            4265.0,
+            6288.0,
+            4265.0
+          ],
+          "facing": "South",
+          "length_raw": 4.85,
+          "is_exterior": true
+        },
+        {
+          "id": "w17.s1",
           "px_coords": [
             5818.0,
-            3494.0,
+            3493.0,
             5818.0,
-            4166.0
+            4265.0
           ],
           "facing": "East",
-          "length_raw": 9.33,
+          "length_raw": 10.58,
           "is_exterior": true,
           "room_id": "R6"
         },
         {
-          "id": "w12.s2",
+          "id": "w17.s2",
           "px_coords": [
             5818.0,
             2593.0,
             5818.0,
-            3494.0
+            3493.0
           ],
           "facing": "East",
-          "length_raw": 12.51,
+          "length_raw": 12.33,
           "is_exterior": true,
           "room_id": "R11"
         },
         {
-          "id": "w13.s1",
+          "id": "w18.s1",
           "px_coords": [
             4989.0,
             2593.0,
@@ -1402,12 +1451,12 @@
             2593.0
           ],
           "facing": "North",
-          "length_raw": 11.51,
+          "length_raw": 11.36,
           "is_exterior": true,
           "room_id": "R11"
         },
         {
-          "id": "w13.s2",
+          "id": "w18.s2",
           "px_coords": [
             4269.0,
             2593.0,
@@ -1415,12 +1464,12 @@
             2593.0
           ],
           "facing": "North",
-          "length_raw": 10.0,
+          "length_raw": 9.86,
           "is_exterior": true,
           "room_id": "R10"
         },
         {
-          "id": "w13.s3",
+          "id": "w18.s3",
           "px_coords": [
             3591.0,
             2593.0,
@@ -1428,12 +1477,12 @@
             2593.0
           ],
           "facing": "North",
-          "length_raw": 9.42,
+          "length_raw": 9.29,
           "is_exterior": true,
           "room_id": "R9"
         },
         {
-          "id": "w14.s1",
+          "id": "w19.s1",
           "px_coords": [
             3591.0,
             1357.0,
@@ -1441,12 +1490,12 @@
             2593.0
           ],
           "facing": "East",
-          "length_raw": 17.17,
+          "length_raw": 16.93,
           "is_exterior": true,
           "room_id": "R6"
         },
         {
-          "id": "w14.s2",
+          "id": "w19.s2",
           "px_coords": [
             3591.0,
             341.0,
@@ -1454,61 +1503,61 @@
             1357.0
           ],
           "facing": "East",
-          "length_raw": 14.11,
+          "length_raw": 13.92,
           "is_exterior": true,
           "room_id": "R2"
         },
         {
-          "id": "w15.s1",
+          "id": "w20.s1",
           "px_coords": [
-            1189.0,
+            1185.0,
             0.0,
-            3621.0,
+            3617.0,
             0.0
           ],
           "facing": "North",
-          "length_raw": 33.78,
+          "length_raw": 33.32,
           "is_exterior": true,
           "room_id": "R1"
         },
         {
-          "id": "w16",
+          "id": "w21",
           "px_coords": [
-            1163.0,
+            1160.0,
             341.0,
             3591.0,
             341.0
           ],
           "facing": "North",
-          "length_raw": 33.72,
+          "length_raw": 33.3,
           "is_exterior": false
         },
         {
-          "id": "w18",
+          "id": "w26",
           "px_coords": [
             1444.0,
             1357.0,
-            2570.0,
+            2581.0,
             1357.0
           ],
           "facing": "North",
-          "length_raw": 15.64,
+          "length_raw": 15.58,
           "is_exterior": false
         },
         {
-          "id": "w21",
+          "id": "w29",
           "px_coords": [
             1444.0,
             2175.0,
-            2524.0,
+            2523.0,
             2175.0
           ],
           "facing": "North",
-          "length_raw": 15.0,
+          "length_raw": 14.78,
           "is_exterior": false
         },
         {
-          "id": "w23",
+          "id": "w32",
           "px_coords": [
             1444.0,
             2955.0,
@@ -1516,71 +1565,35 @@
             2955.0
           ],
           "facing": "North",
-          "length_raw": 15.0,
+          "length_raw": 14.79,
           "is_exterior": false
         },
         {
-          "id": "w24",
+          "id": "w34",
           "px_coords": [
             382.0,
-            3446.0,
+            3444.0,
             1649.0,
-            3446.0
+            3444.0
           ],
           "facing": "North",
-          "length_raw": 17.6,
+          "length_raw": 17.36,
           "is_exterior": false
         },
         {
-          "id": "w28",
-          "px_coords": [
-            1649.0,
-            3767.0,
-            2524.0,
-            3767.0
-          ],
-          "facing": "North",
-          "length_raw": 12.15,
-          "is_exterior": false
-        },
-        {
-          "id": "w29",
+          "id": "w45",
           "px_coords": [
             2512.0,
             4727.0,
-            3209.0,
+            3086.0,
             4727.0
           ],
           "facing": "South",
-          "length_raw": 9.68,
+          "length_raw": 7.86,
           "is_exterior": false
         },
         {
-          "id": "w30",
-          "px_coords": [
-            3472.0,
-            4727.0,
-            4015.0,
-            4727.0
-          ],
-          "facing": "South",
-          "length_raw": 7.54,
-          "is_exterior": false
-        },
-        {
-          "id": "w33",
-          "px_coords": [
-            1582.0,
-            4869.0,
-            2512.0,
-            4869.0
-          ],
-          "facing": "South",
-          "length_raw": 12.92,
-          "is_exterior": false
-        },
-        {
-          "id": "w36",
+          "id": "w66",
           "px_coords": [
             388.0,
             5510.0,
@@ -1588,11 +1601,11 @@
             5510.0
           ],
           "facing": "South",
-          "length_raw": 65.18,
+          "length_raw": 64.29,
           "is_exterior": false
         },
         {
-          "id": "w41",
+          "id": "w74",
           "px_coords": [
             527.0,
             6655.0,
@@ -1600,11 +1613,23 @@
             6655.0
           ],
           "facing": "South",
-          "length_raw": 24.76,
+          "length_raw": 24.42,
           "is_exterior": false
         },
         {
-          "id": "w43",
+          "id": "w81",
+          "px_coords": [
+            730.0,
+            5510.0,
+            730.0,
+            6655.0
+          ],
+          "facing": "West",
+          "length_raw": 15.68,
+          "is_exterior": false
+        },
+        {
+          "id": "w85",
           "px_coords": [
             845.0,
             3727.0,
@@ -1612,23 +1637,23 @@
             5115.0
           ],
           "facing": "West",
-          "length_raw": 19.28,
+          "length_raw": 19.01,
           "is_exterior": false
         },
         {
-          "id": "w45",
+          "id": "w89",
           "px_coords": [
             1649.0,
             341.0,
             1649.0,
-            3767.0
+            3749.0
           ],
           "facing": "West",
-          "length_raw": 47.58,
+          "length_raw": 46.68,
           "is_exterior": false
         },
         {
-          "id": "w49",
+          "id": "w93",
           "px_coords": [
             2512.0,
             4032.0,
@@ -1636,35 +1661,35 @@
             5510.0
           ],
           "facing": "West",
-          "length_raw": 20.53,
+          "length_raw": 20.25,
           "is_exterior": false
         },
         {
-          "id": "w51",
+          "id": "w96",
           "px_coords": [
             3006.0,
             5510.0,
             3006.0,
-            6535.0
+            6561.0
           ],
           "facing": "West",
-          "length_raw": 14.24,
+          "length_raw": 14.4,
           "is_exterior": false
         },
         {
-          "id": "w52",
+          "id": "w97",
           "px_coords": [
             3472.0,
             2369.0,
             3472.0,
-            3450.0
+            3457.0
           ],
           "facing": "East",
-          "length_raw": 15.01,
+          "length_raw": 14.9,
           "is_exterior": false
         },
         {
-          "id": "w53",
+          "id": "w98",
           "px_coords": [
             3472.0,
             4467.0,
@@ -1672,11 +1697,11 @@
             5510.0
           ],
           "facing": "East",
-          "length_raw": 14.49,
+          "length_raw": 14.29,
           "is_exterior": false
         },
         {
-          "id": "w54",
+          "id": "w102",
           "px_coords": [
             4269.0,
             2369.0,
@@ -1684,23 +1709,23 @@
             3457.0
           ],
           "facing": "East",
-          "length_raw": 15.11,
+          "length_raw": 14.9,
           "is_exterior": false
         },
         {
-          "id": "w56",
+          "id": "w106",
           "px_coords": [
             4989.0,
             2369.0,
             4989.0,
-            3453.0
+            3456.0
           ],
           "facing": "East",
-          "length_raw": 15.06,
+          "length_raw": 14.89,
           "is_exterior": false
         },
         {
-          "id": "w57",
+          "id": "w107",
           "px_coords": [
             5081.0,
             4467.0,
@@ -1708,27 +1733,27 @@
             5510.0
           ],
           "facing": "East",
-          "length_raw": 14.49,
+          "length_raw": 14.29,
           "is_exterior": false
         },
         {
-          "id": "w58",
+          "id": "w108",
           "px_coords": [
             5934.0,
-            4166.0,
+            4265.0,
             5934.0,
             5755.0
           ],
           "facing": "East",
-          "length_raw": 22.07,
+          "length_raw": 20.41,
           "is_exterior": false
         }
       ],
       "coverage": {
-        "tolerance_px": 144.0,
-        "precision": 0.2319,
-        "recall": 0.4393,
-        "f1": 0.3036
+        "tolerance_px": 146.0,
+        "precision": 0.248,
+        "recall": 0.4412,
+        "f1": 0.3175
       }
     },
     "doors": {
@@ -4456,19 +4481,19 @@
     }
   },
   "closure": {
-    "tolerance_px": 144.0,
+    "tolerance_px": 146.0,
     "wall_network": {
-      "wall_count": 52,
-      "endpoint_count": 104,
-      "closed_endpoints": 63,
+      "wall_count": 56,
+      "endpoint_count": 112,
+      "closed_endpoints": 71,
       "dangling_endpoints": 41,
-      "closure_rate": 0.6058,
-      "dangling_endpoint_rate": 0.3942,
+      "closure_rate": 0.6339,
+      "dangling_endpoint_rate": 0.3661,
       "dangling": [
         {
           "wall_id": "w1.s4",
           "endpoint_px": [
-            1163.0,
+            1160.0,
             3102.0
           ]
         },
@@ -4476,177 +4501,177 @@
           "wall_id": "w3.s1",
           "endpoint_px": [
             0.0,
-            3408.0
+            3404.0
           ]
         },
         {
           "wall_id": "w3.s1",
           "endpoint_px": [
             0.0,
-            5043.0
+            5039.0
           ]
         },
         {
           "wall_id": "w4.s1",
           "endpoint_px": [
-            729.0,
-            5685.0
+            378.0,
+            5001.0
           ]
         },
         {
-          "wall_id": "w4.s2",
+          "wall_id": "w4.s1",
+          "endpoint_px": [
+            443.0,
+            5001.0
+          ]
+        },
+        {
+          "wall_id": "w5.s2",
           "endpoint_px": [
             729.0,
             7039.0
           ]
         },
         {
-          "wall_id": "w6.s1",
+          "wall_id": "w7.s1",
           "endpoint_px": [
             2253.0,
             6854.0
           ]
         },
         {
-          "wall_id": "w6.s1",
+          "wall_id": "w8.s1",
           "endpoint_px": [
-            2253.0,
-            7047.0
-          ]
-        },
-        {
-          "wall_id": "w7.s1",
-          "endpoint_px": [
-            2443.0,
-            6993.0
+            1958.0,
+            7554.0
           ]
         },
         {
           "wall_id": "w8.s1",
           "endpoint_px": [
-            3526.0,
-            7263.0
+            2416.0,
+            7554.0
           ]
         },
         {
           "wall_id": "w9.s1",
           "endpoint_px": [
-            3711.0,
+            2639.0,
+            7367.0
+          ]
+        },
+        {
+          "wall_id": "w9.s1",
+          "endpoint_px": [
+            2639.0,
+            7598.0
+          ]
+        },
+        {
+          "wall_id": "w10.s1",
+          "endpoint_px": [
+            2439.0,
+            6993.0
+          ]
+        },
+        {
+          "wall_id": "w12.s1",
+          "endpoint_px": [
+            3845.0,
+            7243.0
+          ]
+        },
+        {
+          "wall_id": "w13.s1",
+          "endpoint_px": [
+            3713.0,
             6562.0
           ]
         },
         {
-          "wall_id": "w10.s5",
+          "wall_id": "w20.s1",
           "endpoint_px": [
-            6288.0,
-            5589.0
-          ]
-        },
-        {
-          "wall_id": "w11.s1",
-          "endpoint_px": [
-            6434.0,
-            4172.0
-          ]
-        },
-        {
-          "wall_id": "w11.s1",
-          "endpoint_px": [
-            6434.0,
-            5667.0
-          ]
-        },
-        {
-          "wall_id": "w15.s1",
-          "endpoint_px": [
-            1189.0,
+            1185.0,
             0.0
           ]
         },
         {
-          "wall_id": "w15.s1",
+          "wall_id": "w20.s1",
           "endpoint_px": [
-            3621.0,
+            3617.0,
             0.0
           ]
         },
         {
-          "wall_id": "w18",
+          "wall_id": "w26",
           "endpoint_px": [
             1444.0,
             1357.0
           ]
         },
         {
-          "wall_id": "w18",
+          "wall_id": "w26",
           "endpoint_px": [
-            2570.0,
+            2581.0,
             1357.0
           ]
         },
         {
-          "wall_id": "w19",
+          "wall_id": "w27",
           "endpoint_px": [
             2801.0,
             1357.0
           ]
         },
         {
-          "wall_id": "w21",
+          "wall_id": "w29",
           "endpoint_px": [
             1444.0,
             2175.0
-          ]
-        },
-        {
-          "wall_id": "w21",
-          "endpoint_px": [
-            2524.0,
-            2175.0
-          ]
-        },
-        {
-          "wall_id": "w23",
-          "endpoint_px": [
-            1444.0,
-            2955.0
-          ]
-        },
-        {
-          "wall_id": "w23",
-          "endpoint_px": [
-            2524.0,
-            2955.0
-          ]
-        },
-        {
-          "wall_id": "w28",
-          "endpoint_px": [
-            2524.0,
-            3767.0
           ]
         },
         {
           "wall_id": "w29",
           "endpoint_px": [
-            3209.0,
+            2523.0,
+            2175.0
+          ]
+        },
+        {
+          "wall_id": "w32",
+          "endpoint_px": [
+            1444.0,
+            2955.0
+          ]
+        },
+        {
+          "wall_id": "w32",
+          "endpoint_px": [
+            2524.0,
+            2955.0
+          ]
+        },
+        {
+          "wall_id": "w45",
+          "endpoint_px": [
+            3086.0,
             4727.0
           ]
         },
         {
-          "wall_id": "w30",
+          "wall_id": "w66",
           "endpoint_px": [
-            4015.0,
-            4727.0
+            388.0,
+            5510.0
           ]
         }
       ]
     },
     "room_boundary": {
       "room_count": 16,
-      "closed_rooms": 2,
-      "closure_rate": 0.125,
-      "mean_boundary_coverage": 0.8504,
+      "closed_rooms": 1,
+      "closure_rate": 0.0625,
+      "mean_boundary_coverage": 0.7909,
       "closed_threshold": 0.95,
       "per_room": [
         {
@@ -4656,7 +4681,7 @@
         },
         {
           "room_id": "R2",
-          "boundary_coverage": 0.83,
+          "boundary_coverage": 0.835,
           "closed": false
         },
         {
@@ -4666,7 +4691,7 @@
         },
         {
           "room_id": "R4",
-          "boundary_coverage": 0.83,
+          "boundary_coverage": 0.575,
           "closed": false
         },
         {
@@ -4686,13 +4711,13 @@
         },
         {
           "room_id": "R8",
-          "boundary_coverage": 0.915,
+          "boundary_coverage": 0.895,
           "closed": false
         },
         {
           "room_id": "R9",
-          "boundary_coverage": 0.995,
-          "closed": true
+          "boundary_coverage": 0.8267,
+          "closed": false
         },
         {
           "room_id": "R10",
@@ -4711,12 +4736,12 @@
         },
         {
           "room_id": "R13",
-          "boundary_coverage": 0.74,
+          "boundary_coverage": 0.525,
           "closed": false
         },
         {
           "room_id": "R14",
-          "boundary_coverage": 0.8756,
+          "boundary_coverage": 0.6418,
           "closed": false
         },
         {
@@ -4726,15 +4751,15 @@
         },
         {
           "room_id": "R16",
-          "boundary_coverage": 0.6915,
+          "boundary_coverage": 0.6269,
           "closed": false
         }
       ]
     },
     "interior_coverage": {
-      "rooms_area_px": 19484130.0,
-      "footprint_area_px": 28056188.5,
-      "coverage": 0.6945
+      "rooms_area_px": 18699567.0,
+      "footprint_area_px": 28135968.5,
+      "coverage": 0.6646
     }
   }
 }

@@ -1,6 +1,6 @@
 # Baseline Metrics — Current Implementation
 
-Captured **2026-06-10** (post geometric door detection, proposal #7) on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
+Captured **2026-06-10** (post LabelMe crop wall-recall pass) on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
 Source of truth: `validation/baselines/baseline.json`. Reproduce with:
 
 ```bash
@@ -112,8 +112,24 @@ detector classifies those gaps instead.
    merges areas through unsealed door gaps.
 6. **Against `docs/project_context.md` targets** (>95% rooms/walls, >90%
    windows/doors): rooms 100% on synth, walls 80-86% recall, doors 100% on
-   synth but ~3% on real crops (wall-recall-bound), windows 0%. The gap is
+   synth but ~1% on real crops (wall-recall-bound), windows 0%. The gap is
    measured and tracked now.
+
+## LabelMe crop accuracy (20 cases, reported not gated)
+
+Primary progress metric: **wall span-coverage recall** (`categories.walls.coverage`
+in per-case `report.json`), not strict 1:1 wall matching — predictions are
+per-room sub-segments while GT is sparse thick-polygon centerlines.
+
+| Metric | Value (2026-06-10 pass) |
+|--------|-------------------------|
+| Median wall span-coverage recall | **0.55** |
+| Median strict wall recall | ~0.31 |
+| Doors matched | 2/308 (recall 0.01) |
+| Triage buckets | 15 sparse_gt, 3 missing_interior, 2 mixed |
+
+Tools: `validation/score_labelme_cases.py`, `validation/triage_labelme_cases.py`,
+`validation/import_labelme_cases.py --recalibrate`.
 
 ## Tolerances enforced by the gate
 
@@ -128,4 +144,5 @@ interior coverage +/-0.10, per-category F1 and recall drop <=0.02.
 | 2026-06-10T04:07 | Initial baseline of the untouched pipeline. |
 | 2026-06-10T14:49 | Accepted after the phantom-suppression + snap-validation iteration (proposal #1): pair-validated snapping with annotation hop, stroke-partner stats, exterior-envelope filters for rooms and Hough interiors, span trim/clamp, dedup span-overlap fix. Synth rooms 0.5 → 1.0 precision, both synth cases exact; wall-network closure +0.07…+0.18 and dangling endpoints −2…−28 on every real plan; mcginnies recovers 21 walls (105 → 126) at stable room count 40. Synth `total_area`/coverage shifts are the footprint-strip artifact described above, accepted knowingly. |
 | 2026-06-10 (#5) | Accepted after interior-coverage recovery (proposal #5): measured contour-to-ink erosion (capped at the legacy 2x thickness), directional doorway close, aspect-aware corridor area floor (8 ft² at aspect >= 2.5) with a minimum cell width of one close kernel, and orphan-fragment reabsorption. New `synth_corridor` case (4 ft corridor + 24 ft² closet) added with exact GT, rooms P/R 1.0/1.0. Interior coverage +0.042/+0.044/+0.012 on the real plans; `capture_165134` 6 → 7 rooms and `mcginnies_pdf` 40 → 41 rooms (recovered, width-guarded against cavity slivers); all other gated metrics flat within tolerance. The gate passed against the previous baseline before re-capture (coverage deltas < +0.10). |
+| 2026-06-10 (LabelMe wall recall) | LabelMe crop pass: multi-hypothesis `infer_crop_calibration` (raised px/ft cap, wall-length prior), `crop_mode` in `analyze_page` (3 ft Hough min, 6 ft polygon min, tighter phantom envelope on crops), triage tooling. Median wall span-coverage recall 0.55 on 20 LabelMe cases; synth + capture gates flat. Doors on LabelMe still wall-bound (2/308 after recalibration). |
 | 2026-06-10 (#7) | Accepted after geometric door detection (proposal #7): `Arqen/door_detect.py` classifies 1.5–5 ft collinear wall gaps (ink-free verification + window-sill discriminator) into `doors[]`; `opening_score` now takes max(bbox IoU, px_per_ft-scaled center proximity) because annotated door boxes include swing arcs. Short-partition recovery pass (directional morphological open, 2.5–12 ft, T-junction acceptance, dimension-offset rejection) restores closet/bathroom partitions Hough misses. Synth doors 0/5 → 5/5 (P/R 1.0/1.0, no FPs from sill windows); `synth_corridor` 9 → 12 walls (closet partitions), closure 0.778 → 0.750 (new genuinely-open door endpoints); `mcginnies_pdf` 127 → 145 walls (+18 dorm bathroom partitions, rooms stable at 41, closure +0.017); captures unchanged. LabelMe 20-case batch: doors 9/308 recall (precision 1.00), bounded by wall recall on those crops. The 20 labelme cases entered the baseline with this capture. |

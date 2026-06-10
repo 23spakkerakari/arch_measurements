@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-10T17:13:24Z",
+  "created_utc": "2026-06-10T17:46:41Z",
   "env": {
     "python": "3.14.2",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -21,7 +21,7 @@
         "wall_network_closure_rate": 0.6053,
         "dangling_endpoints": 30,
         "interior_coverage": 0.6464,
-        "runtime_s": 1.53
+        "runtime_s": 1.5
       },
       "scores": null,
       "closure": null
@@ -125,33 +125,33 @@
     "labelme_fp_1": {
       "structural": {
         "error": null,
-        "wall_count": 37,
-        "exterior_wall_count": 12,
-        "interior_wall_count": 25,
-        "room_count": 13,
-        "total_area_raw": 3141.1,
-        "px_per_ft": 72.0,
-        "polygon_vertices": 23,
-        "wall_network_closure_rate": 0.5811,
-        "dangling_endpoints": 31,
-        "interior_coverage": 0.5081,
-        "runtime_s": 5.5
+        "wall_count": 50,
+        "exterior_wall_count": 22,
+        "interior_wall_count": 28,
+        "room_count": 19,
+        "total_area_raw": 5102.9,
+        "px_per_ft": 56.0,
+        "polygon_vertices": 21,
+        "wall_network_closure_rate": 0.62,
+        "dangling_endpoints": 38,
+        "interior_coverage": 0.585,
+        "runtime_s": 5.17
       },
       "scores": {
         "rooms": {
-          "precision": 0.3846,
-          "recall": 0.2273,
-          "f1": 0.2857,
-          "true_positives": 5,
-          "false_positives": 8,
-          "false_negatives": 17
+          "precision": 0.4211,
+          "recall": 0.3636,
+          "f1": 0.3902,
+          "true_positives": 8,
+          "false_positives": 11,
+          "false_negatives": 14
         },
         "walls": {
-          "precision": 0.1081,
+          "precision": 0.08,
           "recall": 0.3077,
-          "f1": 0.16,
+          "f1": 0.127,
           "true_positives": 4,
-          "false_positives": 33,
+          "false_positives": 46,
           "false_negatives": 9
         },
         "doors": {
@@ -187,50 +187,50 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2934,
-          "recall": 0.7352,
-          "f1": 0.4194
+          "precision": 0.2774,
+          "recall": 0.7195,
+          "f1": 0.4004
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.5811,
-        "room_boundary_closure_rate": 0.2727,
-        "mean_boundary_coverage": 0.8746,
-        "interior_coverage": 0.5081
+        "tolerance_px": 112.0,
+        "wall_network_closure_rate": 0.62,
+        "room_boundary_closure_rate": 0.0909,
+        "mean_boundary_coverage": 0.8006,
+        "interior_coverage": 0.585
       }
     },
     "labelme_fp_10": {
       "structural": {
         "error": null,
-        "wall_count": 52,
-        "exterior_wall_count": 28,
-        "interior_wall_count": 24,
-        "room_count": 24,
-        "total_area_raw": 5463.4,
-        "px_per_ft": 72.0,
+        "wall_count": 56,
+        "exterior_wall_count": 33,
+        "interior_wall_count": 23,
+        "room_count": 22,
+        "total_area_raw": 5330.5,
+        "px_per_ft": 73.0,
         "polygon_vertices": 25,
-        "wall_network_closure_rate": 0.6058,
+        "wall_network_closure_rate": 0.6339,
         "dangling_endpoints": 41,
-        "interior_coverage": 0.6945,
-        "runtime_s": 10.76
+        "interior_coverage": 0.6646,
+        "runtime_s": 10.74
       },
       "scores": {
         "rooms": {
-          "precision": 0.5,
+          "precision": 0.5455,
           "recall": 0.75,
-          "f1": 0.6,
+          "f1": 0.6316,
           "true_positives": 12,
-          "false_positives": 12,
+          "false_positives": 10,
           "false_negatives": 4
         },
         "walls": {
-          "precision": 0.0577,
-          "recall": 0.2308,
-          "f1": 0.0923,
-          "true_positives": 3,
-          "false_positives": 49,
-          "false_negatives": 10
+          "precision": 0.0714,
+          "recall": 0.3077,
+          "f1": 0.1159,
+          "true_positives": 4,
+          "false_positives": 52,
+          "false_negatives": 9
         },
         "doors": {
           "precision": 0.0,
@@ -265,58 +265,58 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2319,
-          "recall": 0.4393,
-          "f1": 0.3036
+          "precision": 0.248,
+          "recall": 0.4412,
+          "f1": 0.3175
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.6058,
-        "room_boundary_closure_rate": 0.125,
-        "mean_boundary_coverage": 0.8504,
-        "interior_coverage": 0.6945
+        "tolerance_px": 146.0,
+        "wall_network_closure_rate": 0.6339,
+        "room_boundary_closure_rate": 0.0625,
+        "mean_boundary_coverage": 0.7909,
+        "interior_coverage": 0.6646
       }
     },
     "labelme_fp_19": {
       "structural": {
         "error": null,
-        "wall_count": 16,
-        "exterior_wall_count": 11,
-        "interior_wall_count": 5,
-        "room_count": 6,
-        "total_area_raw": 1779.1,
-        "px_per_ft": 72.0,
+        "wall_count": 33,
+        "exterior_wall_count": 19,
+        "interior_wall_count": 14,
+        "room_count": 10,
+        "total_area_raw": 3677.4,
+        "px_per_ft": 50.0,
         "polygon_vertices": 20,
-        "wall_network_closure_rate": 0.5625,
-        "dangling_endpoints": 14,
-        "interior_coverage": 0.4072,
-        "runtime_s": 2.32
+        "wall_network_closure_rate": 0.5909,
+        "dangling_endpoints": 27,
+        "interior_coverage": 0.3145,
+        "runtime_s": 2.62
       },
       "scores": {
         "rooms": {
-          "precision": 0.1667,
-          "recall": 0.0133,
-          "f1": 0.0247,
-          "true_positives": 1,
-          "false_positives": 5,
-          "false_negatives": 74
+          "precision": 0.2,
+          "recall": 0.0267,
+          "f1": 0.0471,
+          "true_positives": 2,
+          "false_positives": 8,
+          "false_negatives": 73
         },
         "walls": {
-          "precision": 0.125,
-          "recall": 0.037,
-          "f1": 0.0571,
-          "true_positives": 2,
-          "false_positives": 14,
-          "false_negatives": 52
+          "precision": 0.1515,
+          "recall": 0.0926,
+          "f1": 0.1149,
+          "true_positives": 5,
+          "false_positives": 28,
+          "false_negatives": 49
         },
         "doors": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
-          "false_positives": 0,
-          "false_negatives": 104
+          "precision": 0.3333,
+          "recall": 0.0096,
+          "f1": 0.0187,
+          "true_positives": 1,
+          "false_positives": 2,
+          "false_negatives": 103
         },
         "windows": {
           "precision": 0.0,
@@ -343,58 +343,58 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.9452,
-          "recall": 0.4341,
-          "f1": 0.595
+          "precision": 0.6642,
+          "recall": 0.3629,
+          "f1": 0.4693
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.5625,
+        "tolerance_px": 100.0,
+        "wall_network_closure_rate": 0.5909,
         "room_boundary_closure_rate": 0.0533,
-        "mean_boundary_coverage": 0.3024,
-        "interior_coverage": 0.4072
+        "mean_boundary_coverage": 0.4011,
+        "interior_coverage": 0.3145
       }
     },
     "labelme_fp_20": {
       "structural": {
         "error": null,
-        "wall_count": 20,
-        "exterior_wall_count": 4,
-        "interior_wall_count": 16,
-        "room_count": 2,
-        "total_area_raw": 937.4,
-        "px_per_ft": 72.0,
+        "wall_count": 48,
+        "exterior_wall_count": 25,
+        "interior_wall_count": 23,
+        "room_count": 15,
+        "total_area_raw": 2628.2,
+        "px_per_ft": 43.0,
         "polygon_vertices": 8,
-        "wall_network_closure_rate": 0.7,
-        "dangling_endpoints": 12,
-        "interior_coverage": 0.0526,
-        "runtime_s": 1.23
+        "wall_network_closure_rate": 0.8438,
+        "dangling_endpoints": 15,
+        "interior_coverage": 0.6128,
+        "runtime_s": 1.43
       },
       "scores": {
         "rooms": {
+          "precision": 0.6,
+          "recall": 0.5294,
+          "f1": 0.5625,
+          "true_positives": 9,
+          "false_positives": 6,
+          "false_negatives": 8
+        },
+        "walls": {
+          "precision": 0.0833,
+          "recall": 0.1739,
+          "f1": 0.1127,
+          "true_positives": 4,
+          "false_positives": 44,
+          "false_negatives": 19
+        },
+        "doors": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
           "false_positives": 2,
-          "false_negatives": 17
-        },
-        "walls": {
-          "precision": 0.15,
-          "recall": 0.1304,
-          "f1": 0.1395,
-          "true_positives": 3,
-          "false_positives": 17,
-          "false_negatives": 20
-        },
-        "doors": {
-          "precision": 1.0,
-          "recall": 0.0417,
-          "f1": 0.08,
-          "true_positives": 1,
-          "false_positives": 0,
-          "false_negatives": 23
+          "false_negatives": 24
         },
         "windows": {
           "precision": 0.0,
@@ -421,33 +421,33 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.4871,
-          "recall": 0.5505,
-          "f1": 0.5169
+          "precision": 0.4342,
+          "recall": 0.6476,
+          "f1": 0.5198
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.7,
-        "room_boundary_closure_rate": 0.2941,
-        "mean_boundary_coverage": 0.7427,
-        "interior_coverage": 0.0526
+        "tolerance_px": 86.0,
+        "wall_network_closure_rate": 0.8438,
+        "room_boundary_closure_rate": 0.4706,
+        "mean_boundary_coverage": 0.8778,
+        "interior_coverage": 0.6128
       }
     },
     "labelme_fp_25_1": {
       "structural": {
         "error": null,
-        "wall_count": 14,
-        "exterior_wall_count": 10,
-        "interior_wall_count": 4,
-        "room_count": 4,
-        "total_area_raw": 4201.8,
-        "px_per_ft": 72.0,
+        "wall_count": 18,
+        "exterior_wall_count": 12,
+        "interior_wall_count": 6,
+        "room_count": 1,
+        "total_area_raw": 3978.0,
+        "px_per_ft": 74.0,
         "polygon_vertices": 24,
-        "wall_network_closure_rate": 0.8929,
-        "dangling_endpoints": 3,
-        "interior_coverage": 0.8419,
-        "runtime_s": 7.26
+        "wall_network_closure_rate": 0.8333,
+        "dangling_endpoints": 6,
+        "interior_coverage": 0.7758,
+        "runtime_s": 7.11
       },
       "scores": {
         "rooms": {
@@ -455,16 +455,16 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 4,
+          "false_positives": 1,
           "false_negatives": 4
         },
         "walls": {
-          "precision": 0.1429,
-          "recall": 0.4,
-          "f1": 0.2105,
-          "true_positives": 2,
-          "false_positives": 12,
-          "false_negatives": 3
+          "precision": 0.1667,
+          "recall": 0.6,
+          "f1": 0.2609,
+          "true_positives": 3,
+          "false_positives": 15,
+          "false_negatives": 2
         },
         "doors": {
           "precision": 0.0,
@@ -499,33 +499,33 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2156,
-          "recall": 0.2524,
-          "f1": 0.2326
+          "precision": 0.1985,
+          "recall": 0.2601,
+          "f1": 0.2251
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.8929,
+        "tolerance_px": 148.0,
+        "wall_network_closure_rate": 0.8333,
         "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.4113,
-        "interior_coverage": 0.8419
+        "mean_boundary_coverage": 0.4175,
+        "interior_coverage": 0.7758
       }
     },
     "labelme_fp_25_2": {
       "structural": {
         "error": null,
-        "wall_count": 14,
-        "exterior_wall_count": 10,
-        "interior_wall_count": 4,
+        "wall_count": 32,
+        "exterior_wall_count": 19,
+        "interior_wall_count": 13,
         "room_count": 2,
-        "total_area_raw": 776.3,
-        "px_per_ft": 47.0,
+        "total_area_raw": 1472.2,
+        "px_per_ft": 34.0,
         "polygon_vertices": 29,
-        "wall_network_closure_rate": 0.75,
-        "dangling_endpoints": 7,
-        "interior_coverage": 0.1967,
-        "runtime_s": 0.93
+        "wall_network_closure_rate": 0.6406,
+        "dangling_endpoints": 23,
+        "interior_coverage": 0.2161,
+        "runtime_s": 0.86
       },
       "scores": {
         "rooms": {
@@ -541,7 +541,7 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 14,
+          "false_positives": 32,
           "false_negatives": 1
         },
         "doors": {
@@ -549,7 +549,7 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 0,
+          "false_positives": 1,
           "false_negatives": 2
         },
         "windows": {
@@ -577,49 +577,49 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.1758,
-          "recall": 0.6406,
-          "f1": 0.2759
+          "precision": 0.1202,
+          "recall": 0.7812,
+          "f1": 0.2083
         }
       },
       "closure": {
-        "tolerance_px": 94.0,
-        "wall_network_closure_rate": 0.75,
-        "room_boundary_closure_rate": 0.5,
-        "mean_boundary_coverage": 0.8825,
-        "interior_coverage": 0.1967
+        "tolerance_px": 68.0,
+        "wall_network_closure_rate": 0.6406,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.8675,
+        "interior_coverage": 0.2161
       }
     },
     "labelme_fp_27": {
       "structural": {
         "error": null,
-        "wall_count": 9,
-        "exterior_wall_count": 7,
-        "interior_wall_count": 2,
-        "room_count": 2,
-        "total_area_raw": 795.3,
-        "px_per_ft": 72.0,
-        "polygon_vertices": 12,
-        "wall_network_closure_rate": 0.7222,
-        "dangling_endpoints": 5,
-        "interior_coverage": 0.6735,
-        "runtime_s": 1.63
+        "wall_count": 13,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 3,
+        "room_count": 7,
+        "total_area_raw": 942.7,
+        "px_per_ft": 66.0,
+        "polygon_vertices": 10,
+        "wall_network_closure_rate": 0.6154,
+        "dangling_endpoints": 10,
+        "interior_coverage": 0.4805,
+        "runtime_s": 1.69
       },
       "scores": {
         "rooms": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
+          "precision": 0.7143,
+          "recall": 0.4167,
+          "f1": 0.5263,
+          "true_positives": 5,
           "false_positives": 2,
-          "false_negatives": 12
+          "false_negatives": 7
         },
         "walls": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 9,
+          "false_positives": 13,
           "false_negatives": 5
         },
         "doors": {
@@ -655,57 +655,57 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.0521,
-          "recall": 0.0358,
-          "f1": 0.0424
+          "precision": 0.0627,
+          "recall": 0.0694,
+          "f1": 0.0659
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.7222,
+        "tolerance_px": 132.0,
+        "wall_network_closure_rate": 0.6154,
         "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.4738,
-        "interior_coverage": 0.6735
+        "mean_boundary_coverage": 0.5212,
+        "interior_coverage": 0.4805
       }
     },
     "labelme_fp_31_2": {
       "structural": {
         "error": null,
-        "wall_count": 23,
-        "exterior_wall_count": 12,
-        "interior_wall_count": 11,
-        "room_count": 8,
-        "total_area_raw": 2152.8,
-        "px_per_ft": 72.0,
+        "wall_count": 45,
+        "exterior_wall_count": 23,
+        "interior_wall_count": 22,
+        "room_count": 22,
+        "total_area_raw": 3970.6,
+        "px_per_ft": 53.0,
         "polygon_vertices": 12,
-        "wall_network_closure_rate": 0.7174,
-        "dangling_endpoints": 13,
-        "interior_coverage": 0.5746,
-        "runtime_s": 2.74
+        "wall_network_closure_rate": 0.7556,
+        "dangling_endpoints": 22,
+        "interior_coverage": 0.5604,
+        "runtime_s": 2.68
       },
       "scores": {
         "rooms": {
-          "precision": 0.125,
-          "recall": 0.027,
-          "f1": 0.0444,
-          "true_positives": 1,
-          "false_positives": 7,
-          "false_negatives": 36
+          "precision": 0.7727,
+          "recall": 0.4595,
+          "f1": 0.5763,
+          "true_positives": 17,
+          "false_positives": 5,
+          "false_negatives": 20
         },
         "walls": {
-          "precision": 0.087,
-          "recall": 0.0833,
-          "f1": 0.0851,
-          "true_positives": 2,
-          "false_positives": 21,
-          "false_negatives": 22
+          "precision": 0.2444,
+          "recall": 0.4583,
+          "f1": 0.3188,
+          "true_positives": 11,
+          "false_positives": 34,
+          "false_negatives": 13
         },
         "doors": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 0,
+          "false_positives": 1,
           "false_negatives": 41
         },
         "windows": {
@@ -733,49 +733,49 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.325,
-          "recall": 0.2976,
-          "f1": 0.3107
+          "precision": 0.4171,
+          "recall": 0.5802,
+          "f1": 0.4853
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.7174,
-        "room_boundary_closure_rate": 0.1081,
-        "mean_boundary_coverage": 0.474,
-        "interior_coverage": 0.5746
+        "tolerance_px": 106.0,
+        "wall_network_closure_rate": 0.7556,
+        "room_boundary_closure_rate": 0.0541,
+        "mean_boundary_coverage": 0.5767,
+        "interior_coverage": 0.5604
       }
     },
     "labelme_fp_35_1": {
       "structural": {
         "error": null,
-        "wall_count": 29,
-        "exterior_wall_count": 11,
-        "interior_wall_count": 18,
-        "room_count": 8,
-        "total_area_raw": 1691.6,
-        "px_per_ft": 72.0,
-        "polygon_vertices": 21,
-        "wall_network_closure_rate": 0.8621,
-        "dangling_endpoints": 8,
-        "interior_coverage": 0.38,
-        "runtime_s": 2.6
+        "wall_count": 52,
+        "exterior_wall_count": 28,
+        "interior_wall_count": 24,
+        "room_count": 6,
+        "total_area_raw": 5928.5,
+        "px_per_ft": 38.0,
+        "polygon_vertices": 18,
+        "wall_network_closure_rate": 0.6923,
+        "dangling_endpoints": 32,
+        "interior_coverage": 0.6607,
+        "runtime_s": 2.34
       },
       "scores": {
         "rooms": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
-          "false_positives": 8,
-          "false_negatives": 2
+          "precision": 0.1667,
+          "recall": 0.5,
+          "f1": 0.25,
+          "true_positives": 1,
+          "false_positives": 5,
+          "false_negatives": 1
         },
         "walls": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 29,
+          "false_positives": 52,
           "false_negatives": 1
         },
         "doors": {
@@ -811,49 +811,49 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.0861,
-          "recall": 0.7969,
-          "f1": 0.1553
+          "precision": 0.0249,
+          "recall": 0.1719,
+          "f1": 0.0435
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.8621,
-        "room_boundary_closure_rate": 1.0,
-        "mean_boundary_coverage": 0.9724,
-        "interior_coverage": 0.38
+        "tolerance_px": 76.0,
+        "wall_network_closure_rate": 0.6923,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.5864,
+        "interior_coverage": 0.6607
       }
     },
     "labelme_fp_35_2": {
       "structural": {
         "error": null,
-        "wall_count": 7,
-        "exterior_wall_count": 6,
-        "interior_wall_count": 1,
-        "room_count": 7,
-        "total_area_raw": 1640.7,
-        "px_per_ft": 72.0,
+        "wall_count": 45,
+        "exterior_wall_count": 22,
+        "interior_wall_count": 23,
+        "room_count": 12,
+        "total_area_raw": 6115.4,
+        "px_per_ft": 37.0,
         "polygon_vertices": 21,
-        "wall_network_closure_rate": 0.5714,
-        "dangling_endpoints": 6,
-        "interior_coverage": 0.3396,
-        "runtime_s": 2.44
+        "wall_network_closure_rate": 0.7,
+        "dangling_endpoints": 27,
+        "interior_coverage": 0.6331,
+        "runtime_s": 2.39
       },
       "scores": {
         "rooms": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
-          "false_positives": 7,
-          "false_negatives": 2
+          "precision": 0.0833,
+          "recall": 0.5,
+          "f1": 0.1429,
+          "true_positives": 1,
+          "false_positives": 11,
+          "false_negatives": 1
         },
         "walls": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 7,
+          "false_positives": 45,
           "false_negatives": 1
         },
         "doors": {
@@ -889,17 +889,17 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.0638,
-          "recall": 0.0625,
-          "f1": 0.0631
+          "precision": 0.0227,
+          "recall": 0.2188,
+          "f1": 0.0411
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.5714,
+        "tolerance_px": 74.0,
+        "wall_network_closure_rate": 0.7,
         "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.4804,
-        "interior_coverage": 0.3396
+        "mean_boundary_coverage": 0.6615,
+        "interior_coverage": 0.6331
       }
     },
     "labelme_fp_36_2": {
@@ -983,33 +983,33 @@
     "labelme_fp_48_1": {
       "structural": {
         "error": null,
-        "wall_count": 15,
-        "exterior_wall_count": 10,
-        "interior_wall_count": 5,
-        "room_count": 3,
-        "total_area_raw": 839.1,
-        "px_per_ft": 38.0,
-        "polygon_vertices": 19,
-        "wall_network_closure_rate": 0.8,
-        "dangling_endpoints": 6,
-        "interior_coverage": 0.5777,
+        "wall_count": 12,
+        "exterior_wall_count": 9,
+        "interior_wall_count": 3,
+        "room_count": 2,
+        "total_area_raw": 505.8,
+        "px_per_ft": 49.0,
+        "polygon_vertices": 20,
+        "wall_network_closure_rate": 0.875,
+        "dangling_endpoints": 3,
+        "interior_coverage": 0.5204,
         "runtime_s": 0.28
       },
       "scores": {
         "rooms": {
-          "precision": 0.3333,
-          "recall": 0.5,
-          "f1": 0.4,
-          "true_positives": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
           "false_positives": 2,
-          "false_negatives": 1
+          "false_negatives": 2
         },
         "walls": {
-          "precision": 0.0667,
+          "precision": 0.0833,
           "recall": 0.3333,
-          "f1": 0.1111,
+          "f1": 0.1333,
           "true_positives": 1,
-          "false_positives": 14,
+          "false_positives": 11,
           "false_negatives": 2
         },
         "doors": {
@@ -1045,49 +1045,49 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.3933,
-          "recall": 0.4549,
-          "f1": 0.4219
+          "precision": 0.3621,
+          "recall": 0.5134,
+          "f1": 0.4247
         }
       },
       "closure": {
-        "tolerance_px": 76.0,
-        "wall_network_closure_rate": 0.8,
+        "tolerance_px": 98.0,
+        "wall_network_closure_rate": 0.875,
         "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.815,
-        "interior_coverage": 0.5777
+        "mean_boundary_coverage": 0.8725,
+        "interior_coverage": 0.5204
       }
     },
     "labelme_fp_54_2": {
       "structural": {
         "error": null,
-        "wall_count": 26,
-        "exterior_wall_count": 10,
-        "interior_wall_count": 16,
-        "room_count": 5,
-        "total_area_raw": 1715.8,
-        "px_per_ft": 25.0,
+        "wall_count": 17,
+        "exterior_wall_count": 9,
+        "interior_wall_count": 8,
+        "room_count": 2,
+        "total_area_raw": 608.3,
+        "px_per_ft": 42.0,
         "polygon_vertices": 15,
-        "wall_network_closure_rate": 0.8462,
-        "dangling_endpoints": 8,
-        "interior_coverage": 0.5148,
-        "runtime_s": 0.46
+        "wall_network_closure_rate": 0.9412,
+        "dangling_endpoints": 2,
+        "interior_coverage": 0.3291,
+        "runtime_s": 0.45
       },
       "scores": {
         "rooms": {
-          "precision": 0.2,
+          "precision": 0.5,
           "recall": 0.3333,
-          "f1": 0.25,
+          "f1": 0.4,
           "true_positives": 1,
-          "false_positives": 4,
+          "false_positives": 1,
           "false_negatives": 2
         },
         "walls": {
-          "precision": 0.0385,
+          "precision": 0.0588,
           "recall": 1.0,
-          "f1": 0.0741,
+          "f1": 0.1111,
           "true_positives": 1,
-          "false_positives": 25,
+          "false_positives": 16,
           "false_negatives": 0
         },
         "doors": {
@@ -1123,58 +1123,58 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2221,
-          "recall": 0.9219,
-          "f1": 0.3579
+          "precision": 0.1898,
+          "recall": 0.9844,
+          "f1": 0.3183
         }
       },
       "closure": {
-        "tolerance_px": 50.0,
-        "wall_network_closure_rate": 0.8462,
+        "tolerance_px": 84.0,
+        "wall_network_closure_rate": 0.9412,
         "room_boundary_closure_rate": 0.6667,
-        "mean_boundary_coverage": 0.9183,
-        "interior_coverage": 0.5148
+        "mean_boundary_coverage": 0.9333,
+        "interior_coverage": 0.3291
       }
     },
     "labelme_fp_60": {
       "structural": {
         "error": null,
-        "wall_count": 60,
-        "exterior_wall_count": 26,
-        "interior_wall_count": 34,
-        "room_count": 20,
-        "total_area_raw": 5273.0,
-        "px_per_ft": 72.0,
+        "wall_count": 58,
+        "exterior_wall_count": 29,
+        "interior_wall_count": 29,
+        "room_count": 15,
+        "total_area_raw": 3696.0,
+        "px_per_ft": 86.0,
         "polygon_vertices": 23,
-        "wall_network_closure_rate": 0.7417,
-        "dangling_endpoints": 31,
-        "interior_coverage": 0.6126,
-        "runtime_s": 11.15
+        "wall_network_closure_rate": 0.8103,
+        "dangling_endpoints": 22,
+        "interior_coverage": 0.4648,
+        "runtime_s": 11.2
       },
       "scores": {
         "rooms": {
-          "precision": 0.8,
-          "recall": 0.5,
-          "f1": 0.6154,
-          "true_positives": 16,
-          "false_positives": 4,
-          "false_negatives": 16
+          "precision": 0.6667,
+          "recall": 0.3125,
+          "f1": 0.4255,
+          "true_positives": 10,
+          "false_positives": 5,
+          "false_negatives": 22
         },
         "walls": {
-          "precision": 0.05,
-          "recall": 0.2143,
-          "f1": 0.0811,
-          "true_positives": 3,
+          "precision": 0.0172,
+          "recall": 0.0714,
+          "f1": 0.0278,
+          "true_positives": 1,
           "false_positives": 57,
-          "false_negatives": 11
+          "false_negatives": 13
         },
         "doors": {
-          "precision": 1.0,
-          "recall": 0.1795,
-          "f1": 0.3043,
-          "true_positives": 7,
-          "false_positives": 0,
-          "false_negatives": 32
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 1,
+          "false_negatives": 39
         },
         "windows": {
           "precision": 0.0,
@@ -1201,33 +1201,33 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.1512,
-          "recall": 0.3282,
-          "f1": 0.207
+          "precision": 0.1943,
+          "recall": 0.3238,
+          "f1": 0.2429
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.7417,
-        "room_boundary_closure_rate": 0.5,
-        "mean_boundary_coverage": 0.7635,
-        "interior_coverage": 0.6126
+        "tolerance_px": 172.0,
+        "wall_network_closure_rate": 0.8103,
+        "room_boundary_closure_rate": 0.5312,
+        "mean_boundary_coverage": 0.7902,
+        "interior_coverage": 0.4648
       }
     },
     "labelme_fp_66_2": {
       "structural": {
         "error": null,
-        "wall_count": 45,
-        "exterior_wall_count": 9,
+        "wall_count": 51,
+        "exterior_wall_count": 15,
         "interior_wall_count": 36,
-        "room_count": 10,
+        "room_count": 9,
         "total_area_raw": 1890.7,
         "px_per_ft": 40.0,
         "polygon_vertices": 19,
-        "wall_network_closure_rate": 0.8556,
+        "wall_network_closure_rate": 0.8725,
         "dangling_endpoints": 13,
-        "interior_coverage": 0.4467,
-        "runtime_s": 0.76
+        "interior_coverage": 0.399,
+        "runtime_s": 0.8
       },
       "scores": {
         "rooms": {
@@ -1235,7 +1235,7 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 10,
+          "false_positives": 9,
           "false_negatives": 1
         },
         "walls": {
@@ -1243,7 +1243,7 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 45,
+          "false_positives": 51,
           "false_negatives": 1
         },
         "doors": {
@@ -1279,57 +1279,57 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.1642,
+          "precision": 0.1574,
           "recall": 0.875,
-          "f1": 0.2766
+          "f1": 0.2668
         }
       },
       "closure": {
         "tolerance_px": 80.0,
-        "wall_network_closure_rate": 0.8556,
+        "wall_network_closure_rate": 0.8725,
         "room_boundary_closure_rate": 1.0,
-        "mean_boundary_coverage": 0.99,
-        "interior_coverage": 0.4467
+        "mean_boundary_coverage": 1.0,
+        "interior_coverage": 0.399
       }
     },
     "labelme_fp_6_1": {
       "structural": {
         "error": null,
-        "wall_count": 33,
-        "exterior_wall_count": 17,
-        "interior_wall_count": 16,
-        "room_count": 16,
-        "total_area_raw": 3279.3,
-        "px_per_ft": 72.0,
+        "wall_count": 49,
+        "exterior_wall_count": 31,
+        "interior_wall_count": 18,
+        "room_count": 13,
+        "total_area_raw": 4024.0,
+        "px_per_ft": 65.0,
         "polygon_vertices": 37,
-        "wall_network_closure_rate": 0.697,
-        "dangling_endpoints": 20,
-        "interior_coverage": 0.7206,
-        "runtime_s": 4.94
+        "wall_network_closure_rate": 0.7245,
+        "dangling_endpoints": 27,
+        "interior_coverage": 0.7233,
+        "runtime_s": 4.82
       },
       "scores": {
         "rooms": {
-          "precision": 0.5625,
+          "precision": 0.6923,
           "recall": 1.0,
-          "f1": 0.72,
+          "f1": 0.8182,
           "true_positives": 9,
-          "false_positives": 7,
+          "false_positives": 4,
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.0606,
-          "recall": 0.4,
-          "f1": 0.1053,
-          "true_positives": 2,
-          "false_positives": 31,
-          "false_negatives": 3
+          "precision": 0.0612,
+          "recall": 0.6,
+          "f1": 0.1111,
+          "true_positives": 3,
+          "false_positives": 46,
+          "false_negatives": 2
         },
         "doors": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 0,
+          "false_positives": 1,
           "false_negatives": 12
         },
         "windows": {
@@ -1357,33 +1357,33 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2323,
-          "recall": 0.5074,
-          "f1": 0.3187
+          "precision": 0.2269,
+          "recall": 0.6524,
+          "f1": 0.3366
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.697,
-        "room_boundary_closure_rate": 0.3333,
-        "mean_boundary_coverage": 0.8576,
-        "interior_coverage": 0.7206
+        "tolerance_px": 130.0,
+        "wall_network_closure_rate": 0.7245,
+        "room_boundary_closure_rate": 0.8889,
+        "mean_boundary_coverage": 0.9717,
+        "interior_coverage": 0.7233
       }
     },
     "labelme_fp_71": {
       "structural": {
         "error": null,
-        "wall_count": 46,
-        "exterior_wall_count": 18,
-        "interior_wall_count": 28,
-        "room_count": 14,
-        "total_area_raw": 3940.1,
-        "px_per_ft": 72.0,
+        "wall_count": 44,
+        "exterior_wall_count": 20,
+        "interior_wall_count": 24,
+        "room_count": 17,
+        "total_area_raw": 4986.7,
+        "px_per_ft": 64.0,
         "polygon_vertices": 10,
-        "wall_network_closure_rate": 0.837,
-        "dangling_endpoints": 15,
-        "interior_coverage": 0.2694,
-        "runtime_s": 4.83
+        "wall_network_closure_rate": 0.8068,
+        "dangling_endpoints": 17,
+        "interior_coverage": 0.3375,
+        "runtime_s": 5.1
       },
       "scores": {
         "rooms": {
@@ -1391,15 +1391,15 @@
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 14,
+          "false_positives": 17,
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.1304,
+          "precision": 0.1364,
           "recall": 0.5455,
-          "f1": 0.2105,
+          "f1": 0.2182,
           "true_positives": 6,
-          "false_positives": 40,
+          "false_positives": 38,
           "false_negatives": 5
         },
         "doors": {
@@ -1435,42 +1435,42 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2848,
-          "recall": 0.681,
-          "f1": 0.4017
+          "precision": 0.2984,
+          "recall": 0.6536,
+          "f1": 0.4098
         }
       },
       "closure": {
-        "tolerance_px": 144.0,
-        "wall_network_closure_rate": 0.837,
+        "tolerance_px": 128.0,
+        "wall_network_closure_rate": 0.8068,
         "room_boundary_closure_rate": null,
         "mean_boundary_coverage": null,
-        "interior_coverage": 0.2694
+        "interior_coverage": 0.3375
       }
     },
     "labelme_fp_7_2": {
       "structural": {
         "error": null,
         "wall_count": 18,
-        "exterior_wall_count": 10,
-        "interior_wall_count": 8,
-        "room_count": 5,
-        "total_area_raw": 1865.4,
-        "px_per_ft": 61.0,
+        "exterior_wall_count": 13,
+        "interior_wall_count": 5,
+        "room_count": 6,
+        "total_area_raw": 1546.3,
+        "px_per_ft": 67.0,
         "polygon_vertices": 24,
-        "wall_network_closure_rate": 0.6667,
-        "dangling_endpoints": 12,
-        "interior_coverage": 0.6505,
-        "runtime_s": 1.67
+        "wall_network_closure_rate": 0.7222,
+        "dangling_endpoints": 10,
+        "interior_coverage": 0.6438,
+        "runtime_s": 1.7
       },
       "scores": {
         "rooms": {
-          "precision": 1.0,
-          "recall": 1.0,
-          "f1": 1.0,
-          "true_positives": 5,
-          "false_positives": 0,
-          "false_negatives": 0
+          "precision": 0.6667,
+          "recall": 0.8,
+          "f1": 0.7273,
+          "true_positives": 4,
+          "false_positives": 2,
+          "false_negatives": 1
         },
         "walls": {
           "precision": 0.1111,
@@ -1513,49 +1513,49 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.2896,
-          "recall": 0.7298,
-          "f1": 0.4146
+          "precision": 0.2995,
+          "recall": 0.7434,
+          "f1": 0.427
         }
       },
       "closure": {
-        "tolerance_px": 122.0,
-        "wall_network_closure_rate": 0.6667,
+        "tolerance_px": 134.0,
+        "wall_network_closure_rate": 0.7222,
         "room_boundary_closure_rate": 0.6,
-        "mean_boundary_coverage": 0.9591,
-        "interior_coverage": 0.6505
+        "mean_boundary_coverage": 0.8493,
+        "interior_coverage": 0.6438
       }
     },
     "labelme_fp_86_2": {
       "structural": {
         "error": null,
-        "wall_count": 6,
-        "exterior_wall_count": 5,
-        "interior_wall_count": 1,
-        "room_count": 0,
-        "total_area_raw": 377.6,
-        "px_per_ft": 25.0,
-        "polygon_vertices": 24,
-        "wall_network_closure_rate": 0.4167,
-        "dangling_endpoints": 7,
-        "interior_coverage": 0.0,
-        "runtime_s": 0.18
+        "wall_count": 5,
+        "exterior_wall_count": 3,
+        "interior_wall_count": 2,
+        "room_count": 1,
+        "total_area_raw": 175.5,
+        "px_per_ft": 41.0,
+        "polygon_vertices": 28,
+        "wall_network_closure_rate": 0.5,
+        "dangling_endpoints": 5,
+        "interior_coverage": 0.1909,
+        "runtime_s": 0.21
       },
       "scores": {
         "rooms": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6667,
+          "true_positives": 1,
           "false_positives": 0,
-          "false_negatives": 2
+          "false_negatives": 1
         },
         "walls": {
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
           "true_positives": 0,
-          "false_positives": 6,
+          "false_positives": 5,
           "false_negatives": 2
         },
         "doors": {
@@ -1591,33 +1591,33 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.176,
-          "recall": 0.3729,
-          "f1": 0.2391
+          "precision": 0.1884,
+          "recall": 0.2168,
+          "f1": 0.2016
         }
       },
       "closure": {
-        "tolerance_px": 50.0,
-        "wall_network_closure_rate": 0.4167,
+        "tolerance_px": 82.0,
+        "wall_network_closure_rate": 0.5,
         "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.6692,
-        "interior_coverage": 0.0
+        "mean_boundary_coverage": 0.3557,
+        "interior_coverage": 0.1909
       }
     },
     "labelme_fp_87": {
       "structural": {
         "error": null,
-        "wall_count": 12,
+        "wall_count": 11,
         "exterior_wall_count": 10,
-        "interior_wall_count": 2,
+        "interior_wall_count": 1,
         "room_count": 2,
-        "total_area_raw": 1169.9,
-        "px_per_ft": 20.0,
+        "total_area_raw": 429.7,
+        "px_per_ft": 33.0,
         "polygon_vertices": 10,
-        "wall_network_closure_rate": 0.875,
-        "dangling_endpoints": 3,
-        "interior_coverage": 0.6313,
-        "runtime_s": 0.15
+        "wall_network_closure_rate": 0.8182,
+        "dangling_endpoints": 4,
+        "interior_coverage": 0.523,
+        "runtime_s": 0.14
       },
       "scores": {
         "rooms": {
@@ -1629,12 +1629,12 @@
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.0833,
-          "recall": 0.5,
-          "f1": 0.1429,
-          "true_positives": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
           "false_positives": 11,
-          "false_negatives": 1
+          "false_negatives": 2
         },
         "doors": {
           "precision": 0.0,
@@ -1669,17 +1669,17 @@
           "false_negatives": 0
         },
         "walls_coverage": {
-          "precision": 0.4696,
-          "recall": 0.5155,
-          "f1": 0.4915
+          "precision": 0.4061,
+          "recall": 0.618,
+          "f1": 0.4901
         }
       },
       "closure": {
-        "tolerance_px": 40.0,
-        "wall_network_closure_rate": 0.875,
-        "room_boundary_closure_rate": 0.5,
-        "mean_boundary_coverage": 0.9071,
-        "interior_coverage": 0.6313
+        "tolerance_px": 66.0,
+        "wall_network_closure_rate": 0.8182,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 1.0,
+        "interior_coverage": 0.523
       }
     },
     "mcginnies_pdf": {
@@ -1695,7 +1695,7 @@
         "wall_network_closure_rate": 0.7966,
         "dangling_endpoints": 59,
         "interior_coverage": 0.6654,
-        "runtime_s": 4.24
+        "runtime_s": 4.23
       },
       "scores": null,
       "closure": null
@@ -1713,7 +1713,7 @@
         "wall_network_closure_rate": 0.75,
         "dangling_endpoints": 6,
         "interior_coverage": 0.6788,
-        "runtime_s": 0.52
+        "runtime_s": 0.53
       },
       "scores": {
         "rooms": {
@@ -1791,7 +1791,7 @@
         "wall_network_closure_rate": 0.9,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7129,
-        "runtime_s": 0.51
+        "runtime_s": 0.5
       },
       "scores": {
         "rooms": {
@@ -1869,7 +1869,7 @@
         "wall_network_closure_rate": 0.8571,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7235,
-        "runtime_s": 0.5
+        "runtime_s": 0.55
       },
       "scores": {
         "rooms": {

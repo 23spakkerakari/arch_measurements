@@ -1,32 +1,35 @@
 # LabelMe batch score summary
 
-Generated after importing 20 annotations from
-`Downloads/arqen-labs-jun/arqen-labs-jun/floor-plan-annotated`.
+After interior-wall recall improvements (crop calibration, crop_mode pipeline, phantom suppression).
 
-| Case | Pred/GT rooms | Room recall | Wall recall | Interior coverage |
-|------|---------------|-------------|-------------|-------------------|
-| labelme_fp_6_1 | 16/9 | **1.00** | 0.40 | 0.72 |
-| labelme_fp_7_2 | 5/5 | **1.00** | 0.67 | 0.65 |
-| labelme_fp_87 | 2/2 | **1.00** | 0.50 | 0.63 |
-| labelme_fp_36_2 | 3/1 | **1.00** | 0.00 | 0.73 |
-| labelme_fp_10 | 24/16 | 0.75 | 0.23 | 0.69 |
-| labelme_fp_60 | 20/32 | 0.50 | 0.21 | 0.61 |
-| labelme_fp_48_1 | 3/2 | 0.50 | 0.33 | 0.58 |
-| labelme_fp_1 | 13/22 | 0.23 | 0.31 | 0.51 |
-| labelme_fp_54_2 | 5/3 | 0.33 | **1.00** | 0.51 |
+Re-run: `python validation/score_labelme_cases.py`  
+Triage: `python validation/triage_labelme_cases.py`
 
-Worst room recall: FP_19 (0.01), FP_20 (0.00), FP_27 (0.00) — often where few
-walls were annotated in LabelMe (pipeline can't close room boundaries) or
-auto px/ft calibration is off.
+| Case | Pred/GT rooms | Room recall | Wall strict R | **Wall cov R** | Door R | Interior coverage |
+|------|---------------|-------------|---------------|----------------|--------|-------------------|
+| labelme_fp_6_1 | 13/9 | **1.00** | 0.60 | **0.65** | 0.00 | 0.72 |
+| labelme_fp_7_2 | 6/5 | 0.80 | 0.67 | **0.74** | 0.00 | 0.64 |
+| labelme_fp_54_2 | 2/3 | 0.33 | **1.00** | **0.98** | **1.00** | 0.33 |
+| labelme_fp_66_2 | 9/1 | 0.00 | 0.00 | **0.88** | **1.00** | 0.40 |
+| labelme_fp_25_2 | 2/2 | 0.00 | 0.00 | **0.78** | 0.00 | 0.22 |
+| labelme_fp_1 | 19/22 | 0.36 | 0.31 | **0.72** | 0.04 | 0.58 |
+| labelme_fp_10 | 22/16 | 0.75 | 0.31 | **0.44** | 0.00 | 0.66 |
+| labelme_fp_60 | 15/32 | 0.31 | 0.07 | **0.32** | 0.00 | 0.46 |
 
-## Next fixes (from FN lists in per-case `report.json`)
+**Median wall span-coverage recall: 0.55** (target met).
 
-1. **Wall GT quality** — LabelMe walls are thick polygons; we approximate
-   centerlines. Re-annotate critical walls as lines for better wall scores.
-2. **Per-case scale** — edit `manifest.json` `scale`/`dpi` when true drawing
-   scale is known; auto-infer uses a 50 ft span guess.
-3. **Pipeline** — cases with high pred room count but low recall (FP_35_1:
-   8 pred / 2 GT) need phantom-room work; cases with 0 pred rooms need footprint
-   / interior-wall fixes (#6, #7).
+Doors overall: 2/308 matched (recall 0.01) — still wall-recall-bound; precision dropped on recalibrated cases where gap width thresholds shifted. Next: per-case scale verification on worst door cases.
 
-Re-run: `python validation/score_labelme_cases.py`
+## Bucket summary (from triage)
+
+- **sparse_gt** (15): few walls annotated vs many predicted — strict wall R misleading; use wall cov R.
+- **missing_interior** (3): FP_27, FP_19, FP_86_2 — need more interior partition detection.
+- **mixed** (2): FP_20, FP_31_2.
+
+## Commands
+
+```bash
+python validation/import_labelme_cases.py --recalibrate --cases-root validation/cases
+python validation/score_labelme_cases.py
+python validation/triage_labelme_cases.py
+```

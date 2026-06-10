@@ -11,6 +11,7 @@ from preprocess import (
     drop_spanning_coaxial_walls,
     merge_and_deduplicate_segments,
     pixel_length,
+    _run_cleanup_pass,
 )
 
 pytestmark = pytest.mark.unit
@@ -192,7 +193,29 @@ class TestCleanupWallList:
         assert "w_dim" not in ids        # dimension-like dropped
         assert "w1" not in ids           # spanning duplicate dropped
         assert {"w1.s1", "w1.s2", "w_int"} <= ids
-        assert sum(stats.values()) == 2
+        assert sum(v for k, v in stats.items() if not k.endswith("_skipped")) == 2
+
+    def test_audit_trail_records_drops(self):
+        _, _, audit = cleanup_wall_list(
+            self._messy_walls(), dedup_axis_tol_px(PPU), PPU, "ft", audit=True,
+        )
+        dropped = {(d["id"], d["pass"]) for d in audit["drops"]}
+        assert ("w_dim", "dimension_like") in dropped
+        assert ("w1", "duplicate_exterior_strokes") in dropped or ("w1", "spanning") in dropped
+
+    def test_length_guard_skips_pathological_pass(self):
+        walls = [
+            _wall(f"w{i}", (100, 200 + i * 5, 900, 200 + i * 5))
+            for i in range(10)
+        ]
+        stats: dict[str, int] = {}
+        audit: dict = {}
+        out = _run_cleanup_pass(
+            walls, "test_pass", lambda w: w[:1], stats, audit, max_drop_frac=0.40,
+        )
+        assert len(out) == 10
+        assert stats["test_pass_skipped"] == 9
+        assert audit["skipped"][0]["pass"] == "test_pass"
 
     def test_second_pass_is_stable(self):
         cleaned, _ = cleanup_wall_list(
@@ -202,4 +225,4 @@ class TestCleanupWallList:
             [dict(w) for w in cleaned], dedup_axis_tol_px(PPU), PPU, "ft",
         )
         assert len(cleaned2) == len(cleaned)
-        assert sum(stats2.values()) == 0
+        assert sum(v for k, v in stats2.items() if not k.endswith("_skipped")) == 0

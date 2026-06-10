@@ -1746,51 +1746,105 @@ def drop_redundant_exterior_spans(
     return [w for i, w in enumerate(walls) if i not in drop_indices]
 
 
+def _wall_list_length_ft(walls: list[dict]) -> float:
+    return sum(float(w.get("length_raw") or 0) for w in walls)
+
+
+def _run_cleanup_pass(
+    walls: list[dict],
+    pass_name: str,
+    apply_fn,
+    stats: dict[str, int],
+    audit: dict,
+    *,
+    max_drop_frac: float = 0.40,
+) -> list[dict]:
+    """Apply one cleanup pass; skip if it would remove more than max_drop_frac of total length."""
+    before_ids = {w["id"] for w in walls}
+    before_len = _wall_list_length_ft(walls)
+    before_count = len(walls)
+    after = apply_fn(walls)
+    dropped_ids = before_ids - {w["id"] for w in after}
+    after_len = _wall_list_length_ft(after)
+    dropped_len = max(0.0, before_len - after_len)
+
+    if before_len > 0 and dropped_len / before_len > max_drop_frac:
+        stats[f"{pass_name}_skipped"] = len(dropped_ids)
+        audit.setdefault("skipped", []).append({
+            "pass": pass_name,
+            "would_drop": len(dropped_ids),
+            "drop_frac": round(dropped_len / before_len, 4),
+        })
+        stats[pass_name] = 0
+        return walls
+
+    stats[pass_name] = before_count - len(after)
+    if dropped_ids:
+        audit.setdefault("drops", []).extend(
+            {"id": wid, "pass": pass_name} for wid in sorted(dropped_ids)
+        )
+    return after
+
+
 def cleanup_wall_list(
     walls: list[dict],
     axis_tol_px: int,
     px_per_unit: float,
     unit_label: str,
-) -> tuple[list[dict], dict[str, int]]:
-    """Run post-merge wall cleanup passes; return walls and per-pass drop counts."""
+    *,
+    audit: bool = False,
+    max_drop_frac: float = 0.40,
+) -> tuple[list[dict], dict[str, int]] | tuple[list[dict], dict[str, int], dict]:
+    """Run post-merge wall cleanup passes; return walls and per-pass drop counts.
+
+    When ``audit=True``, also return an audit dict with per-wall drop reasons
+    and any passes skipped by the length-conservation guard.
+    """
     stats: dict[str, int] = {}
+    trail: dict = {"drops": [], "skipped": []}
 
-    before = len(walls)
-    walls = drop_duplicate_exterior_strokes(walls, px_per_unit)
-    stats["duplicate_exterior_strokes"] = before - len(walls)
-
-    before = len(walls)
-    walls = drop_dimension_like_walls(walls, axis_tol_px, px_per_unit)
-    stats["dimension_like"] = before - len(walls)
-
-    before = len(walls)
-    walls = drop_spanning_coaxial_walls(
-        walls, axis_tol_px, px_per_unit=px_per_unit,
+    walls = _run_cleanup_pass(
+        walls, "duplicate_exterior_strokes",
+        lambda w: drop_duplicate_exterior_strokes(w, px_per_unit),
+        stats, trail, max_drop_frac=max_drop_frac,
     )
-    stats["spanning"] = before - len(walls)
-
-    before = len(walls)
-    walls = consolidate_coaxial_wall_duplicates(
-        walls, axis_tol_px, px_per_unit, unit_label,
+    walls = _run_cleanup_pass(
+        walls, "dimension_like",
+        lambda w: drop_dimension_like_walls(w, axis_tol_px, px_per_unit),
+        stats, trail, max_drop_frac=max_drop_frac,
     )
-    stats["coaxial_merge"] = before - len(walls)
-
-    before = len(walls)
-    walls = drop_redundant_exterior_spans(walls, px_per_unit, axis_tol_px)
-    stats["exterior_span"] = before - len(walls)
-
-    before = len(walls)
-    walls = drop_spanning_coaxial_walls(
-        walls, axis_tol_px, px_per_unit=px_per_unit,
+    walls = _run_cleanup_pass(
+        walls, "spanning",
+        lambda w: drop_spanning_coaxial_walls(w, axis_tol_px, px_per_unit=px_per_unit),
+        stats, trail, max_drop_frac=max_drop_frac,
     )
-    stats["spanning_final"] = before - len(walls)
-
-    before = len(walls)
-    walls = consolidate_coaxial_wall_duplicates(
-        walls, axis_tol_px, px_per_unit, unit_label,
+    walls = _run_cleanup_pass(
+        walls, "coaxial_merge",
+        lambda w: consolidate_coaxial_wall_duplicates(
+            w, axis_tol_px, px_per_unit, unit_label,
+        ),
+        stats, trail, max_drop_frac=max_drop_frac,
     )
-    stats["coaxial_merge_final"] = before - len(walls)
+    walls = _run_cleanup_pass(
+        walls, "exterior_span",
+        lambda w: drop_redundant_exterior_spans(w, px_per_unit, axis_tol_px),
+        stats, trail, max_drop_frac=max_drop_frac,
+    )
+    walls = _run_cleanup_pass(
+        walls, "spanning_final",
+        lambda w: drop_spanning_coaxial_walls(w, axis_tol_px, px_per_unit=px_per_unit),
+        stats, trail, max_drop_frac=max_drop_frac,
+    )
+    walls = _run_cleanup_pass(
+        walls, "coaxial_merge_final",
+        lambda w: consolidate_coaxial_wall_duplicates(
+            w, axis_tol_px, px_per_unit, unit_label,
+        ),
+        stats, trail, max_drop_frac=max_drop_frac,
+    )
 
+    if audit:
+        return walls, stats, trail
     return walls, stats
 
 

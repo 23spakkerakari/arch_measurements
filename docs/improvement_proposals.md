@@ -15,7 +15,7 @@ cases (all changes are gated by `validation/compare_to_baseline.py`).
 | 1 | ~~Phantom room-cell suppression~~ **DONE 2026-06-10** | Delivered — rooms P 0.50 → 1.00 on synth, closure +0.07…+0.18 on real plans | Low | Low | rooms P/R, room counts |
 | 2 | ~~Wall endpoint corner-snapping~~ **DONE 2026-06-10** | Delivered — closure 0.62–0.78 on real plans (was 0.54–0.58); synth 0.86–0.90 | Medium | Medium | closure rate, walls F1 |
 | 3 | Scale/DPI sanity guards | High (reliability) — prevents silently wrong *all* measurements on bad inputs | Low | Low | px_per_ft, error statuses |
-| 4 | Dedup audit trail + safer fallbacks | Medium — protects the 7-pass cleanup from deleting real walls (synth_two_room wall FP=7 shows duplicates still leak) | Low | Low | walls P, cleanup stats |
+| 4 | ~~Dedup audit trail + safer fallbacks~~ **DONE 2026-06-10** | Length-conservation guard skips passes that would drop >40% of total wall length; optional per-wall drop audit | Low | Low | walls P, cleanup stats |
 | 5 | Interior coverage recovery (corridors/small rooms) | Medium — interior coverage 0.60–0.72 → 0.85+ | Medium | Medium-high | interior coverage, rooms R |
 | 6 | Footprint confidence + parameterized morphology | Medium — protects the single highest-leverage failure point (stage [4] has no fallback) | Medium | Medium | error rate, area, polygon |
 | 7 | Door detection (geometric) | Unlocks doors 0% → ~60–80% recall | High | Medium | doors P/R/F1 |

@@ -12,7 +12,7 @@ cases (all changes are gated by `validation/compare_to_baseline.py`).
 
 | # | Proposal | Expected gain | Effort | Regression risk | Gated by |
 |---|----------|---------------|--------|-----------------|----------|
-| 1 | Phantom room-cell suppression | High — rooms P 0.50 → ~1.0 on synth; fewer bogus rooms everywhere | Low | Low | rooms P/R, room counts |
+| 1 | ~~Phantom room-cell suppression~~ **DONE 2026-06-10** | Delivered — rooms P 0.50 → 1.00 on synth, closure +0.07…+0.18 on real plans | Low | Low | rooms P/R, room counts |
 | 2 | Wall endpoint corner-snapping | High — wall-network closure 0.54–0.58 → 0.85+ on real plans; cleaner topology for everything downstream | Medium | Medium | closure rate, walls F1 |
 | 3 | Scale/DPI sanity guards | High (reliability) — prevents silently wrong *all* measurements on bad inputs | Low | Low | px_per_ft, error statuses |
 | 4 | Dedup audit trail + safer fallbacks | Medium — protects the 7-pass cleanup from deleting real walls (synth_two_room wall FP=7 shows duplicates still leak) | Low | Low | walls P, cleanup stats |
@@ -31,23 +31,35 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parses to 19.5).
 
 ---
 
-## 1. Phantom room-cell suppression
+## 1. Phantom room-cell suppression — IMPLEMENTED 2026-06-10
 
-- **Baseline evidence:** `synth_two_room` detects 4 rooms where 2 exist
-  (precision 0.50). Window sill ink and partition endpoint-extension strokes
-  carve spurious cells out of the interior mask.
-- **Change:** in `room_wall_split.build_room_label_map`, reject cells that are
-  implausible rooms: aspect ratio > ~12, area barely above `min_room_area_px`
-  while hugging the wall band, or cells whose bbox sits inside the wall
-  thickness corridor. Optionally merge sliver cells into the neighbor sharing
-  the longest boundary.
-- **Expected impact:** rooms precision → ~1.0 on synthetic; room counts on
-  real plans drop to plausible values; interior coverage roughly unchanged.
-- **Risk + mitigation:** legitimate narrow rooms (corridors) could be dropped
-  — tune thresholds against `capture_165134` room count and add a corridor
-  fixture to the synth renderer first.
-- **Tests:** extend `tests/unit/test_room_split.py` with a sill-artifact mask;
-  assert `synth_two_room` room_count == 2 after change.
+- **Baseline evidence:** `synth_two_room` detected 4 rooms where 2 exist
+  (precision 0.50); phantom cells appeared between real walls and adjacent
+  dimension strings; dimension lines also leaked into the wall list.
+- **What landed** (differs from the original sketch — the root cause turned
+  out to be annotation ink, not sill slivers):
+  - `preprocess._snap_axis_position`: pair-validated snapping
+    (`_stroke_partner_stats`) with a relative annotation hop for polygon
+    edges riding a dimension-string bulge; legacy score taken from the
+    stroke cluster, not the raw coordinate.
+  - `preprocess.snap_segments_to_walls`: spans trimmed to the ink that
+    justified the snap; exterior parents clamped to the exterior axis
+    envelope (`clamp_segments_to_envelope`).
+  - `room_wall_split.drop_rooms_outside_exterior` + 
+    `drop_segments_outside_exterior`: room cells and Hough interior
+    candidates outside the snapped exterior envelope are dropped.
+  - `drop_duplicate_exterior_strokes` span-overlap fix and
+    `segment_traces_exterior` clamped-distance fix (stepped perimeters no
+    longer merged/rejected wrongly).
+- **Measured impact:** synth rooms P/R 1.0/1.0 (IoU 0.97), room boundary
+  closure 1.0 on both synth cases; exterior axes exactly on GT centerlines;
+  wall-network closure 0.576 → 0.758 and dangling endpoints 89 → 61 on
+  `mcginnies_pdf`; closure +0.07/+0.10 on the captures; rooms stable at 40
+  on mcginnies. Baseline re-captured (see `docs/baseline_metrics.md`).
+- **Residuals (feed later proposals):** footprint polygon still swallows the
+  dimension strip (inflates `total_area` and the interior-coverage
+  denominator — fold into #6); captures still merge rooms through unsealed
+  door gaps (#5/#7); strict 1:1 wall matching penalizes sub-segments (M2).
 
 ## 2. Wall endpoint corner-snapping
 

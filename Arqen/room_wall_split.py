@@ -72,15 +72,31 @@ def detect_hough_segments(wall_mask, bbox, margin=30):
     ]
 
 
+def _clamped_distance_to_segment(px, py, x1, y1, x2, y2):
+    """Distance from point to the segment itself (projection clamped to it)."""
+    t, d = project_point_onto_segment(px, py, x1, y1, x2, y2)
+    if t < 0.0:
+        return math.hypot(px - x1, py - y1)
+    if t > 1.0:
+        return math.hypot(px - x2, py - y2)
+    return d
+
+
 def segment_traces_exterior(seg, exterior_walls, near_tol):
-    """True if seg is parallel to and lies on an exterior wall (both endpoints near it)."""
+    """True if seg is parallel to and lies on an exterior wall (both endpoints near it).
+
+    Distances are measured to the exterior segment itself, not its infinite
+    line: a collinear wall far beyond the exterior segment's end (a different
+    step of the perimeter, or an interior wall continuing past it) does not
+    trace it.
+    """
     x1, y1, x2, y2 = seg
     seg_ang = seg_angle_deg(x1, y1, x2, y2)
     for ew in exterior_walls:
         ew_ang = seg_angle_deg(*ew)
         if angle_diff(seg_ang, ew_ang) < 15:
-            _, d1 = project_point_onto_segment(x1, y1, *ew)
-            _, d2 = project_point_onto_segment(x2, y2, *ew)
+            d1 = _clamped_distance_to_segment(x1, y1, *ew)
+            d2 = _clamped_distance_to_segment(x2, y2, *ew)
             if d1 < near_tol and d2 < near_tol:
                 return True
     return False
@@ -194,31 +210,119 @@ def build_room_label_map(
     return relabeled, rooms
 
 
+def exterior_axis_envelope(
+    exterior_segments: list[tuple],
+) -> Optional[tuple[int, int, int, int]]:
+    """(x_lo, x_hi, y_lo, y_hi) spanned by the snapped exterior wall axes.
+
+    Uses the perpendicular axis position of each segment (midpoint of the
+    perpendicular coordinates), not the endpoints: endpoints retain contour
+    bump overshoot past corners, axes are pair-validated onto wall ink.
+    Returns None when either orientation is missing.
+    """
+    h_axes, v_axes = [], []
+    for x1, y1, x2, y2 in exterior_segments:
+        if abs(x2 - x1) >= abs(y2 - y1):
+            h_axes.append((y1 + y2) // 2)
+        else:
+            v_axes.append((x1 + x2) // 2)
+    if not h_axes or not v_axes:
+        return None
+    return min(v_axes), max(v_axes), min(h_axes), max(h_axes)
+
+
+def clamp_segments_to_envelope(
+    segments: list[tuple],
+    pad_px: int,
+) -> list[tuple]:
+    """Clamp segment spans to the exterior axis envelope of the set itself.
+
+    Footprint-polygon edges can run past the building along an annotation
+    strip merged into the footprint (e.g. down the side of a dimension
+    string). The snapped axes bound the building; no wall extends beyond the
+    outermost perpendicular axis by more than half a wall thickness, so spans
+    are clamped to the envelope expanded by pad_px. Degenerate results are
+    left untouched.
+    """
+    env = exterior_axis_envelope(segments)
+    if env is None:
+        return segments
+    x_lo, x_hi = env[0] - pad_px, env[1] + pad_px
+    y_lo, y_hi = env[2] - pad_px, env[3] + pad_px
+    out = []
+    for x1, y1, x2, y2 in segments:
+        cx1 = min(max(x1, x_lo), x_hi)
+        cx2 = min(max(x2, x_lo), x_hi)
+        cy1 = min(max(y1, y_lo), y_hi)
+        cy2 = min(max(y2, y_lo), y_hi)
+        if (cx1, cy1) == (cx2, cy2):
+            out.append((x1, y1, x2, y2))
+        else:
+            out.append((cx1, cy1, cx2, cy2))
+    return out
+
+
+def drop_segments_outside_exterior(
+    segments: list[tuple],
+    exterior_segments: list[tuple],
+    margin_px: int = 0,
+) -> list[tuple]:
+    """Remove candidate interior segments lying outside the exterior envelope.
+
+    Dimension strings and other annotation strokes sit outside the building's
+    exterior walls. Once the exterior segments are pair-validated onto true
+    wall ink, anything whose midpoint falls outside their axis envelope
+    (expanded by margin_px) cannot be an interior wall.
+    """
+    env = exterior_axis_envelope(exterior_segments)
+    if env is None:
+        return segments
+    x_lo, x_hi = env[0] - margin_px, env[1] + margin_px
+    y_lo, y_hi = env[2] - margin_px, env[3] + margin_px
+    kept = []
+    for seg in segments:
+        x1, y1, x2, y2 = seg
+        mx, my = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+        if x_lo <= mx <= x_hi and y_lo <= my <= y_hi:
+            kept.append(seg)
+    return kept
+
+
 def drop_rooms_outside_exterior(
     rooms: list[dict],
     room_labels: np.ndarray,
     exterior_segments: list[tuple],
     margin_px: int,
 ) -> tuple[list[dict], np.ndarray]:
-    """Remove room cells whose centroid falls outside the snapped exterior walls.
+    """Remove phantom room cells lying outside the snapped exterior walls.
 
     The footprint contour is traced on a morphologically inflated mask, so it
     can bulge past the real exterior walls to nearby annotation ink (dimension
-    strings, leaders). The sliver between the wall and the contour edge then
-    survives as a phantom room cell. Real rooms lie inside the exterior wall
-    centerlines; phantom slivers lie outside. Cells whose centroid is not
-    within the bbox of the snapped exterior segments (shrunk inward by
-    margin_px) are dropped and the label map is renumbered compactly.
+    strings, leaders). The sliver between the wall and that ink then survives
+    as a phantom room cell — bounded by real ink on every side, but outside
+    the building.
 
-    Skips filtering when the exterior bbox is degenerate (detection failure).
+    The snapped exterior segments are pair-validated onto true wall ink, so
+    their perpendicular axis positions bound the building reliably: the
+    outermost horizontal axes give the y-range, the outermost vertical axes
+    the x-range. (Segment endpoints are NOT used — they retain the contour's
+    bump overshoot past corners.) Cells whose centroid falls outside that
+    range, shrunk inward by margin_px, are dropped and the label map is
+    renumbered compactly.
+
+    Skips filtering when either orientation is missing or the resulting box
+    is degenerate (exterior detection failure) — better to keep a phantom
+    than to drop real rooms.
     """
     if not rooms or not exterior_segments:
         return rooms, room_labels
 
-    xs = [c for s in exterior_segments for c in (s[0], s[2])]
-    ys = [c for s in exterior_segments for c in (s[1], s[3])]
-    x_lo, x_hi = min(xs) + margin_px, max(xs) - margin_px
-    y_lo, y_hi = min(ys) + margin_px, max(ys) - margin_px
+    env = exterior_axis_envelope(exterior_segments)
+    if env is None:
+        return rooms, room_labels
+
+    x_lo, x_hi = env[0] + margin_px, env[1] - margin_px
+    y_lo, y_hi = env[2] + margin_px, env[3] - margin_px
     if (x_hi - x_lo) < 4 * margin_px or (y_hi - y_lo) < 4 * margin_px:
         return rooms, room_labels
 

@@ -243,8 +243,12 @@ def render_l_shape_plan(
         "scale": scale_str,
         "image_size_px": [sheet_w, sheet_h],
         "rooms": [
-            # Upper room is L-shaped; bbox covers its extent
-            {"id": "R1", "bbox_px": [178, 238, 1222, py_a]},
+            # Upper room is L-shaped: bbox for matching, exact polygon for
+            # boundary-closure sampling (a bbox perimeter would run through
+            # the notch where no wall exists).
+            {"id": "R1", "bbox_px": [178, 238, 1222, py_a],
+             "polygon_px": [[178, 238], [772, 238], [772, 598], [1222, 598],
+                            [1222, py_a], [178, py_a]]},
             {"id": "R2", "bbox_px": [178, py_b, 1222, 1102]},
         ],
         "walls": [

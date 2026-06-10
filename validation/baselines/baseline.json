@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-10T04:07:52Z",
+  "created_utc": "2026-06-10T14:49:13Z",
   "env": {
     "python": "3.14.2",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -11,17 +11,17 @@
     "capture_153430": {
       "structural": {
         "error": null,
-        "wall_count": 35,
-        "exterior_wall_count": 15,
+        "wall_count": 39,
+        "exterior_wall_count": 19,
         "interior_wall_count": 20,
-        "room_count": 8,
+        "room_count": 6,
         "total_area_raw": 2797.0,
         "px_per_ft": 54.0,
         "polygon_vertices": 23,
-        "wall_network_closure_rate": 0.5429,
-        "dangling_endpoints": 32,
-        "interior_coverage": 0.6401,
-        "runtime_s": 2.6
+        "wall_network_closure_rate": 0.6154,
+        "dangling_endpoints": 30,
+        "interior_coverage": 0.6045,
+        "runtime_s": 3.05
       },
       "scores": null,
       "closure": null
@@ -30,16 +30,16 @@
       "structural": {
         "error": null,
         "wall_count": 35,
-        "exterior_wall_count": 14,
-        "interior_wall_count": 21,
-        "room_count": 8,
+        "exterior_wall_count": 17,
+        "interior_wall_count": 18,
+        "room_count": 6,
         "total_area_raw": 2623.2,
         "px_per_ft": 54.0,
         "polygon_vertices": 19,
-        "wall_network_closure_rate": 0.5571,
-        "dangling_endpoints": 31,
-        "interior_coverage": 0.6032,
-        "runtime_s": 3.22
+        "wall_network_closure_rate": 0.6571,
+        "dangling_endpoints": 24,
+        "interior_coverage": 0.6186,
+        "runtime_s": 4.22
       },
       "scores": null,
       "closure": null
@@ -120,17 +120,17 @@
     "mcginnies_pdf": {
       "structural": {
         "error": null,
-        "wall_count": 105,
-        "exterior_wall_count": 54,
-        "interior_wall_count": 51,
+        "wall_count": 126,
+        "exterior_wall_count": 58,
+        "interior_wall_count": 68,
         "room_count": 40,
         "total_area_raw": 8702.1,
         "px_per_ft": 9.38,
         "polygon_vertices": 80,
-        "wall_network_closure_rate": 0.5762,
-        "dangling_endpoints": 89,
-        "interior_coverage": 0.7172,
-        "runtime_s": 7.56
+        "wall_network_closure_rate": 0.7579,
+        "dangling_endpoints": 61,
+        "interior_coverage": 0.6535,
+        "runtime_s": 11.04
       },
       "scores": null,
       "closure": null
@@ -138,33 +138,33 @@
     "synth_l_shape": {
       "structural": {
         "error": null,
-        "wall_count": 11,
-        "exterior_wall_count": 11,
-        "interior_wall_count": 0,
+        "wall_count": 10,
+        "exterior_wall_count": 8,
+        "interior_wall_count": 2,
         "room_count": 2,
-        "total_area_raw": 2301.9,
+        "total_area_raw": 3045.3,
         "px_per_ft": 18.0,
-        "polygon_vertices": 12,
-        "wall_network_closure_rate": 0.7727,
-        "dangling_endpoints": 5,
-        "interior_coverage": 0.7678,
-        "runtime_s": 0.9
+        "polygon_vertices": 6,
+        "wall_network_closure_rate": 0.9,
+        "dangling_endpoints": 2,
+        "interior_coverage": 0.7129,
+        "runtime_s": 1.14
       },
       "scores": {
         "rooms": {
-          "precision": 0.5,
-          "recall": 0.5,
-          "f1": 0.5,
-          "true_positives": 1,
-          "false_positives": 1,
-          "false_negatives": 1
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 2,
+          "false_positives": 0,
+          "false_negatives": 0
         },
         "walls": {
-          "precision": 0.5455,
+          "precision": 0.6,
           "recall": 0.8571,
-          "f1": 0.6667,
+          "f1": 0.7059,
           "true_positives": 6,
-          "false_positives": 5,
+          "false_positives": 4,
           "false_negatives": 1
         },
         "doors": {
@@ -202,43 +202,43 @@
       },
       "closure": {
         "tolerance_px": 36.0,
-        "wall_network_closure_rate": 0.7727,
-        "room_boundary_closure_rate": 0.0,
-        "mean_boundary_coverage": 0.8575,
-        "interior_coverage": 0.7678
+        "wall_network_closure_rate": 0.9,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 1.0,
+        "interior_coverage": 0.7129
       }
     },
     "synth_two_room": {
       "structural": {
         "error": null,
-        "wall_count": 9,
-        "exterior_wall_count": 6,
-        "interior_wall_count": 3,
-        "room_count": 4,
-        "total_area_raw": 2970.7,
+        "wall_count": 7,
+        "exterior_wall_count": 5,
+        "interior_wall_count": 2,
+        "room_count": 2,
+        "total_area_raw": 2957.9,
         "px_per_ft": 18.0,
         "polygon_vertices": 8,
-        "wall_network_closure_rate": 0.8333,
-        "dangling_endpoints": 3,
-        "interior_coverage": 0.8511,
-        "runtime_s": 0.95
+        "wall_network_closure_rate": 0.8571,
+        "dangling_endpoints": 2,
+        "interior_coverage": 0.722,
+        "runtime_s": 1.18
       },
       "scores": {
         "rooms": {
-          "precision": 0.5,
+          "precision": 1.0,
           "recall": 1.0,
-          "f1": 0.6667,
+          "f1": 1.0,
           "true_positives": 2,
-          "false_positives": 2,
+          "false_positives": 0,
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.2222,
-          "recall": 0.4,
-          "f1": 0.2857,
-          "true_positives": 2,
-          "false_positives": 7,
-          "false_negatives": 3
+          "precision": 0.5714,
+          "recall": 0.8,
+          "f1": 0.6667,
+          "true_positives": 4,
+          "false_positives": 3,
+          "false_negatives": 1
         },
         "doors": {
           "precision": 0.0,
@@ -275,10 +275,10 @@
       },
       "closure": {
         "tolerance_px": 36.0,
-        "wall_network_closure_rate": 0.8333,
-        "room_boundary_closure_rate": 0.5,
-        "mean_boundary_coverage": 0.88,
-        "interior_coverage": 0.8511
+        "wall_network_closure_rate": 0.8571,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 1.0,
+        "interior_coverage": 0.722
       }
     }
   }

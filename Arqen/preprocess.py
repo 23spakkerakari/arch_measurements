@@ -39,7 +39,12 @@ from calibration_validate import (
     validate_total_area,
 )
 from extract_wall_segments_class import extract_wall_segments
-from room_wall_split import segment_traces_exterior, split_exterior_walls_by_room
+from room_wall_split import (
+    clamp_segments_to_envelope,
+    drop_segments_outside_exterior,
+    segment_traces_exterior,
+    split_exterior_walls_by_room,
+)
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -875,6 +880,71 @@ def _cluster_1d_positions(values: np.ndarray, link_px: int = 4) -> list[int]:
     return centers
 
 
+def _stroke_partner_stats(
+    wall_mask: np.ndarray,
+    seg: tuple,
+    gap_lo: int,
+    gap_hi: int,
+    n_samples: int = 24,
+) -> tuple[float, float]:
+    """(ink presence, partner coverage given presence) along a stroke row/col.
+
+    Samples n_samples points along seg. presence = fraction of samples where
+    the stroke itself has ink (within +/-2 px perpendicular). partner = of
+    those present samples, the fraction with a parallel partner stroke within
+    [gap_lo, gap_hi] perpendicular.
+
+    Unlike a partner check over the whole span, this stays valid for a
+    polygon edge spanning a stepped perimeter (wall ink present on only part
+    of the span, but fully partnered where present) while still failing
+    single-stroke annotation ink (present everywhere, partnered only near
+    tick marks and text).
+    """
+    h, w = wall_mask.shape
+    x1, y1, x2, y2 = seg
+    is_horiz = abs(x2 - x1) >= abs(y2 - y1)
+
+    present = 0
+    partnered = 0
+    for k in range(n_samples):
+        t = (k + 0.5) / n_samples
+        px = int(round(x1 + t * (x2 - x1)))
+        py = int(round(y1 + t * (y2 - y1)))
+        if not (0 <= px < w and 0 <= py < h):
+            continue
+        if is_horiz:
+            self_lo = max(0, py - 2)
+            self_hi = min(h - 1, py + 2)
+            has_self = (wall_mask[self_lo:self_hi + 1, px] > 0).any()
+        else:
+            self_lo = max(0, px - 2)
+            self_hi = min(w - 1, px + 2)
+            has_self = (wall_mask[py, self_lo:self_hi + 1] > 0).any()
+        if not has_self:
+            continue
+        present += 1
+        if is_horiz:
+            lo_a = max(0, py - gap_hi)
+            hi_a = max(0, py - gap_lo)
+            lo_b = min(h - 1, py + gap_lo)
+            hi_b = min(h - 1, py + gap_hi)
+            has_partner = ((wall_mask[lo_a:hi_a + 1, px] > 0).any()
+                           or (wall_mask[lo_b:hi_b + 1, px] > 0).any())
+        else:
+            lo_a = max(0, px - gap_hi)
+            hi_a = max(0, px - gap_lo)
+            lo_b = min(w - 1, px + gap_lo)
+            hi_b = min(w - 1, px + gap_hi)
+            has_partner = ((wall_mask[py, lo_a:hi_a + 1] > 0).any()
+                           or (wall_mask[py, lo_b:hi_b + 1] > 0).any())
+        if has_partner:
+            partnered += 1
+
+    if present == 0:
+        return 0.0, 0.0
+    return present / n_samples, partnered / present
+
+
 def _snap_axis_position(
     wall_mask: np.ndarray,
     is_horiz: bool,
@@ -887,43 +957,80 @@ def _snap_axis_position(
     validate: bool,
     gap_lo: int,
     gap_hi: int,
+    allow_hop: bool = False,
 ) -> Optional[int]:
     """Snapped perpendicular coordinate for one segment, or None if no ink.
 
     Legacy behavior (validate=False): median of ink coords in the search
     strip, or the outermost ink row/col near crop edges.
 
-    With validate=True, ink coords are clustered and tried in the path's
-    preference order (nearest-to-original for the median path, outermost-first
-    near edges). The first cluster that passes a double-stroke partner check
-    (`_has_parallel_partner`) wins and the segment snaps to the midpoint of
-    the stroke pair. Single-stroke annotation ink — dimension lines, leaders,
-    text — fails the check and is skipped, fixing snaps that previously locked
-    onto dimension strings that bulged the footprint contour. The median path
-    retries at double radius (the real wall can sit beyond the bulge), then
-    falls back to the legacy position.
+    With validate=True the legacy target is checked against a double-stroke
+    partner test (`_stroke_partner_stats`). If the stroke cluster at the
+    target passes, the snap is only refined to the centerline of its stroke
+    pair (bounded by the wall gap).
+
+    With allow_hop=True the segment may additionally move to a different ink
+    cluster — the rescue for footprint-polygon edges that ride an annotation
+    bulge (dimension string near the building). Because walls on some plans
+    are drawn single-stroke (no partner at all), hopping is RELATIVE, not
+    absolute: it requires the legacy target to be clearly unpartnered AND the
+    destination to be clearly partnered (a drawn wall pair). Clusters are
+    tried in the path's preference order (nearest-to-original for the median
+    path, outermost-first near crop edges), retrying at double radius because
+    the real wall can sit beyond the bulge. Segments already sitting on their
+    own ink (Hough interiors) must never hop onto a neighboring parallel
+    wall; keep allow_hop off for them.
     """
     h, w = wall_mask.shape
     limit = h if is_horiz else w
     if span_lo >= span_hi:
         return None
 
-    def _ink_coords(grow: int) -> np.ndarray:
+    def _ink_counts(grow: int) -> tuple[int, Optional[np.ndarray]]:
+        """(window_start, per-row/col ink counts along the span)."""
         lo = max(0, center - radius * grow)
         hi = min(limit - 1, center + radius * grow)
         if lo >= hi:
-            return np.empty(0, dtype=np.int64)
+            return lo, None
         if is_horiz:
             strip = wall_mask[lo:hi + 1, span_lo:span_hi + 1]
-            coords, _ = np.where(strip > 0)
+            counts = (strip > 0).sum(axis=1)
         else:
             strip = wall_mask[span_lo:span_hi + 1, lo:hi + 1]
-            _, coords = np.where(strip > 0)
-        return coords + lo
+            counts = (strip > 0).sum(axis=0)
+        return lo, counts
 
-    coords = _ink_coords(1)
-    if len(coords) < min_pixels:
+    def _clusters(lo: int, counts: np.ndarray) -> list[int]:
+        # Only positions carrying a significant share of ink along the span
+        # can be wall strokes. Rows/cols crossed merely by perpendicular
+        # walls or text carry a few pixels each; without this threshold they
+        # fuse separate stroke clusters into one blob whose center lies off
+        # any real wall.
+        sig_thresh = max(min_pixels, int(0.2 * counts.max()))
+        sig = np.where(counts >= sig_thresh)[0] + lo
+        return _cluster_1d_positions(sig)
+
+    def _stats(c: int) -> tuple[float, float]:
+        test_seg = (span_lo, c, span_hi, c) if is_horiz else (c, span_lo, c, span_hi)
+        return _stroke_partner_stats(wall_mask, test_seg, gap_lo, gap_hi)
+
+    def _pair_midpoint(c: int, centers: list[int]) -> int:
+        # Centerline of the stroke pair: midpoint of this stroke and the
+        # farthest partner stroke on the partner side (skipping intermediate
+        # strokes such as window sills).
+        in_range = [o for o in centers if o != c and gap_lo <= abs(o - c) <= gap_hi]
+        if not in_range:
+            return c
+        nearest = min(in_range, key=lambda o: abs(o - c))
+        side = 1 if nearest > c else -1
+        far = max((o for o in in_range if (o - c) * side > 0),
+                  key=lambda o: abs(o - c))
+        return (c + far) // 2
+
+    lo, counts = _ink_counts(1)
+    if counts is None or int(counts.sum()) < min_pixels:
         return None
+    coords = np.repeat(np.arange(lo, lo + len(counts)), counts)
 
     # Near the crop top/left, snap to the outermost wall-pair position
     # (minimum) instead of the median — median lands on the inner face or a
@@ -937,14 +1044,41 @@ def _snap_axis_position(
     if not validate:
         return legacy
 
+    centers = _clusters(lo, counts)
+
+    # Anchor on the legacy target: if the stroke cluster it landed on is a
+    # partnered wall pair, keep it (refined to the pair centerline).
+    anchored = [c for c in centers if abs(c - legacy) <= gap_hi]
+    anchored.sort(key=lambda v: abs(v - legacy))
+    for c in anchored:
+        present, partnered = _stats(c)
+        if present >= 0.15 and partnered >= 0.5:
+            return _pair_midpoint(c, centers)
+
+    if not allow_hop:
+        return legacy
+
+    # Hop only to a destination that is clearly more wall-like than the
+    # legacy target: strongly partnered ink (a drawn wall pair) where the
+    # target is mostly unpartnered (annotation ink). The relative margin
+    # protects plans whose walls are drawn single-stroke: there the
+    # alternatives are unpartnered too, so nothing hops.
+    #
+    # Score the legacy target on the stroke cluster it sits on, not the raw
+    # coordinate: coords.min()/max() can land on a sliver of tick ink whose
+    # few present samples all see the adjacent stroke, yielding a meaningless
+    # partnered=1.0 that would block every hop.
+    leg_present, q_legacy = _stats(anchored[0] if anchored else legacy)
+    if leg_present < 0.15:
+        q_legacy = 0.0
     for grow in (1, 2):
         if grow > 1:
             if order != "near":
                 break
-            coords = _ink_coords(grow)
-            if len(coords) < min_pixels:
+            lo, counts = _ink_counts(grow)
+            if counts is None or int(counts.sum()) < min_pixels:
                 continue
-        centers = _cluster_1d_positions(coords)
+            centers = _clusters(lo, counts)
         if order == "asc":
             centers.sort()
         elif order == "desc":
@@ -952,15 +1086,12 @@ def _snap_axis_position(
         else:
             centers.sort(key=lambda v: abs(v - center))
         for c in centers:
-            test_seg = (span_lo, c, span_hi, c) if is_horiz else (c, span_lo, c, span_hi)
-            if _has_parallel_partner(wall_mask, test_seg, gap_lo, gap_hi,
-                                     min_coverage=0.35):
-                partners = [o for o in centers
-                            if o != c and gap_lo <= abs(o - c) <= gap_hi]
-                if partners:
-                    p = min(partners, key=lambda o: abs(o - c))
-                    return (c + p) // 2
-                return c
+            if abs(c - legacy) <= gap_hi:
+                continue
+            present, partnered = _stats(c)
+            if (present >= 0.3 and partnered >= 0.6
+                    and partnered >= q_legacy + 0.25):
+                return _pair_midpoint(c, centers)
     return legacy
 
 
@@ -971,6 +1102,7 @@ def snap_segments_to_walls(
     min_pixels: int = 10,
     px_per_unit: float = 18.0,
     validate_pairs: bool = False,
+    allow_hop: bool = False,
 ) -> list[tuple]:
     """
     Shift each polygon-derived segment onto the nearest actual wall-pair pixels.
@@ -983,12 +1115,40 @@ def snap_segments_to_walls(
 
     validate_pairs=True additionally requires the snap target to look like a
     double-stroke wall (see _snap_axis_position), skipping single-stroke
-    annotation ink such as dimension strings near the building.
+    annotation ink such as dimension strings near the building. allow_hop=True
+    lets a segment whose target fails that test move to the nearest validated
+    wall cluster — intended for footprint-polygon edges that ride an
+    annotation bulge; keep it off for segments already sitting on their ink.
     """
     h, w = wall_mask.shape
     radius = max(search_radius, int(2 * px_per_unit))
     edge_frac = 0.12
     gap_lo, gap_hi = wall_pair_gap_range(px_per_unit)
+
+    def _ink_extent(is_horiz: bool, axis: int, s_lo: int, s_hi: int,
+                    e_lo: int, e_hi: int) -> tuple[int, int]:
+        """Trim a snapped segment's span to the ink that justified the snap.
+
+        Polygon edges can run past the building into an annotation bulge
+        (e.g. down the side of a dimension-string strip merged into the
+        footprint); the snapped axis has wall ink only along the real wall.
+        Collapse a band of +/-gap_hi around the snapped axis and shrink the
+        span ends to the first/last ink. Never expands the original span.
+        """
+        b_lo = max(0, axis - gap_hi)
+        b_hi = min((h if is_horiz else w) - 1, axis + gap_hi)
+        if is_horiz:
+            band = wall_mask[b_lo:b_hi + 1, s_lo:s_hi + 1]
+            profile = (band > 0).any(axis=0)
+        else:
+            band = wall_mask[s_lo:s_hi + 1, b_lo:b_hi + 1]
+            profile = (band > 0).any(axis=1)
+        idx = np.flatnonzero(profile)
+        if idx.size == 0:
+            return e_lo, e_hi
+        ink_lo, ink_hi = s_lo + int(idx[0]), s_lo + int(idx[-1])
+        return max(e_lo, ink_lo), min(e_hi, ink_hi)
+
     snapped = []
     for (x1, y1, x2, y2) in segments:
         is_horiz = abs(x2 - x1) >= abs(y2 - y1)
@@ -999,9 +1159,15 @@ def snap_segments_to_walls(
             ny = _snap_axis_position(
                 wall_mask, True, cy, x_lo, x_hi,
                 radius, min_pixels, edge_frac, validate_pairs, gap_lo, gap_hi,
+                allow_hop=allow_hop,
             )
             if ny is not None:
-                snapped.append((x1, ny, x2, ny))
+                nx1, nx2 = x1, x2
+                if validate_pairs and x_lo < x_hi:
+                    t_lo, t_hi = _ink_extent(
+                        True, ny, x_lo, x_hi, min(x1, x2), max(x1, x2))
+                    nx1, nx2 = (t_lo, t_hi) if x1 <= x2 else (t_hi, t_lo)
+                snapped.append((nx1, ny, nx2, ny))
                 continue
         else:
             cx = (x1 + x2) // 2
@@ -1010,9 +1176,15 @@ def snap_segments_to_walls(
             nx = _snap_axis_position(
                 wall_mask, False, cx, y_lo, y_hi,
                 radius, min_pixels, edge_frac, validate_pairs, gap_lo, gap_hi,
+                allow_hop=allow_hop,
             )
             if nx is not None:
-                snapped.append((nx, y1, nx, y2))
+                ny1, ny2 = y1, y2
+                if validate_pairs and y_lo < y_hi:
+                    t_lo, t_hi = _ink_extent(
+                        False, nx, y_lo, y_hi, min(y1, y2), max(y1, y2))
+                    ny1, ny2 = (t_lo, t_hi) if y1 <= y2 else (t_hi, t_lo)
+                snapped.append((nx, ny1, nx, ny2))
                 continue
         snapped.append((x1, y1, x2, y2))
     return snapped
@@ -1332,7 +1504,16 @@ def drop_duplicate_exterior_strokes(
             for j in range(i + 1, n):
                 if parent_info[i]["horiz"] != parent_info[j]["horiz"]:
                     continue
-                if abs(parent_info[i]["perp"] - parent_info[j]["perp"]) <= stroke_tol:
+                if abs(parent_info[i]["perp"] - parent_info[j]["perp"]) > stroke_tol:
+                    continue
+                # Double-drawn faces of the same wall overlap along their
+                # axis; same-facing parents at close perp but disjoint spans
+                # are distinct steps of the perimeter, not duplicates.
+                overlap = (min(parent_info[i]["hi"], parent_info[j]["hi"])
+                           - max(parent_info[i]["lo"], parent_info[j]["lo"]))
+                shorter = min(parent_info[i]["hi"] - parent_info[i]["lo"],
+                              parent_info[j]["hi"] - parent_info[j]["lo"])
+                if overlap >= max(20, 0.3 * shorter):
                     _union(i, j)
 
         clusters: dict[int, list[int]] = {}
@@ -1972,9 +2153,14 @@ def analyze_page(
     segments = _filter_wall_segments(segments, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac)
     print(f"  [pipeline] segments: raw={raw_count} after_filter={len(segments)}", file=sys.stderr)
     segments = snap_segments_to_walls(
-        segments, wall_pair_mask, px_per_unit=px_per_unit, validate_pairs=True,
+        segments, wall_pair_mask, px_per_unit=px_per_unit,
+        validate_pairs=True, allow_hop=True,
     )
     print(f"  [pipeline] segments after snap={len(segments)}", file=sys.stderr)
+    # Cut polygon-edge tails that ride an annotation strip past the building.
+    segments = clamp_segments_to_envelope(
+        segments, pad_px=max(2, wall_pair_gap_range(px_per_unit)[1] // 2),
+    )
 
     exterior_segs = list(segments)
 
@@ -2033,6 +2219,17 @@ def analyze_page(
             print(
                 f"  [pipeline] rejected {before_trace - len(hough_segs)} "
                 f"exterior-tracing Hough segments",
+                file=sys.stderr,
+            )
+        # Annotation ink (dimension strings) sits outside the building; with
+        # the exteriors pair-validated onto true wall ink, anything beyond
+        # their axis envelope cannot be an interior wall.
+        before_env = len(hough_segs)
+        hough_segs = drop_segments_outside_exterior(hough_segs, exterior_segs)
+        if before_env > len(hough_segs):
+            print(
+                f"  [pipeline] rejected {before_env - len(hough_segs)} "
+                f"Hough segments outside the exterior envelope",
                 file=sys.stderr,
             )
         print(f"  [pipeline] Hough supplement: +{len(hough_segs)} interior segments",

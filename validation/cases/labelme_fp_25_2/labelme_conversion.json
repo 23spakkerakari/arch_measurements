@@ -1,0 +1,11 @@
+{
+  "skipped_labels": {
+    "Toilet": 1
+  },
+  "skipped_shapes": [],
+  "wall_centerline_warnings": [
+    "w1"
+  ],
+  "inferred_px_per_ft": 47.12,
+  "inferred_dpi": 47
+}

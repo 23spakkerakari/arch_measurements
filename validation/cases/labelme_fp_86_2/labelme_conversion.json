@@ -1,0 +1,10 @@
+{
+  "skipped_labels": {},
+  "skipped_shapes": [],
+  "wall_centerline_warnings": [
+    "w1",
+    "w2"
+  ],
+  "inferred_px_per_ft": 24.8,
+  "inferred_dpi": 25
+}

@@ -1,0 +1,256 @@
+{
+  "detected_scale": "1in=1ft",
+  "total_area": "377.6 ft\u00b2",
+  "units": "imperial",
+  "polygon_vertices": 24,
+  "footprint_polygon_px": [
+    [
+      0,
+      185
+    ],
+    [
+      121,
+      225
+    ],
+    [
+      121,
+      741
+    ],
+    [
+      260,
+      741
+    ],
+    [
+      261,
+      669
+    ],
+    [
+      460,
+      669
+    ],
+    [
+      492,
+      741
+    ],
+    [
+      492,
+      386
+    ],
+    [
+      457,
+      637
+    ],
+    [
+      260,
+      633
+    ],
+    [
+      277,
+      228
+    ],
+    [
+      656,
+      256
+    ],
+    [
+      676,
+      377
+    ],
+    [
+      681,
+      216
+    ],
+    [
+      1253,
+      228
+    ],
+    [
+      1301,
+      741
+    ],
+    [
+      1301,
+      285
+    ],
+    [
+      1421,
+      220
+    ],
+    [
+      1421,
+      157
+    ],
+    [
+      297,
+      157
+    ],
+    [
+      288,
+      0
+    ],
+    [
+      248,
+      93
+    ],
+    [
+      109,
+      77
+    ],
+    [
+      108,
+      185
+    ]
+  ],
+  "image_size_px": [
+    1422,
+    742
+  ],
+  "footprint_bbox_px": [
+    0,
+    0,
+    1421,
+    741
+  ],
+  "px_per_ft": 25.0,
+  "rooms": [],
+  "walls": [
+    {
+      "id": "w8",
+      "name": "North Wall 8",
+      "facing": "North",
+      "length": "46.32 ft",
+      "length_raw": 46.32,
+      "angle_deg": 90.0,
+      "px_coords": [
+        231,
+        195,
+        1389,
+        195
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w1.s1",
+      "name": "West Wall 1 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "20.12 ft",
+      "length_raw": 20.12,
+      "angle_deg": 180.0,
+      "px_coords": [
+        137,
+        230,
+        137,
+        733
+      ],
+      "room_id": null,
+      "parent_wall_id": "w1",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w3.s1",
+      "name": "West Wall 3 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "17.32 ft",
+      "length_raw": 17.32,
+      "angle_deg": 0.0,
+      "px_coords": [
+        231,
+        628,
+        231,
+        195
+      ],
+      "room_id": null,
+      "parent_wall_id": "w3",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w4.s1",
+      "name": "North Wall 4 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "14.76 ft",
+      "length_raw": 14.76,
+      "angle_deg": 90.0,
+      "px_coords": [
+        282,
+        189,
+        651,
+        189
+      ],
+      "room_id": null,
+      "parent_wall_id": "w4",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w2.s1",
+      "name": "West Wall 2 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "13.68 ft",
+      "length_raw": 13.68,
+      "angle_deg": 0.0,
+      "px_coords": [
+        472,
+        733,
+        472,
+        391
+      ],
+      "room_id": null,
+      "parent_wall_id": "w2",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w6.s1",
+      "name": "West Wall 6 part 1 \u2192 (no room)",
+      "facing": "West",
+      "length": "3.40 ft",
+      "length_raw": 3.4,
+      "angle_deg": 180.0,
+      "px_coords": [
+        1266,
+        195,
+        1266,
+        280
+      ],
+      "room_id": null,
+      "parent_wall_id": "w6",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    }
+  ],
+  "mask_roi_offset": [
+    0,
+    0
+  ],
+  "calibration": {
+    "status": "warning",
+    "dpi": 25,
+    "px_per_ft": 25.0,
+    "footprint_span_ft": [
+      56.84,
+      29.64
+    ],
+    "total_area_raw": 377.63,
+    "issues": [
+      {
+        "code": "dpi_out_of_range",
+        "severity": "warning",
+        "message": "DPI 25 is outside typical range (72\u2013600); verify rasterization DPI",
+        "details": {
+          "dpi": 25,
+          "min": 72,
+          "max": 600
+        }
+      }
+    ],
+    "suggested_dpi": null
+  },
+  "runtime_s": 0.36
+}

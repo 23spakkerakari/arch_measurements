@@ -1,0 +1,18 @@
+{
+  "skipped_labels": {},
+  "skipped_shapes": [],
+  "wall_centerline_warnings": [
+    "w1",
+    "w2",
+    "w3",
+    "w4",
+    "w5",
+    "w6",
+    "w7",
+    "w9",
+    "w10",
+    "w11"
+  ],
+  "inferred_px_per_ft": 72.0,
+  "inferred_dpi": 72
+}

@@ -1,0 +1,22 @@
+{
+  "id": "labelme_fp_71",
+  "description": "Imported from LabelMe (FP_71.json). Verify scale in manifest if lengths matter.",
+  "image": "image.png",
+  "scale": "1in=1ft",
+  "dpi": 72,
+  "roi": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0
+  },
+  "doorway_close_ft": 2.5,
+  "image_size_px": [
+    6360,
+    3715
+  ],
+  "imported_from": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-annotated\\FP_71.json",
+  "labelme_image": "C:\\Users\\jakep\\Downloads\\arqen-labs-jun\\arqen-labs-jun\\floor-plan-cropped\\FP_71.png",
+  "labelme_crop": true,
+  "inferred_px_per_ft": 72.0
+}

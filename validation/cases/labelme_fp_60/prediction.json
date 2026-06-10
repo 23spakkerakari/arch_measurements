@@ -1436,6 +1436,134 @@
       "is_exterior": false
     }
   ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w29",
+      "bbox_px": [
+        2830,
+        2029,
+        2945,
+        2137
+      ],
+      "center_px": [
+        2887.5,
+        2083.0
+      ],
+      "width": "1.60 ft",
+      "width_raw": 1.6,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "w34",
+      "bbox_px": [
+        3468,
+        2484,
+        3583,
+        2592
+      ],
+      "center_px": [
+        3525.5,
+        2538.0
+      ],
+      "width": "1.60 ft",
+      "width_raw": 1.6,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d3",
+      "host_wall_id": "w36",
+      "bbox_px": [
+        4552,
+        2484,
+        4669,
+        2592
+      ],
+      "center_px": [
+        4610.5,
+        2538.0
+      ],
+      "width": "1.62 ft",
+      "width_raw": 1.62,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d4",
+      "host_wall_id": "w37",
+      "bbox_px": [
+        5690,
+        2484,
+        5806,
+        2592
+      ],
+      "center_px": [
+        5748.0,
+        2538.0
+      ],
+      "width": "1.61 ft",
+      "width_raw": 1.61,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d5",
+      "host_wall_id": "w37",
+      "bbox_px": [
+        6909,
+        2484,
+        7025,
+        2592
+      ],
+      "center_px": [
+        6967.0,
+        2538.0
+      ],
+      "width": "1.61 ft",
+      "width_raw": 1.61,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d6",
+      "host_wall_id": "w38",
+      "bbox_px": [
+        7971,
+        2484,
+        8088,
+        2592
+      ],
+      "center_px": [
+        8029.5,
+        2538.0
+      ],
+      "width": "1.62 ft",
+      "width_raw": 1.62,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d7",
+      "host_wall_id": "w32",
+      "bbox_px": [
+        8708,
+        2037,
+        8821,
+        2145
+      ],
+      "center_px": [
+        8764.5,
+        2091.0
+      ],
+      "width": "1.57 ft",
+      "width_raw": 1.57,
+      "is_exterior": false,
+      "evidence": "gap"
+    }
+  ],
   "mask_roi_offset": [
     0,
     0
@@ -1452,5 +1580,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 21.88
+  "runtime_s": 12.24
 }

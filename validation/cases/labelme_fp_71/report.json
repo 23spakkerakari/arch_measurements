@@ -2,16 +2,16 @@
   "case_id": "labelme_fp_71",
   "summary": {
     "macro": {
-      "precision": 0.3556,
+      "precision": 0.3551,
       "recall": 0.4242,
-      "f1": 0.369
+      "f1": 0.3684
     },
     "micro": {
-      "precision": 0.1017,
+      "precision": 0.1,
       "recall": 0.1333,
-      "f1": 0.1154,
+      "f1": 0.1143,
       "true_positives": 6,
-      "false_positives": 53,
+      "false_positives": 54,
       "false_negatives": 39
     },
     "mean_iou": 0.851
@@ -233,12 +233,12 @@
       "category": "walls",
       "counts": {
         "true_positives": 6,
-        "false_positives": 39,
+        "false_positives": 40,
         "false_negatives": 5
       },
-      "precision": 0.1333,
+      "precision": 0.1304,
       "recall": 0.5455,
-      "f1": 0.2143,
+      "f1": 0.2105,
       "mean_iou": 0.851,
       "matches": [
         {
@@ -919,13 +919,25 @@
           "facing": "East",
           "length_raw": 41.38,
           "is_exterior": false
+        },
+        {
+          "id": "w65",
+          "px_coords": [
+            5570.0,
+            1281.0,
+            5570.0,
+            2115.0
+          ],
+          "facing": "East",
+          "length_raw": 11.58,
+          "is_exterior": false
         }
       ],
       "coverage": {
         "tolerance_px": 144.0,
-        "precision": 0.284,
-        "recall": 0.6638,
-        "f1": 0.3978
+        "precision": 0.2848,
+        "recall": 0.681,
+        "f1": 0.4017
       }
     },
     "doors": {
@@ -1470,12 +1482,12 @@
   "closure": {
     "tolerance_px": 144.0,
     "wall_network": {
-      "wall_count": 45,
-      "endpoint_count": 90,
+      "wall_count": 46,
+      "endpoint_count": 92,
       "closed_endpoints": 77,
-      "dangling_endpoints": 13,
-      "closure_rate": 0.8556,
-      "dangling_endpoint_rate": 0.1444,
+      "dangling_endpoints": 15,
+      "closure_rate": 0.837,
+      "dangling_endpoint_rate": 0.163,
       "dangling": [
         {
           "wall_id": "w1.s2",
@@ -1566,6 +1578,20 @@
           "endpoint_px": [
             5120.0,
             2113.0
+          ]
+        },
+        {
+          "wall_id": "w65",
+          "endpoint_px": [
+            5570.0,
+            1281.0
+          ]
+        },
+        {
+          "wall_id": "w65",
+          "endpoint_px": [
+            5570.0,
+            2115.0
           ]
         }
       ]

@@ -579,13 +579,13 @@
       "id": "w5.s1",
       "name": "South Wall 5 part 1 \u2192 R16",
       "facing": "South",
-      "length": "16.53 ft",
-      "length_raw": 16.53,
+      "length": "17.62 ft",
+      "length_raw": 17.62,
       "angle_deg": 90.0,
       "px_coords": [
         2207,
         6926,
-        3397,
+        3476,
         6926
       ],
       "room_id": "R16",
@@ -942,6 +942,21 @@
       "is_exterior": false
     },
     {
+      "id": "w32",
+      "name": "East Wall 32",
+      "facing": "East",
+      "length": "25.60 ft",
+      "length_raw": 25.6,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3476,
+        5276,
+        3476,
+        7119
+      ],
+      "is_exterior": false
+    },
+    {
       "id": "w33",
       "name": "East Wall 33",
       "facing": "East",
@@ -972,6 +987,7 @@
       "is_exterior": false
     }
   ],
+  "doors": [],
   "mask_roi_offset": [
     0,
     0
@@ -988,5 +1004,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 9.21
+  "runtime_s": 5.12
 }

@@ -209,6 +209,26 @@
       "is_exterior": false
     }
   ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w5",
+      "bbox_px": [
+        766,
+        595,
+        794,
+        640
+      ],
+      "center_px": [
+        780.0,
+        617.5
+      ],
+      "width": "2.50 ft",
+      "width_raw": 2.5,
+      "is_exterior": false,
+      "evidence": "gap"
+    }
+  ],
   "mask_roi_offset": [
     0,
     0
@@ -225,5 +245,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 1.03
+  "runtime_s": 0.6
 }

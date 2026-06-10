@@ -1204,11 +1204,11 @@
       "id": "w38",
       "name": "South Wall 38",
       "facing": "South",
-      "length": "41.40 ft",
-      "length_raw": 41.4,
+      "length": "41.42 ft",
+      "length_raw": 41.42,
       "angle_deg": 90.0,
       "px_coords": [
-        730,
+        729,
         5852,
         3711,
         5852
@@ -1226,21 +1226,6 @@
         527,
         6655,
         2310,
-        6655
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w42",
-      "name": "West Wall 42",
-      "facing": "West",
-      "length": "15.90 ft",
-      "length_raw": 15.9,
-      "angle_deg": 180.0,
-      "px_coords": [
-        730,
-        5510,
-        730,
         6655
       ],
       "is_exterior": false
@@ -1411,6 +1396,7 @@
       "is_exterior": false
     }
   ],
+  "doors": [],
   "mask_roi_offset": [
     0,
     0
@@ -1427,5 +1413,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 20.46
+  "runtime_s": 11.87
 }

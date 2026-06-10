@@ -95,10 +95,16 @@ class TestTwoRoomAccuracy:
     def test_wall_recall_floor(self, two_room_report):
         assert two_room_report["categories"]["walls"]["recall"] >= 0.3
 
-    def test_openings_not_detected_yet(self, two_room_report):
-        # The CV path does not model doors/windows/dimensions today.
+    def test_door_recall_and_precision(self, two_room_report):
+        doors = two_room_report["categories"]["doors"]
+        assert doors["recall"] >= 0.99
+        # The 2 sill windows in the north wall must not be reported as doors.
+        assert doors["precision"] >= 0.99
+
+    def test_windows_dimensions_not_detected_yet(self, two_room_report):
+        # The CV path does not model windows/dimensions today (#8).
         # Update these when detection lands — they pin the known gap.
-        for cat in ("doors", "windows", "dimensions"):
+        for cat in ("windows", "dimensions"):
             assert two_room_report["categories"][cat]["counts"]["true_positives"] == 0
 
     def test_closure_floors(self, two_room_report):
@@ -138,6 +144,11 @@ class TestLShapeStructure:
 class TestLShapeAccuracy:
     def test_wall_recall_floor(self, l_shape_report):
         assert l_shape_report["categories"]["walls"]["recall"] >= 0.7
+
+    def test_door_recall_and_precision(self, l_shape_report):
+        doors = l_shape_report["categories"]["doors"]
+        assert doors["recall"] >= 0.99
+        assert doors["precision"] >= 0.99
 
     def test_room_recall_floor(self, l_shape_report):
         assert l_shape_report["categories"]["rooms"]["recall"] >= 0.4
@@ -207,6 +218,13 @@ class TestCorridorAccuracy:
     def test_closure_floor(self, corridor_report):
         closure = corridor_report["closure"]
         assert closure["wall_network"]["closure_rate"] >= 0.7
+
+    def test_door_recall_floor(self, corridor_report):
+        # 3 GT doors: two corridor doors plus the closet door, which depends
+        # on the short-partition recovery pass finding the closet walls.
+        doors = corridor_report["categories"]["doors"]
+        assert doors["recall"] >= 2.0 / 3.0
+        assert doors["precision"] >= 0.99
 
 
 class TestCalibrationGuards:

@@ -14,7 +14,7 @@
       "false_positives": 2,
       "false_negatives": 3
     },
-    "mean_iou": 0.9198
+    "mean_iou": 0.9865
   },
   "categories": {
     "rooms": {
@@ -170,12 +170,12 @@
       "precision": 1.0,
       "recall": 1.0,
       "f1": 1.0,
-      "mean_iou": 0.6667,
+      "mean_iou": 1.0,
       "matches": [
         {
           "ground_truth_id": "d1",
           "predicted_id": "d1",
-          "score": 0.6667,
+          "score": 1.0,
           "ground_truth": {
             "id": "d1",
             "host_wall_id": "w1",

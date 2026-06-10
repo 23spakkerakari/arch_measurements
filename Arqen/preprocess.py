@@ -38,6 +38,7 @@ from calibration_validate import (
     validate_px_per_unit,
     validate_total_area,
 )
+from door_detect import detect_doors, ink_mask_from_image
 from extract_wall_segments_class import extract_wall_segments
 from room_wall_split import (
     clamp_segments_to_envelope,
@@ -1985,6 +1986,136 @@ def _has_parallel_partner(
     return hits >= n_samples * min_coverage
 
 
+def _short_run_supplement(
+    wall_mask: np.ndarray,
+    existing_segments: list[tuple],
+    min_length_px: int,
+    max_length_px: int,
+    dedup_tol_px: int,
+    pair_gap_range: tuple[int, int],
+) -> list[tuple]:
+    """Find short axis-aligned wall runs that probabilistic Hough misses.
+
+    HoughLinesP reliably skips sub-6-unit runs in a full sheet (long lines
+    dominate the random sampling), so closet/alcove partitions never become
+    candidates. This detects them directly: directional morphological opening
+    keeps only runs >= min_length_px, connected components give one candidate
+    per stroke, and the same wall-pair validation as the Hough pass rejects
+    single-stroke annotation ink. Runs longer than max_length_px are skipped —
+    the main Hough pass already covers those.
+    """
+    def _is_dup(seg: tuple) -> bool:
+        nx1, ny1, nx2, ny2 = seg
+        n_horiz = abs(nx2 - nx1) >= abs(ny2 - ny1)
+        for ex1, ey1, ex2, ey2 in existing_segments:
+            e_horiz = abs(ex2 - ex1) >= abs(ey2 - ey1)
+            if n_horiz != e_horiz:
+                continue
+            if n_horiz:
+                if abs((ny1 + ny2) / 2 - (ey1 + ey2) / 2) > dedup_tol_px:
+                    continue
+                n_lo, n_hi = min(nx1, nx2), max(nx1, nx2)
+                e_lo, e_hi = min(ex1, ex2), max(ex1, ex2)
+            else:
+                if abs((nx1 + nx2) / 2 - (ex1 + ex2) / 2) > dedup_tol_px:
+                    continue
+                n_lo, n_hi = min(ny1, ny2), max(ny1, ny2)
+                e_lo, e_hi = min(ey1, ey2), max(ey1, ey2)
+            overlap = min(n_hi, e_hi) - max(n_lo, e_lo)
+            if n_hi > n_lo and overlap / (n_hi - n_lo) >= 0.30:
+                return True
+        return False
+
+    out: list[tuple] = []
+    for horiz in (True, False):
+        ksize = (int(min_length_px), 1) if horiz else (1, int(min_length_px))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, ksize)
+        opened = cv2.morphologyEx(wall_mask, cv2.MORPH_OPEN, kernel)
+        n, _, stats, _ = cv2.connectedComponentsWithStats(opened, connectivity=8)
+        for i in range(1, n):
+            x, y, w, h = (int(stats[i][k]) for k in range(4))
+            length = w if horiz else h
+            if length < min_length_px or length > max_length_px:
+                continue
+            if horiz:
+                seg = (x, y + h // 2, x + w - 1, y + h // 2)
+            else:
+                seg = (x + w // 2, y, x + w // 2, y + h - 1)
+            if _is_dup(seg):
+                continue
+            if not _has_parallel_partner(
+                wall_mask, seg, pair_gap_range[0], pair_gap_range[1]
+            ):
+                continue
+            out.append(seg)
+    return out
+
+
+def _short_run_annotation_like(
+    seg: tuple,
+    others: list[tuple],
+    axis_tol_px: int,
+    offset_max_px: int,
+) -> bool:
+    """True when seg is parallel to a nearby segment at dimension-line offset.
+
+    Fixture outlines and dimension extension ticks ride 1–2.5 units off a real
+    wall; a recovered short run in that band is annotation, not structure —
+    and if kept it would make cleanup's dimension-like pass misclassify the
+    real wall next to it.
+    """
+    x1, y1, x2, y2 = seg
+    horiz = abs(x2 - x1) >= abs(y2 - y1)
+    if horiz:
+        perp, lo, hi = (y1 + y2) / 2.0, min(x1, x2), max(x1, x2)
+    else:
+        perp, lo, hi = (x1 + x2) / 2.0, min(y1, y2), max(y1, y2)
+    for o in others:
+        if o == seg:
+            continue
+        ox1, oy1, ox2, oy2 = o
+        o_horiz = abs(ox2 - ox1) >= abs(oy2 - oy1)
+        if o_horiz != horiz:
+            continue
+        if horiz:
+            o_perp, o_lo, o_hi = (oy1 + oy2) / 2.0, min(ox1, ox2), max(ox1, ox2)
+        else:
+            o_perp, o_lo, o_hi = (ox1 + ox2) / 2.0, min(oy1, oy2), max(oy1, oy2)
+        d = abs(perp - o_perp)
+        if d <= axis_tol_px or d > offset_max_px:
+            continue
+        if min(hi, o_hi) - max(lo, o_lo) > 0:
+            return True
+    return False
+
+
+def _t_junctions_into(seg: tuple, accepted: list[tuple], near_tol: float) -> bool:
+    """True when either endpoint of seg lies on a perpendicular accepted segment.
+
+    Used by the short-partition recovery pass: a closet/alcove wall is only
+    believable when it terminates on a wall the pipeline already trusts.
+    """
+    x1, y1, x2, y2 = seg
+    horiz = abs(x2 - x1) >= abs(y2 - y1)
+    for ax1, ay1, ax2, ay2 in accepted:
+        a_horiz = abs(ax2 - ax1) >= abs(ay2 - ay1)
+        if a_horiz == horiz:
+            continue
+        if a_horiz:
+            axis = (ay1 + ay2) / 2.0
+            lo, hi = min(ax1, ax2), max(ax1, ax2)
+            for ex, ey in ((x1, y1), (x2, y2)):
+                if abs(ey - axis) <= near_tol and lo - near_tol <= ex <= hi + near_tol:
+                    return True
+        else:
+            axis = (ax1 + ax2) / 2.0
+            lo, hi = min(ay1, ay2), max(ay1, ay2)
+            for ex, ey in ((x1, y1), (x2, y2)):
+                if abs(ex - axis) <= near_tol and lo - near_tol <= ey <= hi + near_tol:
+                    return True
+    return False
+
+
 def _hough_supplement(
     wall_mask: np.ndarray,
     existing_segments: list[tuple],
@@ -2392,6 +2523,73 @@ def analyze_page(
         print(f"  [pipeline] interior dedup: {before_dedup} → {len(hough_segs)} segments",
               file=sys.stderr)
 
+    # Short-partition recovery: closet/alcove walls are real wall pairs but
+    # shorter than the 6-unit Hough minimum (a door gap splits them further).
+    # A second pass at ~2.5 units keeps only candidates that T-junction into
+    # an already-accepted wall (iterated, so a stub chaining off a recovered
+    # partition is also accepted) — free-floating short runs stay rejected.
+    short_min_px = max(36, int(2.5 * px_per_unit))
+    if short_min_px < hough_min_px:
+        accepted_ref = dedup_ref + hough_segs
+        short_segs = _short_run_supplement(
+            wall_pair_mask, accepted_ref,
+            min_length_px=short_min_px,
+            max_length_px=2 * hough_min_px,
+            dedup_tol_px=hough_dedup_tol,
+            pair_gap_range=pair_gap_range,
+        )
+        if short_segs:
+            short_segs = _filter_wall_segments(
+                short_segs, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac
+            )
+            # No snap_segments_to_walls here: a short pair next to a long wall
+            # gets dragged onto the stronger centerline (e.g. closet partition
+            # onto the exterior, 60+ px away) and then rejected as tracing it.
+            # The candidates are already pair-validated by _hough_supplement.
+            short_segs = [
+                s for s in short_segs
+                if not segment_traces_exterior(s, dedup_ref, near_tol)
+            ]
+            short_segs = drop_segments_outside_exterior(short_segs, exterior_segs)
+            # Reject fixture/dimension scraps riding 1–2.5 units off a wall
+            # (or off each other) — keeping them would also poison cleanup's
+            # dimension-like classification of the real walls beside them.
+            offset_max_px = max(int(2.5 * px_per_unit), axis_tol_px * 2)
+            short_segs = [
+                s for s in short_segs
+                if not _short_run_annotation_like(
+                    s, accepted_ref + short_segs, axis_tol_px, offset_max_px
+                )
+            ]
+        if short_segs:
+            accepted = list(accepted_ref)
+            kept_short: list[tuple] = []
+            changed = True
+            while changed and short_segs:
+                changed = False
+                remaining = []
+                for s in short_segs:
+                    if _t_junctions_into(s, accepted, near_tol):
+                        kept_short.append(s)
+                        accepted.append(s)
+                        changed = True
+                    else:
+                        remaining.append(s)
+                short_segs = remaining
+            if kept_short:
+                # Dedup the shorts among themselves only: re-merging the main
+                # interior set would extend/absorb already-stable walls and
+                # destabilize real plans. This pass is purely additive.
+                kept_short = merge_and_deduplicate_segments(
+                    kept_short, axis_tol_px=axis_tol_px, gap_tol_px=gap_tol_px,
+                )
+                hough_segs = hough_segs + kept_short
+                print(
+                    f"  [pipeline] short-partition recovery: +{len(kept_short)} "
+                    f"T-junctioned segments ({len(hough_segs)} interior total)",
+                    file=sys.stderr,
+                )
+
     interior_walls = measure_walls(
         hough_segs, px_per_unit, unit_label,
         contour=contour, footprint_bbox=fp_bbox_for_facing,
@@ -2433,10 +2631,25 @@ def analyze_page(
         print(f"  [pipeline] endpoint snap: closed {snapped_ends} endpoint(s)",
               file=sys.stderr)
 
+    # Doors: collinear wall gaps in the same crop frame as walls/mask.
+    t0 = time.time()
+    doors = detect_doors(
+        walls, wall_pair_mask, ink_mask_from_image(image),
+        px_per_unit, unit_label,
+        axis_tol_px=dedup_axis_tol_px(px_per_unit),
+    )
+    print(f"  [pipeline] door detect: {time.time()-t0:.1f}s ({len(doors)} doors)",
+          file=sys.stderr)
+
     if roi_offset != (0, 0):
         ox, oy = roi_offset
         for w in walls:
             w["px_coords"] = _shift_px_coords(w["px_coords"], roi_offset)
+        for d in doors:
+            x0, y0, x1, y1 = d["bbox_px"]
+            d["bbox_px"] = [x0 + ox, y0 + oy, x1 + ox, y1 + oy]
+            cx, cy = d["center_px"]
+            d["center_px"] = [cx + ox, cy + oy]
         for r in rooms:
             cx, cy = r["centroid_px"]
             r["centroid_px"] = [cx + ox, cy + oy]
@@ -2501,6 +2714,7 @@ def analyze_page(
         "px_per_ft": round(px_per_unit, 2),
         "rooms": rooms,
         "walls": walls,
+        "doors": doors,
         "mask_cache_path": mask_cache_path,
         # roi_offset is the pixel offset of the cropped image within the full image.
         # detect_wall_at_point needs this to translate full-image click coords into

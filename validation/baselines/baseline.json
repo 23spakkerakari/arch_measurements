@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-10T16:21:05Z",
+  "created_utc": "2026-06-10T17:13:24Z",
   "env": {
     "python": "3.14.2",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -21,7 +21,7 @@
         "wall_network_closure_rate": 0.6053,
         "dangling_endpoints": 30,
         "interior_coverage": 0.6464,
-        "runtime_s": 3.14
+        "runtime_s": 1.53
       },
       "scores": null,
       "closure": null
@@ -39,7 +39,7 @@
         "wall_network_closure_rate": 0.6324,
         "dangling_endpoints": 25,
         "interior_coverage": 0.6621,
-        "runtime_s": 4.12
+        "runtime_s": 1.88
       },
       "scores": null,
       "closure": null
@@ -122,20 +122,1580 @@
         "interior_coverage": null
       }
     },
+    "labelme_fp_1": {
+      "structural": {
+        "error": null,
+        "wall_count": 37,
+        "exterior_wall_count": 12,
+        "interior_wall_count": 25,
+        "room_count": 13,
+        "total_area_raw": 3141.1,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 23,
+        "wall_network_closure_rate": 0.5811,
+        "dangling_endpoints": 31,
+        "interior_coverage": 0.5081,
+        "runtime_s": 5.5
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.3846,
+          "recall": 0.2273,
+          "f1": 0.2857,
+          "true_positives": 5,
+          "false_positives": 8,
+          "false_negatives": 17
+        },
+        "walls": {
+          "precision": 0.1081,
+          "recall": 0.3077,
+          "f1": 0.16,
+          "true_positives": 4,
+          "false_positives": 33,
+          "false_negatives": 9
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 0.0417,
+          "f1": 0.08,
+          "true_positives": 1,
+          "false_positives": 0,
+          "false_negatives": 23
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 110
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2934,
+          "recall": 0.7352,
+          "f1": 0.4194
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.5811,
+        "room_boundary_closure_rate": 0.2727,
+        "mean_boundary_coverage": 0.8746,
+        "interior_coverage": 0.5081
+      }
+    },
+    "labelme_fp_10": {
+      "structural": {
+        "error": null,
+        "wall_count": 52,
+        "exterior_wall_count": 28,
+        "interior_wall_count": 24,
+        "room_count": 24,
+        "total_area_raw": 5463.4,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 25,
+        "wall_network_closure_rate": 0.6058,
+        "dangling_endpoints": 41,
+        "interior_coverage": 0.6945,
+        "runtime_s": 10.76
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.5,
+          "recall": 0.75,
+          "f1": 0.6,
+          "true_positives": 12,
+          "false_positives": 12,
+          "false_negatives": 4
+        },
+        "walls": {
+          "precision": 0.0577,
+          "recall": 0.2308,
+          "f1": 0.0923,
+          "true_positives": 3,
+          "false_positives": 49,
+          "false_negatives": 10
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 20
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 33
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 137
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2319,
+          "recall": 0.4393,
+          "f1": 0.3036
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.6058,
+        "room_boundary_closure_rate": 0.125,
+        "mean_boundary_coverage": 0.8504,
+        "interior_coverage": 0.6945
+      }
+    },
+    "labelme_fp_19": {
+      "structural": {
+        "error": null,
+        "wall_count": 16,
+        "exterior_wall_count": 11,
+        "interior_wall_count": 5,
+        "room_count": 6,
+        "total_area_raw": 1779.1,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 20,
+        "wall_network_closure_rate": 0.5625,
+        "dangling_endpoints": 14,
+        "interior_coverage": 0.4072,
+        "runtime_s": 2.32
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.1667,
+          "recall": 0.0133,
+          "f1": 0.0247,
+          "true_positives": 1,
+          "false_positives": 5,
+          "false_negatives": 74
+        },
+        "walls": {
+          "precision": 0.125,
+          "recall": 0.037,
+          "f1": 0.0571,
+          "true_positives": 2,
+          "false_positives": 14,
+          "false_negatives": 52
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 104
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 99
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 110
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.9452,
+          "recall": 0.4341,
+          "f1": 0.595
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.5625,
+        "room_boundary_closure_rate": 0.0533,
+        "mean_boundary_coverage": 0.3024,
+        "interior_coverage": 0.4072
+      }
+    },
+    "labelme_fp_20": {
+      "structural": {
+        "error": null,
+        "wall_count": 20,
+        "exterior_wall_count": 4,
+        "interior_wall_count": 16,
+        "room_count": 2,
+        "total_area_raw": 937.4,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 8,
+        "wall_network_closure_rate": 0.7,
+        "dangling_endpoints": 12,
+        "interior_coverage": 0.0526,
+        "runtime_s": 1.23
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 17
+        },
+        "walls": {
+          "precision": 0.15,
+          "recall": 0.1304,
+          "f1": 0.1395,
+          "true_positives": 3,
+          "false_positives": 17,
+          "false_negatives": 20
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 0.0417,
+          "f1": 0.08,
+          "true_positives": 1,
+          "false_positives": 0,
+          "false_negatives": 23
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 76
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 36
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.4871,
+          "recall": 0.5505,
+          "f1": 0.5169
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.7,
+        "room_boundary_closure_rate": 0.2941,
+        "mean_boundary_coverage": 0.7427,
+        "interior_coverage": 0.0526
+      }
+    },
+    "labelme_fp_25_1": {
+      "structural": {
+        "error": null,
+        "wall_count": 14,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 4,
+        "room_count": 4,
+        "total_area_raw": 4201.8,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 24,
+        "wall_network_closure_rate": 0.8929,
+        "dangling_endpoints": 3,
+        "interior_coverage": 0.8419,
+        "runtime_s": 7.26
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 4,
+          "false_negatives": 4
+        },
+        "walls": {
+          "precision": 0.1429,
+          "recall": 0.4,
+          "f1": 0.2105,
+          "true_positives": 2,
+          "false_positives": 12,
+          "false_negatives": 3
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 5
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 32
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2156,
+          "recall": 0.2524,
+          "f1": 0.2326
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.8929,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.4113,
+        "interior_coverage": 0.8419
+      }
+    },
+    "labelme_fp_25_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 14,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 4,
+        "room_count": 2,
+        "total_area_raw": 776.3,
+        "px_per_ft": 47.0,
+        "polygon_vertices": 29,
+        "wall_network_closure_rate": 0.75,
+        "dangling_endpoints": 7,
+        "interior_coverage": 0.1967,
+        "runtime_s": 0.93
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 2
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 14,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 11
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.1758,
+          "recall": 0.6406,
+          "f1": 0.2759
+        }
+      },
+      "closure": {
+        "tolerance_px": 94.0,
+        "wall_network_closure_rate": 0.75,
+        "room_boundary_closure_rate": 0.5,
+        "mean_boundary_coverage": 0.8825,
+        "interior_coverage": 0.1967
+      }
+    },
+    "labelme_fp_27": {
+      "structural": {
+        "error": null,
+        "wall_count": 9,
+        "exterior_wall_count": 7,
+        "interior_wall_count": 2,
+        "room_count": 2,
+        "total_area_raw": 795.3,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 12,
+        "wall_network_closure_rate": 0.7222,
+        "dangling_endpoints": 5,
+        "interior_coverage": 0.6735,
+        "runtime_s": 1.63
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 12
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 9,
+          "false_negatives": 5
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 19
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 36
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 24
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.0521,
+          "recall": 0.0358,
+          "f1": 0.0424
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.7222,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.4738,
+        "interior_coverage": 0.6735
+      }
+    },
+    "labelme_fp_31_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 23,
+        "exterior_wall_count": 12,
+        "interior_wall_count": 11,
+        "room_count": 8,
+        "total_area_raw": 2152.8,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 12,
+        "wall_network_closure_rate": 0.7174,
+        "dangling_endpoints": 13,
+        "interior_coverage": 0.5746,
+        "runtime_s": 2.74
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.125,
+          "recall": 0.027,
+          "f1": 0.0444,
+          "true_positives": 1,
+          "false_positives": 7,
+          "false_negatives": 36
+        },
+        "walls": {
+          "precision": 0.087,
+          "recall": 0.0833,
+          "f1": 0.0851,
+          "true_positives": 2,
+          "false_positives": 21,
+          "false_negatives": 22
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 41
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 64
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 63
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.325,
+          "recall": 0.2976,
+          "f1": 0.3107
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.7174,
+        "room_boundary_closure_rate": 0.1081,
+        "mean_boundary_coverage": 0.474,
+        "interior_coverage": 0.5746
+      }
+    },
+    "labelme_fp_35_1": {
+      "structural": {
+        "error": null,
+        "wall_count": 29,
+        "exterior_wall_count": 11,
+        "interior_wall_count": 18,
+        "room_count": 8,
+        "total_area_raw": 1691.6,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 21,
+        "wall_network_closure_rate": 0.8621,
+        "dangling_endpoints": 8,
+        "interior_coverage": 0.38,
+        "runtime_s": 2.6
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 8,
+          "false_negatives": 2
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 29,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 5
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 35
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.0861,
+          "recall": 0.7969,
+          "f1": 0.1553
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.8621,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 0.9724,
+        "interior_coverage": 0.38
+      }
+    },
+    "labelme_fp_35_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 7,
+        "exterior_wall_count": 6,
+        "interior_wall_count": 1,
+        "room_count": 7,
+        "total_area_raw": 1640.7,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 21,
+        "wall_network_closure_rate": 0.5714,
+        "dangling_endpoints": 6,
+        "interior_coverage": 0.3396,
+        "runtime_s": 2.44
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 7,
+          "false_negatives": 2
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 7,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 32
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.0638,
+          "recall": 0.0625,
+          "f1": 0.0631
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.5714,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.4804,
+        "interior_coverage": 0.3396
+      }
+    },
+    "labelme_fp_36_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 12,
+        "exterior_wall_count": 6,
+        "interior_wall_count": 6,
+        "room_count": 3,
+        "total_area_raw": 1383.2,
+        "px_per_ft": 32.0,
+        "polygon_vertices": 11,
+        "wall_network_closure_rate": 0.6667,
+        "dangling_endpoints": 8,
+        "interior_coverage": 0.7336,
+        "runtime_s": 0.4
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.3333,
+          "recall": 1.0,
+          "f1": 0.5,
+          "true_positives": 1,
+          "false_positives": 2,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 12,
+          "false_negatives": 2
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 5
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 11
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.0763,
+          "recall": 0.1771,
+          "f1": 0.1067
+        }
+      },
+      "closure": {
+        "tolerance_px": 64.0,
+        "wall_network_closure_rate": 0.6667,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 1.0,
+        "interior_coverage": 0.7336
+      }
+    },
+    "labelme_fp_48_1": {
+      "structural": {
+        "error": null,
+        "wall_count": 15,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 5,
+        "room_count": 3,
+        "total_area_raw": 839.1,
+        "px_per_ft": 38.0,
+        "polygon_vertices": 19,
+        "wall_network_closure_rate": 0.8,
+        "dangling_endpoints": 6,
+        "interior_coverage": 0.5777,
+        "runtime_s": 0.28
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.3333,
+          "recall": 0.5,
+          "f1": 0.4,
+          "true_positives": 1,
+          "false_positives": 2,
+          "false_negatives": 1
+        },
+        "walls": {
+          "precision": 0.0667,
+          "recall": 0.3333,
+          "f1": 0.1111,
+          "true_positives": 1,
+          "false_positives": 14,
+          "false_negatives": 2
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 7
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.3933,
+          "recall": 0.4549,
+          "f1": 0.4219
+        }
+      },
+      "closure": {
+        "tolerance_px": 76.0,
+        "wall_network_closure_rate": 0.8,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.815,
+        "interior_coverage": 0.5777
+      }
+    },
+    "labelme_fp_54_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 26,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 16,
+        "room_count": 5,
+        "total_area_raw": 1715.8,
+        "px_per_ft": 25.0,
+        "polygon_vertices": 15,
+        "wall_network_closure_rate": 0.8462,
+        "dangling_endpoints": 8,
+        "interior_coverage": 0.5148,
+        "runtime_s": 0.46
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.2,
+          "recall": 0.3333,
+          "f1": 0.25,
+          "true_positives": 1,
+          "false_positives": 4,
+          "false_negatives": 2
+        },
+        "walls": {
+          "precision": 0.0385,
+          "recall": 1.0,
+          "f1": 0.0741,
+          "true_positives": 1,
+          "false_positives": 25,
+          "false_negatives": 0
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 11
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2221,
+          "recall": 0.9219,
+          "f1": 0.3579
+        }
+      },
+      "closure": {
+        "tolerance_px": 50.0,
+        "wall_network_closure_rate": 0.8462,
+        "room_boundary_closure_rate": 0.6667,
+        "mean_boundary_coverage": 0.9183,
+        "interior_coverage": 0.5148
+      }
+    },
+    "labelme_fp_60": {
+      "structural": {
+        "error": null,
+        "wall_count": 60,
+        "exterior_wall_count": 26,
+        "interior_wall_count": 34,
+        "room_count": 20,
+        "total_area_raw": 5273.0,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 23,
+        "wall_network_closure_rate": 0.7417,
+        "dangling_endpoints": 31,
+        "interior_coverage": 0.6126,
+        "runtime_s": 11.15
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1": 0.6154,
+          "true_positives": 16,
+          "false_positives": 4,
+          "false_negatives": 16
+        },
+        "walls": {
+          "precision": 0.05,
+          "recall": 0.2143,
+          "f1": 0.0811,
+          "true_positives": 3,
+          "false_positives": 57,
+          "false_negatives": 11
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 0.1795,
+          "f1": 0.3043,
+          "true_positives": 7,
+          "false_positives": 0,
+          "false_negatives": 32
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 123
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 125
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.1512,
+          "recall": 0.3282,
+          "f1": 0.207
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.7417,
+        "room_boundary_closure_rate": 0.5,
+        "mean_boundary_coverage": 0.7635,
+        "interior_coverage": 0.6126
+      }
+    },
+    "labelme_fp_66_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 45,
+        "exterior_wall_count": 9,
+        "interior_wall_count": 36,
+        "room_count": 10,
+        "total_area_raw": 1890.7,
+        "px_per_ft": 40.0,
+        "polygon_vertices": 19,
+        "wall_network_closure_rate": 0.8556,
+        "dangling_endpoints": 13,
+        "interior_coverage": 0.4467,
+        "runtime_s": 0.76
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 10,
+          "false_negatives": 1
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 45,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 31
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.1642,
+          "recall": 0.875,
+          "f1": 0.2766
+        }
+      },
+      "closure": {
+        "tolerance_px": 80.0,
+        "wall_network_closure_rate": 0.8556,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 0.99,
+        "interior_coverage": 0.4467
+      }
+    },
+    "labelme_fp_6_1": {
+      "structural": {
+        "error": null,
+        "wall_count": 33,
+        "exterior_wall_count": 17,
+        "interior_wall_count": 16,
+        "room_count": 16,
+        "total_area_raw": 3279.3,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 37,
+        "wall_network_closure_rate": 0.697,
+        "dangling_endpoints": 20,
+        "interior_coverage": 0.7206,
+        "runtime_s": 4.94
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.5625,
+          "recall": 1.0,
+          "f1": 0.72,
+          "true_positives": 9,
+          "false_positives": 7,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.0606,
+          "recall": 0.4,
+          "f1": 0.1053,
+          "true_positives": 2,
+          "false_positives": 31,
+          "false_negatives": 3
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 12
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 11
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 65
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2323,
+          "recall": 0.5074,
+          "f1": 0.3187
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.697,
+        "room_boundary_closure_rate": 0.3333,
+        "mean_boundary_coverage": 0.8576,
+        "interior_coverage": 0.7206
+      }
+    },
+    "labelme_fp_71": {
+      "structural": {
+        "error": null,
+        "wall_count": 46,
+        "exterior_wall_count": 18,
+        "interior_wall_count": 28,
+        "room_count": 14,
+        "total_area_raw": 3940.1,
+        "px_per_ft": 72.0,
+        "polygon_vertices": 10,
+        "wall_network_closure_rate": 0.837,
+        "dangling_endpoints": 15,
+        "interior_coverage": 0.2694,
+        "runtime_s": 4.83
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 14,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.1304,
+          "recall": 0.5455,
+          "f1": 0.2105,
+          "true_positives": 6,
+          "false_positives": 40,
+          "false_negatives": 5
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 10
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 24
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2848,
+          "recall": 0.681,
+          "f1": 0.4017
+        }
+      },
+      "closure": {
+        "tolerance_px": 144.0,
+        "wall_network_closure_rate": 0.837,
+        "room_boundary_closure_rate": null,
+        "mean_boundary_coverage": null,
+        "interior_coverage": 0.2694
+      }
+    },
+    "labelme_fp_7_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 18,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 8,
+        "room_count": 5,
+        "total_area_raw": 1865.4,
+        "px_per_ft": 61.0,
+        "polygon_vertices": 24,
+        "wall_network_closure_rate": 0.6667,
+        "dangling_endpoints": 12,
+        "interior_coverage": 0.6505,
+        "runtime_s": 1.67
+      },
+      "scores": {
+        "rooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 5,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.1111,
+          "recall": 0.6667,
+          "f1": 0.1905,
+          "true_positives": 2,
+          "false_positives": 16,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 5
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 47
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.2896,
+          "recall": 0.7298,
+          "f1": 0.4146
+        }
+      },
+      "closure": {
+        "tolerance_px": 122.0,
+        "wall_network_closure_rate": 0.6667,
+        "room_boundary_closure_rate": 0.6,
+        "mean_boundary_coverage": 0.9591,
+        "interior_coverage": 0.6505
+      }
+    },
+    "labelme_fp_86_2": {
+      "structural": {
+        "error": null,
+        "wall_count": 6,
+        "exterior_wall_count": 5,
+        "interior_wall_count": 1,
+        "room_count": 0,
+        "total_area_raw": 377.6,
+        "px_per_ft": 25.0,
+        "polygon_vertices": 24,
+        "wall_network_closure_rate": 0.4167,
+        "dangling_endpoints": 7,
+        "interior_coverage": 0.0,
+        "runtime_s": 0.18
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "walls": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 6,
+          "false_negatives": 2
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 5
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.176,
+          "recall": 0.3729,
+          "f1": 0.2391
+        }
+      },
+      "closure": {
+        "tolerance_px": 50.0,
+        "wall_network_closure_rate": 0.4167,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.6692,
+        "interior_coverage": 0.0
+      }
+    },
+    "labelme_fp_87": {
+      "structural": {
+        "error": null,
+        "wall_count": 12,
+        "exterior_wall_count": 10,
+        "interior_wall_count": 2,
+        "room_count": 2,
+        "total_area_raw": 1169.9,
+        "px_per_ft": 20.0,
+        "polygon_vertices": 10,
+        "wall_network_closure_rate": 0.875,
+        "dangling_endpoints": 3,
+        "interior_coverage": 0.6313,
+        "runtime_s": 0.15
+      },
+      "scores": {
+        "rooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 2,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.0833,
+          "recall": 0.5,
+          "f1": 0.1429,
+          "true_positives": 1,
+          "false_positives": 11,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 4
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.4696,
+          "recall": 0.5155,
+          "f1": 0.4915
+        }
+      },
+      "closure": {
+        "tolerance_px": 40.0,
+        "wall_network_closure_rate": 0.875,
+        "room_boundary_closure_rate": 0.5,
+        "mean_boundary_coverage": 0.9071,
+        "interior_coverage": 0.6313
+      }
+    },
     "mcginnies_pdf": {
       "structural": {
         "error": null,
-        "wall_count": 127,
+        "wall_count": 145,
         "exterior_wall_count": 59,
-        "interior_wall_count": 68,
+        "interior_wall_count": 86,
         "room_count": 41,
         "total_area_raw": 8702.1,
         "px_per_ft": 9.38,
         "polygon_vertices": 80,
-        "wall_network_closure_rate": 0.7795,
-        "dangling_endpoints": 56,
+        "wall_network_closure_rate": 0.7966,
+        "dangling_endpoints": 59,
         "interior_coverage": 0.6654,
-        "runtime_s": 10.86
+        "runtime_s": 4.24
       },
       "scores": null,
       "closure": null
@@ -143,17 +1703,17 @@
     "synth_corridor": {
       "structural": {
         "error": null,
-        "wall_count": 9,
+        "wall_count": 12,
         "exterior_wall_count": 5,
-        "interior_wall_count": 4,
+        "interior_wall_count": 7,
         "room_count": 4,
         "total_area_raw": 2957.9,
         "px_per_ft": 18.0,
         "polygon_vertices": 8,
-        "wall_network_closure_rate": 0.7778,
-        "dangling_endpoints": 4,
+        "wall_network_closure_rate": 0.75,
+        "dangling_endpoints": 6,
         "interior_coverage": 0.6788,
-        "runtime_s": 1.19
+        "runtime_s": 0.52
       },
       "scores": {
         "rooms": {
@@ -165,20 +1725,20 @@
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.5556,
-          "recall": 0.625,
-          "f1": 0.5882,
-          "true_positives": 5,
-          "false_positives": 4,
-          "false_negatives": 3
+          "precision": 0.5,
+          "recall": 0.75,
+          "f1": 0.6,
+          "true_positives": 6,
+          "false_positives": 6,
+          "false_negatives": 2
         },
         "doors": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 3,
           "false_positives": 0,
-          "false_negatives": 3
+          "false_negatives": 0
         },
         "windows": {
           "precision": 1.0,
@@ -206,15 +1766,15 @@
         },
         "walls_coverage": {
           "precision": 1.0,
-          "recall": 0.9732,
-          "f1": 0.9864
+          "recall": 1.0,
+          "f1": 1.0
         }
       },
       "closure": {
         "tolerance_px": 36.0,
-        "wall_network_closure_rate": 0.7778,
-        "room_boundary_closure_rate": 0.5,
-        "mean_boundary_coverage": 0.8962,
+        "wall_network_closure_rate": 0.75,
+        "room_boundary_closure_rate": 1.0,
+        "mean_boundary_coverage": 1.0,
         "interior_coverage": 0.6788
       }
     },
@@ -231,7 +1791,7 @@
         "wall_network_closure_rate": 0.9,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7129,
-        "runtime_s": 1.16
+        "runtime_s": 0.51
       },
       "scores": {
         "rooms": {
@@ -251,12 +1811,12 @@
           "false_negatives": 1
         },
         "doors": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 1,
           "false_positives": 0,
-          "false_negatives": 1
+          "false_negatives": 0
         },
         "windows": {
           "precision": 1.0,
@@ -309,7 +1869,7 @@
         "wall_network_closure_rate": 0.8571,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7235,
-        "runtime_s": 1.11
+        "runtime_s": 0.5
       },
       "scores": {
         "rooms": {
@@ -329,12 +1889,12 @@
           "false_negatives": 2
         },
         "doors": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
-          "true_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 1,
           "false_positives": 0,
-          "false_negatives": 1
+          "false_negatives": 0
         },
         "windows": {
           "precision": 0.0,

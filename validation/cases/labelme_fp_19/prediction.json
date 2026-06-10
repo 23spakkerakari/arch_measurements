@@ -480,6 +480,7 @@
       "is_exterior": false
     }
   ],
+  "doors": [],
   "mask_roi_offset": [
     0,
     0
@@ -496,5 +497,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 4.29
+  "runtime_s": 2.49
 }

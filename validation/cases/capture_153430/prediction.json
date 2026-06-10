@@ -850,6 +850,80 @@
       "is_exterior": false
     }
   ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w10",
+      "bbox_px": [
+        1326,
+        1098,
+        1509,
+        1180
+      ],
+      "center_px": [
+        1417.5,
+        1139.0
+      ],
+      "width": "3.39 ft",
+      "width_raw": 3.39,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "w17",
+      "bbox_px": [
+        1433,
+        2067,
+        1596,
+        2149
+      ],
+      "center_px": [
+        1514.5,
+        2108.0
+      ],
+      "width": "3.02 ft",
+      "width_raw": 3.02,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d3",
+      "host_wall_id": "w19",
+      "bbox_px": [
+        2201,
+        2067,
+        2458,
+        2149
+      ],
+      "center_px": [
+        2329.5,
+        2108.0
+      ],
+      "width": "4.76 ft",
+      "width_raw": 4.76,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d4",
+      "host_wall_id": "w23",
+      "bbox_px": [
+        2264,
+        2671,
+        2431,
+        2753
+      ],
+      "center_px": [
+        2347.5,
+        2712.0
+      ],
+      "width": "3.09 ft",
+      "width_raw": 3.09,
+      "is_exterior": false,
+      "evidence": "gap"
+    }
+  ],
   "mask_roi_offset": [
     680,
     104
@@ -866,5 +940,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 3.05
+  "runtime_s": 1.53
 }

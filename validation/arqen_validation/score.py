@@ -73,11 +73,19 @@ def score_prediction(
         thresholds["walls"],
     ))
 
+    # Center tolerance ~one door width: annotated opening boxes often include
+    # the swing arc while predictions are gap-tight, so IoU alone under-scores.
+    px_per_ft = prediction.get("px_per_ft")
+    try:
+        opening_tol_px = max(40.0, 3.0 * float(px_per_ft)) if px_per_ft else 40.0
+    except (TypeError, ValueError):
+        opening_tol_px = 40.0
+
     results.append(greedy_match(
         "doors",
         gt.get("doors", []),
         pred.get("doors", []),
-        opening_score,
+        lambda g, p: opening_score(g, p, center_tol_px=opening_tol_px),
         thresholds["doors"],
     ))
 
@@ -85,7 +93,7 @@ def score_prediction(
         "windows",
         gt.get("windows", []),
         pred.get("windows", []),
-        opening_score,
+        lambda g, p: opening_score(g, p, center_tol_px=opening_tol_px),
         thresholds["windows"],
     ))
 

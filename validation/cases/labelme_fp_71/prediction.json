@@ -1029,8 +1029,24 @@
         3635
       ],
       "is_exterior": false
+    },
+    {
+      "id": "w65",
+      "name": "East Wall 65",
+      "facing": "East",
+      "length": "11.58 ft",
+      "length_raw": 11.58,
+      "angle_deg": 180.0,
+      "px_coords": [
+        5570,
+        1281,
+        5570,
+        2115
+      ],
+      "is_exterior": false
     }
   ],
+  "doors": [],
   "mask_roi_offset": [
     0,
     0
@@ -1047,5 +1063,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 9.38
+  "runtime_s": 5.02
 }

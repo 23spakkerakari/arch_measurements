@@ -18,7 +18,7 @@ cases (all changes are gated by `validation/compare_to_baseline.py`).
 | 4 | ~~Dedup audit trail + safer fallbacks~~ **DONE 2026-06-10** | Length-conservation guard skips passes that would drop >40% of total wall length; optional per-wall drop audit | Low | Low | walls P, cleanup stats |
 | 5 | ~~Interior coverage recovery (corridors/small rooms)~~ **DONE 2026-06-10** | Delivered — coverage +0.01…+0.04 on real plans, +1 room on two of them; corridor/closet recovery exact on the new `synth_corridor` case. Remaining coverage gap is the footprint denominator (#6) and openings (#7) | Medium | Medium-high | interior coverage, rooms R |
 | 6 | Footprint confidence + parameterized morphology | Medium — protects the single highest-leverage failure point (stage [4] has no fallback) | Medium | Medium | error rate, area, polygon |
-| 7 | Door detection (geometric) | Unlocks doors 0% → ~60–80% recall | High | Medium | doors P/R/F1 |
+| 7 | ~~Door detection (geometric)~~ **DONE 2026-06-10** | Delivered — synth doors 0/5 → 5/5 (P/R 1.0/1.0, no window FPs); LabelMe doors 9/308 with precision 1.00 (recall bounded by wall recall on those crops) | High | Medium | doors P/R/F1 |
 | 8 | Window detection (geometric) | Unlocks windows 0% → ~60–80% recall | High | Medium | windows P/R/F1 |
 | 9 | Dimension extraction (line geometry + existing LLM OCR) | Unlocks dimensions 0% → ~70% recall; enables scale cross-check | High | Low (additive) | dimensions P/R/F1 |
 | 10 | ML hybrid wall graph | Very high (handles curved/diagonal/style variance) | Very high | High | full suite |
@@ -139,7 +139,8 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parsed to 19.5). *
   fix (#6 — the dimension strip still inflates `footprint_area_px`) and
   opening detection (#7 — unsealed gaps still merge/leak space). The closet
   partitions are found by the room map but not emitted as `walls[]` (Hough
-  interior filter requires an exterior T-junction) — fold into #7.
+  interior filter requires an exterior T-junction) — fold into #7
+  (resolved there 2026-06-10 by the short-partition recovery pass).
 - **Tests:** `tests/unit/test_room_split.py` (corridor floor keeps/drops,
   directional-close corner pocket, orphan merge one/two/zero neighbors);
   `tests/integration/test_synth_plans.py::TestCorridor*` (4 rooms, sub-25 ft²
@@ -160,23 +161,73 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parsed to 19.5). *
   baseline compare pins footprint area to +/-5%.
 - **Tests:** unit tests with decoy blobs; confidence present in output schema.
 
-## 7–8. Door and window detection
+## 7. Door detection (geometric) — IMPLEMENTED 2026-06-10
 
-- **Baseline evidence:** doors/windows recall 0.00 — categories the product
-  promises (project_context.md targets >90%) with no detector behind them.
-- **Change (doors):** detect doorway gaps along walls (the room-split walk
-  already finds room-transition points); classify gap + swing-arc ink
-  (Hough circles / arc fit) as a door; emit `doors[]` with `host_wall_id`.
-- **Change (windows):** within exterior wall bands, detect the
-  sill-line signature (thin single/triple stroke between wall faces, the
-  current `_find_wall_pairs` already keeps this ink) and emit `windows[]`.
-- **Expected impact:** doors/windows 0% → 60–80% recall on synthetic +
-  annotated cases; closes the biggest gap vs product targets.
+- **Baseline evidence:** doors recall 0.00 by construction against a >90%
+  product target; the signal already existed — `snap_wall_endpoints`
+  deliberately never bridges collinear endpoint gaps because they are
+  doorways.
+- **What landed:**
+  - `Arqen/door_detect.py`: groups axis-aligned walls by orientation + axis
+    (dedup tolerance), takes each adjacent collinear pair's span gap as a
+    candidate when 1.5–5 ft wide, verifies the gap band of `wall_pair_mask`
+    is essentially ink-free (dedup/cleanup splits still have wall ink), and
+    rejects gaps with a raw-ink stroke running parallel to the wall axis
+    across most of the span (window sill). Emits `doors[]` with `id`,
+    `host_wall_id` (longer flank), `bbox_px`, `center_px`, `width_raw`,
+    `is_exterior`, `evidence: "gap"`.
+  - Wired into `analyze_page` after `snap_wall_endpoints` (walls and mask
+    share crop coordinates); door coords shifted by `roi_offset` alongside
+    walls; `"doors"` added to the output dict. Purely additive.
+  - Scorer fix (measurement-side, like M2): `opening_score` is now
+    max(bbox IoU, center-proximity) with the center tolerance scaled to
+    ~3 ft via the prediction's `px_per_ft` — LabelMe door boxes include the
+    swing arc (~3x3 ft) so IoU alone under-scored correct gap-tight
+    detections.
+  - Short-partition recovery (folded #5 residual): probabilistic Hough
+    reliably misses sub-6-ft runs on a full sheet, so closet partitions never
+    reached `walls[]`. A directional-morphological-opening pass finds
+    2.5–12 ft double-stroke runs; a candidate is kept only when it
+    T-junctions into an already-accepted wall (iterated, so stubs chain) and
+    is not parallel to a wall at dimension-line offset (1–2.5 ft) — that
+    second guard is what keeps fixture/dimension scraps out and protects
+    cleanup's dimension-like classification of real walls. The pass is
+    purely additive: recovered shorts are deduped among themselves, never
+    re-merged into the stable interior set.
+- **Measured impact:** synth doors 5/5 (P/R 1.0/1.0 on all three cases,
+  including the corridor closet door; the 2 sill windows produce no FPs);
+  `synth_corridor` walls 9 → 12 (closet partitions now emitted);
+  `mcginnies_pdf` walls 127 → 145 (+18 dorm bathroom/closet partitions,
+  rooms stable at 41, closure +0.017); captures unchanged. LabelMe 20-case
+  batch: doors 9/308 recall at precision 1.00 — recall there is bounded by
+  wall recall on those crops (both flanking walls must exist), not by the
+  gap classifier.
+- **Residuals:** real-plan door recall needs wall recall on cropped images
+  to rise first; swing-arc confirmation can be added later under the same
+  schema (`evidence` field).
+- **Tests:** `tests/unit/test_door_detect.py` (collinear gap H/V, zero-gap
+  sub-segment boundary, too-wide garage opening, non-collinear pairing,
+  ink-filled gap, sill vs perpendicular door leaf, dedup/ids, exterior flag,
+  diagonal walls); synth integration assertions flipped from TP==0 to
+  recall/precision floors (two_room 1/1, l_shape 1/1, corridor >= 2/3 with
+  precision 1.0).
+
+## 8. Window detection (geometric)
+
+- **Baseline evidence:** windows recall 0.00 — a category the product
+  promises (project_context.md targets >90%) with no detector behind it.
+- **Change:** within exterior wall bands, detect the sill-line signature
+  (thin single/triple stroke between wall faces, the current
+  `_find_wall_pairs` already keeps this ink) and emit `windows[]`. The door
+  detector's sill discriminator (`door_detect._gap_has_sill`) is the seed:
+  what it rejects as "not a door" is precisely the window signature.
+- **Expected impact:** windows 0% → 60–80% recall on synthetic + annotated
+  cases.
 - **Risk + mitigation:** purely additive output fields; walls/rooms paths
-  untouched — gate ensures no drift; synth renderer already draws windows and
-  door gaps with exact GT.
-- **Tests:** synth cases already carry door/window GT (currently asserting
-  TP==0 — flip these to recall floors when detection lands).
+  untouched — gate ensures no drift; synth renderer already draws windows
+  with exact GT.
+- **Tests:** synth cases carry window GT (currently asserting TP==0 — flip
+  to recall floors when detection lands).
 
 ## 9. Dimension extraction
 

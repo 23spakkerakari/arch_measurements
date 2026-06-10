@@ -782,6 +782,62 @@
       "is_exterior": false
     }
   ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w8",
+      "bbox_px": [
+        1326,
+        1098,
+        1509,
+        1180
+      ],
+      "center_px": [
+        1417.5,
+        1139.0
+      ],
+      "width": "3.39 ft",
+      "width_raw": 3.39,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "w17",
+      "bbox_px": [
+        2201,
+        2067,
+        2458,
+        2149
+      ],
+      "center_px": [
+        2329.5,
+        2108.0
+      ],
+      "width": "4.76 ft",
+      "width_raw": 4.76,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d3",
+      "host_wall_id": "w21",
+      "bbox_px": [
+        2264,
+        2648,
+        2432,
+        2730
+      ],
+      "center_px": [
+        2348.0,
+        2689.0
+      ],
+      "width": "3.11 ft",
+      "width_raw": 3.11,
+      "is_exterior": false,
+      "evidence": "gap"
+    }
+  ],
   "mask_roi_offset": [
     68,
     69
@@ -798,5 +854,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 3.59
+  "runtime_s": 1.86
 }

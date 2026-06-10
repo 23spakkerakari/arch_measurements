@@ -2,19 +2,19 @@
   "case_id": "labelme_fp_10",
   "summary": {
     "macro": {
-      "precision": 0.2594,
+      "precision": 0.2596,
       "recall": 0.3301,
-      "f1": 0.2818
+      "f1": 0.2821
     },
     "micro": {
-      "precision": 0.1948,
+      "precision": 0.1974,
       "recall": 0.0685,
-      "f1": 0.1014,
+      "f1": 0.1017,
       "true_positives": 15,
-      "false_positives": 62,
+      "false_positives": 61,
       "false_negatives": 204
     },
-    "mean_iou": 0.8304
+    "mean_iou": 0.8303
   },
   "categories": {
     "rooms": {
@@ -933,12 +933,12 @@
       "category": "walls",
       "counts": {
         "true_positives": 3,
-        "false_positives": 50,
+        "false_positives": 49,
         "false_negatives": 10
       },
-      "precision": 0.0566,
+      "precision": 0.0577,
       "recall": 0.2308,
-      "f1": 0.0909,
+      "f1": 0.0923,
       "mean_iou": 0.8029,
       "matches": [
         {
@@ -996,7 +996,7 @@
         {
           "ground_truth_id": "w6",
           "predicted_id": "w38",
-          "score": 0.672,
+          "score": 0.6719,
           "ground_truth": {
             "id": "w6",
             "px_coords": [
@@ -1009,13 +1009,13 @@
           "predicted": {
             "id": "w38",
             "px_coords": [
-              730.0,
+              729.0,
               5852.0,
               3711.0,
               5852.0
             ],
             "facing": "South",
-            "length_raw": 41.4,
+            "length_raw": 41.42,
             "is_exterior": false
           }
         }
@@ -1604,18 +1604,6 @@
           "is_exterior": false
         },
         {
-          "id": "w42",
-          "px_coords": [
-            730.0,
-            5510.0,
-            730.0,
-            6655.0
-          ],
-          "facing": "West",
-          "length_raw": 15.9,
-          "is_exterior": false
-        },
-        {
           "id": "w43",
           "px_coords": [
             845.0,
@@ -1738,9 +1726,9 @@
       ],
       "coverage": {
         "tolerance_px": 144.0,
-        "precision": 0.2341,
+        "precision": 0.2319,
         "recall": 0.4393,
-        "f1": 0.3054
+        "f1": 0.3036
       }
     },
     "doors": {
@@ -4470,12 +4458,12 @@
   "closure": {
     "tolerance_px": 144.0,
     "wall_network": {
-      "wall_count": 53,
-      "endpoint_count": 106,
-      "closed_endpoints": 66,
-      "dangling_endpoints": 40,
-      "closure_rate": 0.6226,
-      "dangling_endpoint_rate": 0.3774,
+      "wall_count": 52,
+      "endpoint_count": 104,
+      "closed_endpoints": 63,
+      "dangling_endpoints": 41,
+      "closure_rate": 0.6058,
+      "dangling_endpoint_rate": 0.3942,
       "dangling": [
         {
           "wall_id": "w1.s4",
@@ -4496,6 +4484,13 @@
           "endpoint_px": [
             0.0,
             5043.0
+          ]
+        },
+        {
+          "wall_id": "w4.s1",
+          "endpoint_px": [
+            729.0,
+            5685.0
           ]
         },
         {
@@ -4643,13 +4638,6 @@
           "endpoint_px": [
             4015.0,
             4727.0
-          ]
-        },
-        {
-          "wall_id": "w33",
-          "endpoint_px": [
-            1582.0,
-            4869.0
           ]
         }
       ]

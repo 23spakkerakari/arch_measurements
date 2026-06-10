@@ -2,19 +2,19 @@
   "case_id": "labelme_fp_1",
   "summary": {
     "macro": {
-      "precision": 0.4155,
-      "recall": 0.4225,
-      "f1": 0.4076
+      "precision": 0.5821,
+      "recall": 0.4294,
+      "f1": 0.421
     },
     "micro": {
-      "precision": 0.18,
-      "recall": 0.0533,
-      "f1": 0.0822,
-      "true_positives": 9,
+      "precision": 0.1961,
+      "recall": 0.0592,
+      "f1": 0.0909,
+      "true_positives": 10,
       "false_positives": 41,
-      "false_negatives": 160
+      "false_negatives": 159
     },
-    "mean_iou": 0.8428
+    "mean_iou": 0.7795
   },
   "categories": {
     "rooms": {
@@ -1286,15 +1286,49 @@
     "doors": {
       "category": "doors",
       "counts": {
-        "true_positives": 0,
+        "true_positives": 1,
         "false_positives": 0,
-        "false_negatives": 24
+        "false_negatives": 23
       },
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "mean_iou": null,
-      "matches": [],
+      "precision": 1.0,
+      "recall": 0.0417,
+      "f1": 0.08,
+      "mean_iou": 0.6529,
+      "matches": [
+        {
+          "ground_truth_id": "door_9",
+          "predicted_id": "d1",
+          "score": 0.6529,
+          "ground_truth": {
+            "id": "door_9",
+            "host_wall_id": null,
+            "bbox_px": [
+              1907.5943396226417,
+              4221.198113207547,
+              2024.5754716981132,
+              4449.028301886792
+            ],
+            "center_px": [
+              1966.0849056603774,
+              4335.11320754717
+            ]
+          },
+          "predicted": {
+            "id": "d1",
+            "host_wall_id": "w36",
+            "bbox_px": [
+              1842.0,
+              4228.0,
+              1950.0,
+              4389.0
+            ],
+            "center_px": [
+              1896.0,
+              4308.5
+            ]
+          }
+        }
+      ],
       "missing_objects": [
         {
           "id": "door_1",
@@ -1406,20 +1440,6 @@
           "center_px": [
             1585.5558539205158,
             3401.4790547798066
-          ]
-        },
-        {
-          "id": "door_9",
-          "host_wall_id": null,
-          "bbox_px": [
-            1907.5943396226417,
-            4221.198113207547,
-            2024.5754716981132,
-            4449.028301886792
-          ],
-          "center_px": [
-            1966.0849056603774,
-            4335.11320754717
           ]
         },
         {

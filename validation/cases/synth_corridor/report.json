@@ -2,19 +2,19 @@
   "case_id": "synth_corridor",
   "summary": {
     "macro": {
-      "precision": 0.5926,
-      "recall": 0.6042,
-      "f1": 0.598
+      "precision": 0.75,
+      "recall": 0.7917,
+      "f1": 0.7667
     },
     "micro": {
-      "precision": 0.6923,
-      "recall": 0.5294,
-      "f1": 0.6,
-      "true_positives": 9,
-      "false_positives": 4,
-      "false_negatives": 8
+      "precision": 0.6842,
+      "recall": 0.7647,
+      "f1": 0.7222,
+      "true_positives": 13,
+      "false_positives": 6,
+      "false_negatives": 4
     },
-    "mean_iou": 0.8784
+    "mean_iou": 0.9067
   },
   "categories": {
     "rooms": {
@@ -177,14 +177,14 @@
     "walls": {
       "category": "walls",
       "counts": {
-        "true_positives": 5,
-        "false_positives": 4,
-        "false_negatives": 3
+        "true_positives": 6,
+        "false_positives": 6,
+        "false_negatives": 2
       },
-      "precision": 0.5556,
-      "recall": 0.625,
-      "f1": 0.5882,
-      "mean_iou": 0.873,
+      "precision": 0.5,
+      "recall": 0.75,
+      "f1": 0.6,
+      "mean_iou": 0.8734,
       "matches": [
         {
           "ground_truth_id": "ext_s",
@@ -275,6 +275,35 @@
           }
         },
         {
+          "ground_truth_id": "int_closet_h",
+          "predicted_id": "w9",
+          "score": 0.875,
+          "ground_truth": {
+            "id": "int_closet_h",
+            "px_coords": [
+              198.0,
+              794.0,
+              261.0,
+              794.0
+            ],
+            "facing": "North",
+            "length_raw": 3.5,
+            "is_exterior": false
+          },
+          "predicted": {
+            "id": "w9",
+            "px_coords": [
+              189.0,
+              799.0,
+              261.0,
+              799.0
+            ],
+            "facing": "South",
+            "length_raw": 4.0,
+            "is_exterior": false
+          }
+        },
+        {
           "ground_truth_id": "int_b",
           "predicted_id": "w6",
           "score": 0.7616,
@@ -357,18 +386,6 @@
           "facing": "West",
           "length_raw": 8.5,
           "is_exterior": false
-        },
-        {
-          "id": "int_closet_h",
-          "px_coords": [
-            198.0,
-            794.0,
-            261.0,
-            794.0
-          ],
-          "facing": "North",
-          "length_raw": 3.5,
-          "is_exterior": false
         }
       ],
       "false_positives": [
@@ -421,71 +438,152 @@
           "facing": "South",
           "length_raw": 17.28,
           "is_exterior": false
+        },
+        {
+          "id": "w10",
+          "px_coords": [
+            261.0,
+            641.0,
+            261.0,
+            689.0
+          ],
+          "facing": "West",
+          "length_raw": 2.67,
+          "is_exterior": false
+        },
+        {
+          "id": "w11",
+          "px_coords": [
+            261.0,
+            726.0,
+            261.0,
+            799.0
+          ],
+          "facing": "West",
+          "length_raw": 4.06,
+          "is_exterior": false
         }
       ],
       "coverage": {
         "tolerance_px": 36.0,
         "precision": 1.0,
-        "recall": 0.9732,
-        "f1": 0.9864
+        "recall": 1.0,
+        "f1": 1.0
       }
     },
     "doors": {
       "category": "doors",
       "counts": {
-        "true_positives": 0,
+        "true_positives": 3,
         "false_positives": 0,
-        "false_negatives": 3
+        "false_negatives": 0
       },
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "mean_iou": null,
-      "matches": [],
-      "missing_objects": [
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 0.9628,
+      "matches": [
         {
-          "id": "d1",
-          "host_wall_id": "int_a",
-          "bbox_px": [
-            400.0,
-            553.0,
-            436.0,
-            568.0
-          ],
-          "center_px": [
-            418.0,
-            560.0
-          ]
+          "ground_truth_id": "d2",
+          "predicted_id": "d3",
+          "score": 0.9907,
+          "ground_truth": {
+            "id": "d2",
+            "host_wall_id": "int_b",
+            "bbox_px": [
+              900.0,
+              634.0,
+              936.0,
+              649.0
+            ],
+            "center_px": [
+              918.0,
+              641.0
+            ]
+          },
+          "predicted": {
+            "id": "d3",
+            "host_wall_id": "w7",
+            "bbox_px": [
+              895.0,
+              627.0,
+              940.0,
+              655.0
+            ],
+            "center_px": [
+              917.5,
+              641.0
+            ]
+          }
         },
         {
-          "id": "d2",
-          "host_wall_id": "int_b",
-          "bbox_px": [
-            900.0,
-            634.0,
-            936.0,
-            649.0
-          ],
-          "center_px": [
-            918.0,
-            641.0
-          ]
+          "ground_truth_id": "d1",
+          "predicted_id": "d2",
+          "score": 0.9907,
+          "ground_truth": {
+            "id": "d1",
+            "host_wall_id": "int_a",
+            "bbox_px": [
+              400.0,
+              553.0,
+              436.0,
+              568.0
+            ],
+            "center_px": [
+              418.0,
+              560.0
+            ]
+          },
+          "predicted": {
+            "id": "d2",
+            "host_wall_id": "w6",
+            "bbox_px": [
+              395.0,
+              546.0,
+              440.0,
+              574.0
+            ],
+            "center_px": [
+              417.5,
+              560.0
+            ]
+          }
         },
         {
-          "id": "d3",
-          "host_wall_id": "int_closet_v",
-          "bbox_px": [
-            249.0,
-            690.0,
-            264.0,
-            726.0
-          ],
-          "center_px": [
-            256.0,
-            708.0
-          ]
+          "ground_truth_id": "d3",
+          "predicted_id": "d1",
+          "score": 0.9069,
+          "ground_truth": {
+            "id": "d3",
+            "host_wall_id": "int_closet_v",
+            "bbox_px": [
+              249.0,
+              690.0,
+              264.0,
+              726.0
+            ],
+            "center_px": [
+              256.0,
+              708.0
+            ]
+          },
+          "predicted": {
+            "id": "d1",
+            "host_wall_id": "w11",
+            "bbox_px": [
+              247.0,
+              689.0,
+              275.0,
+              726.0
+            ],
+            "center_px": [
+              261.0,
+              707.5
+            ]
+          }
         }
       ],
+      "missing_objects": [],
       "false_positives": []
     },
     "windows": {
@@ -558,12 +656,12 @@
   "closure": {
     "tolerance_px": 36.0,
     "wall_network": {
-      "wall_count": 9,
-      "endpoint_count": 18,
-      "closed_endpoints": 14,
-      "dangling_endpoints": 4,
-      "closure_rate": 0.7778,
-      "dangling_endpoint_rate": 0.2222,
+      "wall_count": 12,
+      "endpoint_count": 24,
+      "closed_endpoints": 18,
+      "dangling_endpoints": 6,
+      "closure_rate": 0.75,
+      "dangling_endpoint_rate": 0.25,
       "dangling": [
         {
           "wall_id": "w5",
@@ -592,14 +690,28 @@
             940.0,
             641.0
           ]
+        },
+        {
+          "wall_id": "w10",
+          "endpoint_px": [
+            261.0,
+            689.0
+          ]
+        },
+        {
+          "wall_id": "w11",
+          "endpoint_px": [
+            261.0,
+            726.0
+          ]
         }
       ]
     },
     "room_boundary": {
       "room_count": 4,
-      "closed_rooms": 2,
-      "closure_rate": 0.5,
-      "mean_boundary_coverage": 0.8962,
+      "closed_rooms": 4,
+      "closure_rate": 1.0,
+      "mean_boundary_coverage": 1.0,
       "closed_threshold": 0.95,
       "per_room": [
         {
@@ -614,13 +726,13 @@
         },
         {
           "room_id": "R2",
-          "boundary_coverage": 0.935,
-          "closed": false
+          "boundary_coverage": 1.0,
+          "closed": true
         },
         {
           "room_id": "R_closet",
-          "boundary_coverage": 0.65,
-          "closed": false
+          "boundary_coverage": 1.0,
+          "closed": true
         }
       ]
     },

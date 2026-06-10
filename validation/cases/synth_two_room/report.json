@@ -2,19 +2,19 @@
   "case_id": "synth_two_room",
   "summary": {
     "macro": {
-      "precision": 0.4048,
-      "recall": 0.4333,
-      "f1": 0.4167
+      "precision": 0.5714,
+      "recall": 0.6,
+      "f1": 0.5833
     },
     "micro": {
-      "precision": 0.5556,
-      "recall": 0.4167,
-      "f1": 0.4762,
-      "true_positives": 5,
+      "precision": 0.6,
+      "recall": 0.5,
+      "f1": 0.5455,
+      "true_positives": 6,
       "false_positives": 4,
-      "false_negatives": 7
+      "false_negatives": 6
     },
-    "mean_iou": 0.9659
+    "mean_iou": 0.9742
   },
   "categories": {
     "rooms": {
@@ -280,31 +280,50 @@
     "doors": {
       "category": "doors",
       "counts": {
-        "true_positives": 0,
+        "true_positives": 1,
         "false_positives": 0,
-        "false_negatives": 1
+        "false_negatives": 0
       },
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "mean_iou": null,
-      "matches": [],
-      "missing_objects": [
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 0.9907,
+      "matches": [
         {
-          "id": "d1",
-          "host_wall_id": "int_1",
-          "bbox_px": [
-            773.0,
-            600.0,
-            788.0,
-            636.0
-          ],
-          "center_px": [
-            780.0,
-            618.0
-          ]
+          "ground_truth_id": "d1",
+          "predicted_id": "d1",
+          "score": 0.9907,
+          "ground_truth": {
+            "id": "d1",
+            "host_wall_id": "int_1",
+            "bbox_px": [
+              773.0,
+              600.0,
+              788.0,
+              636.0
+            ],
+            "center_px": [
+              780.0,
+              618.0
+            ]
+          },
+          "predicted": {
+            "id": "d1",
+            "host_wall_id": "w5",
+            "bbox_px": [
+              766.0,
+              595.0,
+              794.0,
+              640.0
+            ],
+            "center_px": [
+              780.0,
+              617.5
+            ]
+          }
         }
       ],
+      "missing_objects": [],
       "false_positives": []
     },
     "windows": {

@@ -214,17 +214,26 @@ def wall_coverage_metrics(
 
 
 def opening_score(gt: dict, pred: dict, center_tol_px: float = 40.0) -> float:
+    """max(bbox IoU, center-proximity score).
+
+    Annotated door boxes often include the swing arc (~3x3 ft) while a
+    gap-tight prediction is just the wall band, so IoU alone lands ~0.2 for
+    correct detections. Center proximity (tolerance ~one door width, scaled
+    by px_per_ft when the caller knows it) recovers those without loosening
+    exact-bbox cases, which still score 1.0 via IoU.
+    """
+    score = 0.0
     gt_bbox = gt.get("bbox_px")
     pred_bbox = pred.get("bbox_px")
     if gt_bbox and pred_bbox:
-        return bbox_iou(gt_bbox, pred_bbox)
+        score = bbox_iou(gt_bbox, pred_bbox)
     gt_c = object_center(gt)
     pred_c = object_center(pred)
     if gt_c and pred_c:
         dist = point_distance(gt_c, pred_c)
         if dist <= center_tol_px:
-            return 1.0 - dist / center_tol_px
-    return 0.0
+            score = max(score, 1.0 - dist / center_tol_px)
+    return score
 
 
 def label_score(gt: dict, pred: dict, canvas_size: tuple[int, int]) -> float:

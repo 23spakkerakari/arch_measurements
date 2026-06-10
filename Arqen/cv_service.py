@@ -94,7 +94,14 @@ def cv_analyze():
     if image is None:
         return jsonify({"error": "Could not decode image"}), 400
 
-    dpi = int(data.get("dpi", 150))
+    dpi_raw = data.get("dpi", 150)
+    try:
+        dpi = int(dpi_raw)
+    except (TypeError, ValueError):
+        return jsonify({"error": "dpi must be an integer"}), 400
+    if dpi < 1 or dpi > 1200:
+        return jsonify({"error": "dpi must be between 1 and 1200"}), 400
+
     roi_raw = data.get("roi")
     roi = roi_raw if isinstance(roi_raw, dict) else None
     doorway_close_ft = float(data.get("doorway_close_ft", 2.5))

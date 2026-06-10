@@ -273,7 +273,8 @@ def run(args) -> None:
     max_span_frac = 1.0 if args.no_margins else 0.95
     segments = pp._filter_wall_segments(segments, w, h, roi=filter_roi, max_span_frac=max_span_frac)
     tracker.check_segments("3-polygon_after_filter", segments)
-    segments = pp.snap_segments_to_walls(segments, mask_full, px_per_unit=px_per_unit)
+    segments = pp.snap_segments_to_walls(
+        segments, mask_full, px_per_unit=px_per_unit, validate_pairs=True)
     tracker.check_segments("3-polygon_after_snap", segments)
     _save_segments_stage(segments, mask_full, out_dir,
                          "07_polygon_segments", dict(probes))
@@ -312,7 +313,8 @@ def run(args) -> None:
         roi_dropped = [s for s in before if s not in hough_segs]
         tracker.check_segments("4-hough_after_roi_filter", hough_segs)
         tracker.check_segments("4-hough_dropped_by_roi", roi_dropped)
-        hough_segs = pp.snap_segments_to_walls(hough_segs, mask_full, px_per_unit=px_per_unit)
+        hough_segs = pp.snap_segments_to_walls(
+            hough_segs, mask_full, px_per_unit=px_per_unit, validate_pairs=True)
         tracker.check_segments("4-hough_after_snap", hough_segs)
         segments = segments + hough_segs
 

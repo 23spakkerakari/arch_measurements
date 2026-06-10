@@ -194,6 +194,50 @@ def build_room_label_map(
     return relabeled, rooms
 
 
+def drop_rooms_outside_exterior(
+    rooms: list[dict],
+    room_labels: np.ndarray,
+    exterior_segments: list[tuple],
+    margin_px: int,
+) -> tuple[list[dict], np.ndarray]:
+    """Remove room cells whose centroid falls outside the snapped exterior walls.
+
+    The footprint contour is traced on a morphologically inflated mask, so it
+    can bulge past the real exterior walls to nearby annotation ink (dimension
+    strings, leaders). The sliver between the wall and the contour edge then
+    survives as a phantom room cell. Real rooms lie inside the exterior wall
+    centerlines; phantom slivers lie outside. Cells whose centroid is not
+    within the bbox of the snapped exterior segments (shrunk inward by
+    margin_px) are dropped and the label map is renumbered compactly.
+
+    Skips filtering when the exterior bbox is degenerate (detection failure).
+    """
+    if not rooms or not exterior_segments:
+        return rooms, room_labels
+
+    xs = [c for s in exterior_segments for c in (s[0], s[2])]
+    ys = [c for s in exterior_segments for c in (s[1], s[3])]
+    x_lo, x_hi = min(xs) + margin_px, max(xs) - margin_px
+    y_lo, y_hi = min(ys) + margin_px, max(ys) - margin_px
+    if (x_hi - x_lo) < 4 * margin_px or (y_hi - y_lo) < 4 * margin_px:
+        return rooms, room_labels
+
+    kept = []
+    remap = np.zeros(len(rooms) + 1, dtype=np.int32)
+    for idx, room in enumerate(rooms, start=1):
+        cx, cy = room["centroid_px"]
+        if x_lo <= cx <= x_hi and y_lo <= cy <= y_hi:
+            remap[idx] = len(kept) + 1
+            kept.append(room)
+
+    if len(kept) == len(rooms):
+        return rooms, room_labels
+
+    for new_idx, room in enumerate(kept, start=1):
+        room["id"] = f"R{new_idx}"
+    return kept, remap[room_labels]
+
+
 def inward_normal(x1, y1, x2, y2, footprint_contour, probe_px=8.0):
     dx, dy = x2 - x1, y2 - y1
     length = math.hypot(dx, dy) or 1.0
@@ -383,6 +427,10 @@ def split_exterior_walls_by_room(
         wall_thickness_px, min_room_area_px,
         endpoint_extend_px, close_kernel_px,
         debug_dir=debug_dir,
+    )
+
+    rooms, room_labels = drop_rooms_outside_exterior(
+        rooms, room_labels, exterior_segments, margin_px=wall_thickness_px,
     )
 
     if debug_dir is not None:

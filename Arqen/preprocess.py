@@ -29,6 +29,15 @@ import cv2 #what we use for image processing + computer vision
 import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
+from calibration_validate import (
+    check_dpi_alternatives,
+    issue_to_log_line,
+    summarize_calibration,
+    validate_dpi,
+    validate_footprint_span,
+    validate_px_per_unit,
+    validate_total_area,
+)
 from extract_wall_segments_class import extract_wall_segments
 from room_wall_split import segment_traces_exterior, split_exterior_walls_by_room
 
@@ -844,12 +853,124 @@ def measure_walls(
 
 # ─── Wall-position snapping ─────────────────────────────────────────────────
 
+def _cluster_1d_positions(values: np.ndarray, link_px: int = 4) -> list[int]:
+    """Cluster sorted 1-D ink coordinates into runs separated by > link_px.
+
+    Returns the center of each run. A 3 px stroke yields one cluster at its
+    centerline; the two strokes of a drawn wall (gap >= ~min wall gap) yield
+    two clusters.
+    """
+    if values.size == 0:
+        return []
+    vals = np.unique(values)
+    centers: list[int] = []
+    start = prev = int(vals[0])
+    for v in vals[1:]:
+        v = int(v)
+        if v - prev > link_px:
+            centers.append((start + prev) // 2)
+            start = v
+        prev = v
+    centers.append((start + prev) // 2)
+    return centers
+
+
+def _snap_axis_position(
+    wall_mask: np.ndarray,
+    is_horiz: bool,
+    center: int,
+    span_lo: int,
+    span_hi: int,
+    radius: int,
+    min_pixels: int,
+    edge_frac: float,
+    validate: bool,
+    gap_lo: int,
+    gap_hi: int,
+) -> Optional[int]:
+    """Snapped perpendicular coordinate for one segment, or None if no ink.
+
+    Legacy behavior (validate=False): median of ink coords in the search
+    strip, or the outermost ink row/col near crop edges.
+
+    With validate=True, ink coords are clustered and tried in the path's
+    preference order (nearest-to-original for the median path, outermost-first
+    near edges). The first cluster that passes a double-stroke partner check
+    (`_has_parallel_partner`) wins and the segment snaps to the midpoint of
+    the stroke pair. Single-stroke annotation ink — dimension lines, leaders,
+    text — fails the check and is skipped, fixing snaps that previously locked
+    onto dimension strings that bulged the footprint contour. The median path
+    retries at double radius (the real wall can sit beyond the bulge), then
+    falls back to the legacy position.
+    """
+    h, w = wall_mask.shape
+    limit = h if is_horiz else w
+    if span_lo >= span_hi:
+        return None
+
+    def _ink_coords(grow: int) -> np.ndarray:
+        lo = max(0, center - radius * grow)
+        hi = min(limit - 1, center + radius * grow)
+        if lo >= hi:
+            return np.empty(0, dtype=np.int64)
+        if is_horiz:
+            strip = wall_mask[lo:hi + 1, span_lo:span_hi + 1]
+            coords, _ = np.where(strip > 0)
+        else:
+            strip = wall_mask[span_lo:span_hi + 1, lo:hi + 1]
+            _, coords = np.where(strip > 0)
+        return coords + lo
+
+    coords = _ink_coords(1)
+    if len(coords) < min_pixels:
+        return None
+
+    # Near the crop top/left, snap to the outermost wall-pair position
+    # (minimum) instead of the median — median lands on the inner face or a
+    # dimension row inside the wall. Symmetrically for bottom/right.
+    if center < limit * edge_frac:
+        legacy, order = int(coords.min()), "asc"
+    elif center > limit * (1 - edge_frac):
+        legacy, order = int(coords.max()), "desc"
+    else:
+        legacy, order = int(np.median(coords)), "near"
+    if not validate:
+        return legacy
+
+    for grow in (1, 2):
+        if grow > 1:
+            if order != "near":
+                break
+            coords = _ink_coords(grow)
+            if len(coords) < min_pixels:
+                continue
+        centers = _cluster_1d_positions(coords)
+        if order == "asc":
+            centers.sort()
+        elif order == "desc":
+            centers.sort(reverse=True)
+        else:
+            centers.sort(key=lambda v: abs(v - center))
+        for c in centers:
+            test_seg = (span_lo, c, span_hi, c) if is_horiz else (c, span_lo, c, span_hi)
+            if _has_parallel_partner(wall_mask, test_seg, gap_lo, gap_hi,
+                                     min_coverage=0.35):
+                partners = [o for o in centers
+                            if o != c and gap_lo <= abs(o - c) <= gap_hi]
+                if partners:
+                    p = min(partners, key=lambda o: abs(o - c))
+                    return (c + p) // 2
+                return c
+    return legacy
+
+
 def snap_segments_to_walls(
     segments: list[tuple],
     wall_mask: np.ndarray,
     search_radius: int = 80,
     min_pixels: int = 10,
     px_per_unit: float = 18.0,
+    validate_pairs: bool = False,
 ) -> list[tuple]:
     """
     Shift each polygon-derived segment onto the nearest actual wall-pair pixels.
@@ -859,52 +980,40 @@ def snap_segments_to_walls(
     wall_pair_mask perpendicular to the segment direction, find the median
     position of wall pixels within search_radius, and snap the segment there.
     Falls back to the original position when no wall pixels are found.
+
+    validate_pairs=True additionally requires the snap target to look like a
+    double-stroke wall (see _snap_axis_position), skipping single-stroke
+    annotation ink such as dimension strings near the building.
     """
     h, w = wall_mask.shape
     radius = max(search_radius, int(2 * px_per_unit))
     edge_frac = 0.12
+    gap_lo, gap_hi = wall_pair_gap_range(px_per_unit)
     snapped = []
     for (x1, y1, x2, y2) in segments:
         is_horiz = abs(x2 - x1) >= abs(y2 - y1)
         if is_horiz:
             cy = (y1 + y2) // 2
-            y_lo = max(0, cy - radius)
-            y_hi = min(h - 1, cy + radius)
             x_lo = max(0, min(x1, x2) + 5)
             x_hi = min(w - 1, max(x1, x2) - 5)
-            if x_lo < x_hi and y_lo < y_hi:
-                strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
-                ys, _ = np.where(strip > 0)
-                if len(ys) >= min_pixels:
-                    # Near the crop top, snap to the outermost wall-pair row
-                    # (minimum y) instead of the median — median lands on the
-                    # inner face or a dimension row below the north wall.
-                    if cy < h * edge_frac:
-                        ny = int(np.min(ys)) + y_lo
-                    elif cy > h * (1 - edge_frac):
-                        ny = int(np.max(ys)) + y_lo
-                    else:
-                        ny = int(np.median(ys)) + y_lo
-                    snapped.append((x1, ny, x2, ny))
-                    continue
+            ny = _snap_axis_position(
+                wall_mask, True, cy, x_lo, x_hi,
+                radius, min_pixels, edge_frac, validate_pairs, gap_lo, gap_hi,
+            )
+            if ny is not None:
+                snapped.append((x1, ny, x2, ny))
+                continue
         else:
             cx = (x1 + x2) // 2
-            x_lo = max(0, cx - radius)
-            x_hi = min(w - 1, cx + radius)
             y_lo = max(0, min(y1, y2) + 5)
             y_hi = min(h - 1, max(y1, y2) - 5)
-            if x_lo < x_hi and y_lo < y_hi:
-                strip = wall_mask[y_lo:y_hi + 1, x_lo:x_hi + 1]
-                _, xs = np.where(strip > 0)
-                if len(xs) >= min_pixels:
-                    if cx < w * edge_frac:
-                        nx = int(np.min(xs)) + x_lo
-                    elif cx > w * (1 - edge_frac):
-                        nx = int(np.max(xs)) + x_lo
-                    else:
-                        nx = int(np.median(xs)) + x_lo
-                    snapped.append((nx, y1, nx, y2))
-                    continue
+            nx = _snap_axis_position(
+                wall_mask, False, cx, y_lo, y_hi,
+                radius, min_pixels, edge_frac, validate_pairs, gap_lo, gap_hi,
+            )
+            if nx is not None:
+                snapped.append((nx, y1, nx, y2))
+                continue
         snapped.append((x1, y1, x2, y2))
     return snapped
 
@@ -1802,6 +1911,12 @@ def analyze_page(
     is_metric = unit_label == "m"
     area_unit = f"{unit_label}²"
 
+    calibration_issues = []
+    calibration_issues.extend(validate_dpi(dpi))
+    calibration_issues.extend(validate_px_per_unit(px_per_unit, unit_label))
+    for issue in calibration_issues:
+        print(f"  {issue_to_log_line(issue)}", file=sys.stderr)
+
     # With a user-drawn ROI the title block/margins are already cropped away;
     # the sheet-fraction exclusion zones would erase real walls (bottom 18 %,
     # top 12 %, bottom-right quadrant of the crop), clip the footprint, and
@@ -1856,7 +1971,9 @@ def analyze_page(
     max_span_frac = 1.0 if user_roi else 0.95
     segments = _filter_wall_segments(segments, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac)
     print(f"  [pipeline] segments: raw={raw_count} after_filter={len(segments)}", file=sys.stderr)
-    segments = snap_segments_to_walls(segments, wall_pair_mask, px_per_unit=px_per_unit)
+    segments = snap_segments_to_walls(
+        segments, wall_pair_mask, px_per_unit=px_per_unit, validate_pairs=True,
+    )
     print(f"  [pipeline] segments after snap={len(segments)}", file=sys.stderr)
 
     exterior_segs = list(segments)
@@ -1904,7 +2021,9 @@ def analyze_page(
         hough_segs = _filter_wall_segments(
             hough_segs, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac
         )
-        hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask, px_per_unit=px_per_unit)
+        hough_segs = snap_segments_to_walls(
+            hough_segs, wall_pair_mask, px_per_unit=px_per_unit, validate_pairs=True,
+        )
         before_trace = len(hough_segs)
         hough_segs = [
             s for s in hough_segs
@@ -1990,6 +2109,27 @@ def analyze_page(
     fp_bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]
     poly_out = polygon.astype(int).tolist()
 
+    width_ft = abs(fp_bbox[2] - fp_bbox[0]) / px_per_unit
+    height_ft = abs(fp_bbox[3] - fp_bbox[1]) / px_per_unit
+    footprint_span_ft = (width_ft, height_ft)
+
+    late_issues = []
+    late_issues.extend(validate_footprint_span(fp_bbox, px_per_unit, unit_label))
+    late_issues.extend(validate_total_area(total_area_real, unit_label))
+    late_issues.extend(check_dpi_alternatives(scale_str, dpi, footprint_span_ft))
+    calibration_issues.extend(late_issues)
+    for issue in late_issues:
+        print(f"  {issue_to_log_line(issue)}", file=sys.stderr)
+
+    calibration = summarize_calibration(
+        calibration_issues,
+        dpi=dpi,
+        px_per_unit=px_per_unit,
+        footprint_span_ft=footprint_span_ft,
+        total_area_raw=total_area_real,
+        unit_label=unit_label,
+    )
+
     # Cache wall_pair_mask so detect_wall_at_point can reload it instantly
     # without re-running the expensive _extract_wall_lines pass.
     mask_cache_path = None
@@ -2017,6 +2157,7 @@ def analyze_page(
         # detect_wall_at_point needs this to translate full-image click coords into
         # crop-image coords before querying the mask.
         "mask_roi_offset": list(roi_offset),
+        "calibration": calibration,
     }
 
 

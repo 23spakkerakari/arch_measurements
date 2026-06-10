@@ -7,6 +7,7 @@ Living reference for stack, goals, known issues, and success metrics. See also:
 - `validation/README.md` — accuracy scoring framework (rooms, walls, doors, windows, labels, dimensions, boundary closure)
 - `docs/baseline_metrics.md` — captured baseline numbers for the current implementation
 - `docs/improvement_proposals.md` — ranked improvement backlog
+- `docs/floor_plan_extraction_analysis.md` — detected vs required objects, HVAC gaps, accuracy bottlenecks, prioritized roadmap
 
 ## Current Stack
 

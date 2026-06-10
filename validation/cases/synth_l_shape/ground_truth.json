@@ -10,18 +10,18 @@
       "id": "R1",
       "bbox_px": [
         178,
-        218,
-        1402,
-        736
+        238,
+        1222,
+        776
       ]
     },
     {
       "id": "R2",
       "bbox_px": [
         178,
-        745,
-        1402,
-        1082
+        785,
+        1222,
+        1102
       ]
     }
   ],
@@ -30,21 +30,21 @@
       "id": "ext_top",
       "px_coords": [
         160,
-        209.0,
-        880,
-        209.0
+        229.0,
+        790,
+        229.0
       ],
       "facing": "North",
       "is_exterior": true,
-      "length_raw": 40.0
+      "length_raw": 35.0
     },
     {
       "id": "ext_notch_v",
       "px_coords": [
-        871.0,
-        200,
-        871.0,
-        560
+        781.0,
+        220,
+        781.0,
+        580
       ],
       "facing": "East",
       "is_exterior": true,
@@ -53,22 +53,22 @@
     {
       "id": "ext_notch_h",
       "px_coords": [
-        880,
-        569.0,
-        1420,
-        569.0
+        790,
+        589.0,
+        1240,
+        589.0
       ],
       "facing": "North",
       "is_exterior": true,
-      "length_raw": 30.0
+      "length_raw": 25.0
     },
     {
       "id": "ext_e",
       "px_coords": [
-        1411.0,
-        560,
-        1411.0,
-        1100
+        1231.0,
+        580,
+        1231.0,
+        1120
       ],
       "facing": "East",
       "is_exterior": true,
@@ -78,21 +78,21 @@
       "id": "ext_s",
       "px_coords": [
         160,
-        1091.0,
-        1420,
-        1091.0
+        1111.0,
+        1240,
+        1111.0
       ],
       "facing": "South",
       "is_exterior": true,
-      "length_raw": 70.0
+      "length_raw": 60.0
     },
     {
       "id": "ext_w",
       "px_coords": [
         169.0,
-        200,
+        220,
         169.0,
-        1100
+        1120
       ],
       "facing": "West",
       "is_exterior": true,
@@ -102,13 +102,13 @@
       "id": "int_1",
       "px_coords": [
         178,
-        740,
-        1402,
-        740
+        780,
+        1222,
+        780
       ],
       "facing": "North",
       "is_exterior": false,
-      "length_raw": 68.0
+      "length_raw": 58.0
     }
   ],
   "doors": [
@@ -117,13 +117,13 @@
       "host_wall_id": "int_1",
       "bbox_px": [
         700,
-        733,
+        773,
         736,
-        748
+        788
       ],
       "center_px": [
         718.0,
-        740
+        780
       ]
     }
   ],
@@ -132,12 +132,12 @@
   "dimensions": [
     {
       "id": "dim1",
-      "text": "70'-0\"",
-      "value_raw": 70.0,
+      "text": "60'-0\"",
+      "value_raw": 60.0,
       "unit": "ft",
       "center_px": [
-        790.0,
-        1220.0
+        700.0,
+        1240.0
       ]
     }
   ]

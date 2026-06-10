@@ -54,6 +54,10 @@ class TestTwoRoomStructure:
     def test_calibration(self, two_room_result):
         assert two_room_result["px_per_ft"] == pytest.approx(18.0)
         assert two_room_result["units"] == "imperial"
+        cal = two_room_result["calibration"]
+        assert cal["status"] == "ok"
+        assert cal["issues"] == []
+        assert cal["dpi"] == 144
 
     def test_footprint_area_close_to_truth(self, two_room_result):
         # 60 x 40 ft = 2400 ft²; morphology inflates the footprint somewhat
@@ -108,6 +112,11 @@ class TestLShapeStructure:
     def test_no_error(self, l_shape_result):
         assert "error" not in l_shape_result
 
+    def test_calibration_ok(self, l_shape_result):
+        cal = l_shape_result["calibration"]
+        assert cal["status"] == "ok"
+        assert cal["issues"] == []
+
     def test_polygon_captures_notch(self, l_shape_result):
         # L-shape needs at least 6 vertices; rectangle would be 4
         assert l_shape_result["polygon_vertices"] >= 6
@@ -137,3 +146,31 @@ class TestLShapeAccuracy:
         closure = l_shape_report["closure"]
         assert closure["wall_network"]["closure_rate"] >= 0.6
         assert closure["interior_coverage"]["coverage"] >= 0.6
+
+
+class TestCalibrationGuards:
+    def test_wrong_dpi_emits_warning(self, two_room_plan):
+        from preprocess import analyze_page
+
+        # Image rasterized at 144 DPI but caller declares 600 → ~4× inflated px/ft
+        result = analyze_page(two_room_plan.image, two_room_plan.scale_str, dpi=600)
+        mask_path = result.pop("mask_cache_path", None)
+        if mask_path and os.path.exists(mask_path):
+            os.unlink(mask_path)
+        cal = result["calibration"]
+        assert cal["status"] == "warning"
+        codes = {i["code"] for i in cal["issues"]}
+        assert "dpi_mismatch_suspected" in codes
+        assert cal["suggested_dpi"] == 144
+
+    def test_absurd_scale_emits_warning(self, two_room_plan):
+        from preprocess import analyze_page
+
+        result = analyze_page(two_room_plan.image, "1in=1ft", dpi=300)
+        mask_path = result.pop("mask_cache_path", None)
+        if mask_path and os.path.exists(mask_path):
+            os.unlink(mask_path)
+        cal = result["calibration"]
+        assert cal["status"] == "warning"
+        codes = {i["code"] for i in cal["issues"]}
+        assert "px_per_unit_out_of_range" in codes

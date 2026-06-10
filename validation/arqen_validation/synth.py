@@ -90,10 +90,15 @@ def render_two_room_plan(
     """Rectangular 60 x 40 ft building, one vertical partition, door + windows.
 
     Layout (px at the default 18 px/ft):
-      sheet 2200 x 1500, building outer box (200, 220)-(1280, 940),
-      exterior wall thickness 18 px (1 ft), partition centered at x=800
+      sheet 2200 x 1500, building outer box (180, 220)-(1260, 940),
+      exterior wall thickness 18 px (1 ft), partition centered at x=780
       with a 2 ft door gap, two 4 ft windows in the north wall, and two
       single-stroke dimension strings outside the building.
+
+    The building sits inside the sheet safe zone (clear of the hard-coded
+    margin/title-block exclusion fractions in ``preprocess``); the dimension
+    strings are intentionally close to the walls — annotation ink the
+    pipeline must reject.
     """
     if px_per_unit != DEFAULT_PX_PER_FT:
         raise ValueError("render_two_room_plan currently supports px_per_unit=18 only")
@@ -103,7 +108,7 @@ def render_two_room_plan(
 
     g = int(round(1.0 * px_per_unit))         # exterior wall thickness: 18 px
     pg = int(round(0.5 * px_per_unit))        # partition thickness: 9 px
-    x0, y0, x1, y1 = 200, 220, 1280, 940      # outer faces (60 ft x 40 ft)
+    x0, y0, x1, y1 = 180, 220, 1260, 940      # outer faces (60 ft x 40 ft)
     ix0, iy0, ix1, iy1 = x0 + g, y0 + g, x1 - g, y1 - g  # inner faces
 
     # Exterior: outer + inner rectangle strokes (double-line wall)
@@ -111,9 +116,9 @@ def render_two_room_plan(
     cv2.rectangle(img, (ix0, iy0), (ix1, iy1), (0, 0, 0), STROKE)
 
     # Interior partition: two vertical strokes centered on xp, inner face to inner face
-    xp = 800
-    px_a = xp - pg // 2  # 796
-    px_b = px_a + pg     # 805
+    xp = 780
+    px_a = xp - pg // 2  # 776
+    px_b = px_a + pg     # 785
     _line(img, (px_a, iy0), (px_a, iy1))
     _line(img, (px_b, iy0), (px_b, iy1))
 
@@ -125,7 +130,7 @@ def render_two_room_plan(
     # Windows: two 4 ft gaps in the north wall (both strokes), thin sill line
     win_w = int(round(4.0 * px_per_unit))  # 72 px
     windows = []
-    for wi, wx0 in enumerate((380, 1000), start=1):
+    for wi, wx0 in enumerate((360, 980), start=1):
         wx1 = wx0 + win_w
         _erase(img, wx0, y0 - STROKE, wx1, iy0 + STROKE + 1)
         sill_y = y0 + g // 2
@@ -139,7 +144,7 @@ def render_two_room_plan(
 
     # Dimension strings (single-stroke annotation ink the pipeline must reject)
     _dimension_string(img, (x0, 1040), (x1, 1040), "60'-0\"")
-    _dimension_string(img, (150, y0), (150, y1), "40'-0\"")
+    _dimension_string(img, (140, y0), (140, y1), "40'-0\"")
 
     half = g / 2.0
     gt = {
@@ -180,7 +185,7 @@ def render_two_room_plan(
             {"id": "dim1", "text": "60'-0\"", "value_raw": 60.0, "unit": "ft",
              "center_px": [(x0 + x1) / 2.0, 1040.0]},
             {"id": "dim2", "text": "40'-0\"", "value_raw": 40.0, "unit": "ft",
-             "center_px": [150.0, (y0 + y1) / 2.0]},
+             "center_px": [140.0, (y0 + y1) / 2.0]},
         ],
     }
 
@@ -195,10 +200,13 @@ def render_l_shape_plan(
     scale_str: str = DEFAULT_SCALE_STR,
     dpi: int = DEFAULT_DPI,
 ) -> SyntheticPlan:
-    """L-shaped 70 x 50 ft building (30 x 20 ft notch), horizontal partition.
+    """L-shaped 60 x 50 ft building (25 x 20 ft notch), horizontal partition.
 
-    Outer boundary (px): (160,200) -> (880,200) -> (880,560) -> (1420,560)
-    -> (1420,1100) -> (160,1100). Notch removed from the top-right corner.
+    Outer boundary (px): (160,220) -> (790,220) -> (790,580) -> (1240,580)
+    -> (1240,1120) -> (160,1120). Notch removed from the top-right corner.
+    Sized to stay clear of the sheet-fraction exclusion zones (in particular
+    the bottom-right title-block zone at x > 58%, y > 50%), which blank ink
+    before footprint detection.
     """
     if px_per_unit != DEFAULT_PX_PER_FT:
         raise ValueError("render_l_shape_plan currently supports px_per_unit=18 only")
@@ -209,17 +217,17 @@ def render_l_shape_plan(
     g = int(round(1.0 * px_per_unit))   # 18 px
     pg = int(round(0.5 * px_per_unit))  # 9 px
 
-    outer = [(160, 200), (880, 200), (880, 560), (1420, 560), (1420, 1100), (160, 1100)]
-    inner = [(178, 218), (862, 218), (862, 578), (1402, 578), (1402, 1082), (178, 1082)]
+    outer = [(160, 220), (790, 220), (790, 580), (1240, 580), (1240, 1120), (160, 1120)]
+    inner = [(178, 238), (772, 238), (772, 598), (1222, 598), (1222, 1102), (178, 1102)]
     _polyline(img, outer, closed=True)
     _polyline(img, inner, closed=True)
 
-    # Horizontal partition at y=740 (centerline), inner west to inner east face
-    yp = 740
-    py_a = yp - pg // 2  # 736
-    py_b = py_a + pg     # 745
-    _line(img, (178, py_a), (1402, py_a))
-    _line(img, (178, py_b), (1402, py_b))
+    # Horizontal partition at y=780 (centerline), inner west to inner east face
+    yp = 780
+    py_a = yp - pg // 2  # 776
+    py_b = py_a + pg     # 785
+    _line(img, (178, py_a), (1222, py_a))
+    _line(img, (178, py_b), (1222, py_b))
 
     # Door: 2 ft gap in the partition
     door_w = int(round(2.0 * px_per_unit))  # 36 px
@@ -227,7 +235,7 @@ def render_l_shape_plan(
     _erase(img, door_x0, py_a - STROKE, door_x0 + door_w, py_b + STROKE + 1)
 
     # Dimension string along the south side
-    _dimension_string(img, (160, 1220), (1420, 1220), "70'-0\"")
+    _dimension_string(img, (160, 1240), (1240, 1240), "60'-0\"")
 
     half = g / 2.0
     gt = {
@@ -236,25 +244,25 @@ def render_l_shape_plan(
         "image_size_px": [sheet_w, sheet_h],
         "rooms": [
             # Upper room is L-shaped; bbox covers its extent
-            {"id": "R1", "bbox_px": [178, 218, 1402, py_a]},
-            {"id": "R2", "bbox_px": [178, py_b, 1402, 1082]},
+            {"id": "R1", "bbox_px": [178, 238, 1222, py_a]},
+            {"id": "R2", "bbox_px": [178, py_b, 1222, 1102]},
         ],
         "walls": [
-            {"id": "ext_top", "px_coords": [160, 200 + half, 880, 200 + half],
-             "facing": "North", "is_exterior": True, "length_raw": 40.0},
-            {"id": "ext_notch_v", "px_coords": [880 - half, 200, 880 - half, 560],
+            {"id": "ext_top", "px_coords": [160, 220 + half, 790, 220 + half],
+             "facing": "North", "is_exterior": True, "length_raw": 35.0},
+            {"id": "ext_notch_v", "px_coords": [790 - half, 220, 790 - half, 580],
              "facing": "East", "is_exterior": True, "length_raw": 20.0},
-            {"id": "ext_notch_h", "px_coords": [880, 560 + half, 1420, 560 + half],
-             "facing": "North", "is_exterior": True, "length_raw": 30.0},
-            {"id": "ext_e", "px_coords": [1420 - half, 560, 1420 - half, 1100],
+            {"id": "ext_notch_h", "px_coords": [790, 580 + half, 1240, 580 + half],
+             "facing": "North", "is_exterior": True, "length_raw": 25.0},
+            {"id": "ext_e", "px_coords": [1240 - half, 580, 1240 - half, 1120],
              "facing": "East", "is_exterior": True, "length_raw": 30.0},
-            {"id": "ext_s", "px_coords": [160, 1100 - half, 1420, 1100 - half],
-             "facing": "South", "is_exterior": True, "length_raw": 70.0},
-            {"id": "ext_w", "px_coords": [160 + half, 200, 160 + half, 1100],
+            {"id": "ext_s", "px_coords": [160, 1120 - half, 1240, 1120 - half],
+             "facing": "South", "is_exterior": True, "length_raw": 60.0},
+            {"id": "ext_w", "px_coords": [160 + half, 220, 160 + half, 1120],
              "facing": "West", "is_exterior": True, "length_raw": 50.0},
-            {"id": "int_1", "px_coords": [178, yp, 1402, yp],
+            {"id": "int_1", "px_coords": [178, yp, 1222, yp],
              "facing": "North", "is_exterior": False,
-             "length_raw": round((1402 - 178) / px_per_unit, 2)},
+             "length_raw": round((1222 - 178) / px_per_unit, 2)},
         ],
         "doors": [
             {"id": "d1", "host_wall_id": "int_1",
@@ -264,8 +272,8 @@ def render_l_shape_plan(
         "windows": [],
         "labels": [],
         "dimensions": [
-            {"id": "dim1", "text": "70'-0\"", "value_raw": 70.0, "unit": "ft",
-             "center_px": [790.0, 1220.0]},
+            {"id": "dim1", "text": "60'-0\"", "value_raw": 60.0, "unit": "ft",
+             "center_px": [700.0, 1240.0]},
         ],
     }
 

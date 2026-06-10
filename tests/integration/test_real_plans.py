@@ -70,6 +70,11 @@ def _assert_sound(result, min_walls=5, min_rooms=1):
 
     assert_no_coaxial_spanning_duplicates(walls, result["px_per_ft"])
 
+    cal = result.get("calibration")
+    assert cal is not None, "missing calibration block"
+    assert cal["status"] == "ok", f"unexpected calibration issues: {cal.get('issues')}"
+    assert cal["issues"] == []
+
 
 class TestCapture165134:
     def test_structurally_sound(self, capture_165134):

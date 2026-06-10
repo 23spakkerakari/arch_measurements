@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 from typing import Any
 
@@ -9,6 +10,13 @@ from .geometry import bbox_from_points, normalize_bbox, normalize_segment
 
 
 CATEGORIES = ("rooms", "walls", "doors", "windows", "labels", "dimensions")
+
+# Architectural feet-inches: 20'-6", 20' - 6", 12'-0"
+_ARCH_FT_IN = re.compile(
+    r"^\s*(\d+(?:\.\d+)?)\s*['\u2032]\s*-?\s*(\d+(?:\.\d+)?)\s*(?:\"|\u2033)?\s*$"
+)
+# Feet only: 20', 32'
+_ARCH_FT_ONLY = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*['\u2032]\s*$")
 
 
 def _room_bbox(room: dict) -> list[float] | None:
@@ -78,14 +86,32 @@ def _parse_dimension_value(obj: dict) -> float | None:
     text = obj.get("text") or obj.get("value")
     if not text:
         return None
-    cleaned = str(text).replace("'", "-").replace('"', "").replace("ft", "").strip()
+    s = str(text).strip()
+
+    m = _ARCH_FT_IN.match(s)
+    if m:
+        return float(m.group(1)) + float(m.group(2)) / 12.0
+
+    m = _ARCH_FT_ONLY.match(s)
+    if m:
+        return float(m.group(1))
+
+    cleaned = s.lower().replace("ft", "").replace("feet", "").strip()
     try:
-        if "-" in cleaned:
-            whole, frac = cleaned.split("-", 1)
-            return float(whole) + float(frac) / 12.0
         return float(cleaned)
     except ValueError:
-        return None
+        pass
+
+    # Plain decimal feet with optional inch fraction: avoid turning 20'-6" into
+    # 20--6 via apostrophe replacement (that parsed as 19.5).
+    stripped = cleaned.replace("'", "").replace('"', "").replace("\u2032", "").replace("\u2033", "")
+    if "-" in stripped:
+        whole, frac = stripped.split("-", 1)
+        try:
+            return float(whole) + float(frac) / 12.0
+        except ValueError:
+            return None
+    return None
 
 
 def _normalize_dimension(dim: dict) -> dict:

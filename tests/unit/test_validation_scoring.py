@@ -142,6 +142,17 @@ class TestNormalize:
         doc = normalize_document({"dimensions": [{"id": "d1", "text": "20.5"}]})
         assert doc["dimensions"][0]["value_raw"] == pytest.approx(20.5)
 
+    @pytest.mark.parametrize("text,expected", [
+        ("20'-6\"", 20.5),
+        ("20' - 6\"", 20.5),
+        ("12'-0\"", 12.0),
+        ("32'", 32.0),
+        ("60'-0\"", 60.0),
+    ])
+    def test_dimension_arch_feet_inches(self, text, expected):
+        doc = normalize_document({"dimensions": [{"id": "d1", "text": text}]})
+        assert doc["dimensions"][0]["value_raw"] == pytest.approx(expected)
+
     def test_arqen_output_shape_accepted(self):
         doc = normalize_document({
             "detected_scale": "1in=16ft",

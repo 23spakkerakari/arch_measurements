@@ -13,7 +13,7 @@ cases (all changes are gated by `validation/compare_to_baseline.py`).
 | # | Proposal | Expected gain | Effort | Regression risk | Gated by |
 |---|----------|---------------|--------|-----------------|----------|
 | 1 | ~~Phantom room-cell suppression~~ **DONE 2026-06-10** | Delivered — rooms P 0.50 → 1.00 on synth, closure +0.07…+0.18 on real plans | Low | Low | rooms P/R, room counts |
-| 2 | Wall endpoint corner-snapping | High — wall-network closure 0.54–0.58 → 0.85+ on real plans; cleaner topology for everything downstream | Medium | Medium | closure rate, walls F1 |
+| 2 | ~~Wall endpoint corner-snapping~~ **DONE 2026-06-10** | Delivered — closure 0.62–0.78 on real plans (was 0.54–0.58); synth 0.86–0.90 | Medium | Medium | closure rate, walls F1 |
 | 3 | Scale/DPI sanity guards | High (reliability) — prevents silently wrong *all* measurements on bad inputs | Low | Low | px_per_ft, error statuses |
 | 4 | Dedup audit trail + safer fallbacks | Medium — protects the 7-pass cleanup from deleting real walls (synth_two_room wall FP=7 shows duplicates still leak) | Low | Low | walls P, cleanup stats |
 | 5 | Interior coverage recovery (corridors/small rooms) | Medium — interior coverage 0.60–0.72 → 0.85+ | Medium | Medium-high | interior coverage, rooms R |
@@ -27,7 +27,7 @@ Measurement-side (not production code, no gate needed): **M1** annotate ground
 truth for `capture_*` and `mcginnies_pdf` cases; **M2** add aggregate-overlap
 wall scoring to complement strict 1:1 matching (fragmentation currently reads
 as FP — walls P 0.22 on synth_two_room); **M3** fix the feet-inches parser
-quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parses to 19.5).
+quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parsed to 19.5). **DONE 2026-06-10**
 
 ---
 
@@ -61,22 +61,21 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parses to 19.5).
   denominator — fold into #6); captures still merge rooms through unsealed
   door gaps (#5/#7); strict 1:1 wall matching penalizes sub-segments (M2).
 
-## 2. Wall endpoint corner-snapping
+## 2. Wall endpoint corner-snapping — IMPLEMENTED 2026-06-10
 
 - **Baseline evidence:** wall-network closure 0.543 / 0.557 / 0.576 on real
-  plans (32 / 31 / 89 dangling endpoints) — endpoints stop short of the wall
-  they visually meet.
-- **Change:** post-cleanup pass: for each endpoint within
-  `max(12, 1.5*px_per_unit)` of another wall's body or endpoint, extend/trim
-  to the exact intersection. Pure geometry on the final wall list (no mask
-  work), so it slots in after `cleanup_wall_list`.
-- **Expected impact:** closure → 0.85+; small walls-F1 gain (snapped segments
-  overlap GT runs better); enables future room-from-wall-graph work.
-- **Risk + mitigation:** over-snapping could fuse walls across doorways;
-  cap extension length at ~2 ft and never bridge two *collinear* endpoints
-  (that's a doorway, not a corner).
-- **Tests:** unit tests for snap-to-corner/T-junction/no-bridge cases; closure
-  floors in `test_synth_plans.py` rise from 0.7 to 0.9.
+  plans before endpoint snapping.
+- **What landed:** `preprocess.snap_wall_endpoints` — post-cleanup pass that
+  moves dangling H/V endpoints onto perpendicular wall axes within
+  `max(12, 2*px_per_unit)` (~2 ft). Only perpendicular targets; collinear
+  gaps (doorways) are never bridged. Wired into `analyze_page` after
+  `cleanup_wall_list`.
+- **Measured impact:** synth closure 0.86–0.90 (2 dangling = door openings);
+  real plans 0.62–0.78 (up from 0.54–0.58); mcginnies 89 → 56 dangling
+  endpoints. Span-coverage wall metric (M2) added and gated alongside strict
+  1:1 matching.
+- **Tests:** `tests/unit/test_endpoint_snap.py` (corner, T-junction, doorway
+  no-bridge, degenerate skip, idempotence).
 
 ## 3. Scale/DPI sanity guards
 

@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from room_wall_split import (
+    _reassign_orphan_fragments,
     build_room_label_map,
     find_interior_segments,
     inward_normal,
@@ -94,14 +95,142 @@ class TestBuildRoomLabelMap:
         _, rooms_open = build_room_label_map(
             _contour(), pieces, mask, IMAGE_SHAPE, close_kernel_px=1, **kwargs,
         )
+
+        def spans_partition(room):
+            x0, _, x1, _ = room["bbox_px"]
+            return x0 < PARTITION_X - 50 and x1 > PARTITION_X + 50
+
         assert len(rooms_closed) == 2
-        assert len(rooms_open) == 1
+        assert not any(spans_partition(r) for r in rooms_closed)
+        # Without the close the door gap stays open and one cell spans the
+        # partition. (With close_kernel_px=1 nothing fills the gap between
+        # the exterior wall's paired strokes either, so thin perimeter
+        # slivers may appear alongside — counts are not asserted.)
+        assert any(spans_partition(r) for r in rooms_open)
 
     def test_room_records_shape(self):
         _, rooms = _label_map()
         for r in rooms:
             assert set(r) >= {"id", "area_px", "centroid_px", "bbox_px"}
             assert r["area_px"] > 0
+
+
+class TestCorridorFloor:
+    """Aspect-aware area floor: elongated sub-25 ft² cells survive."""
+
+    # 3 ft x 8 ft closet in the NW corner: vertical partition strokes at
+    # x=172/181 (3 ft from the inner west face), stub strokes at y=262/271.
+    def _closet_mask(self):
+        mask = np.zeros(IMAGE_SHAPE, np.uint8)
+        cv2.rectangle(mask, OUTER[:2], OUTER[2:], 255, 3)
+        cv2.rectangle(mask, INNER[:2], INNER[2:], 255, 3)
+        cv2.line(mask, (172, INNER[1]), (172, 271), 255, 3)
+        cv2.line(mask, (181, INNER[1]), (181, 271), 255, 3)
+        cv2.line(mask, (INNER[0], 262), (181, 262), 255, 3)
+        cv2.line(mask, (INNER[0], 271), (181, 271), 255, 3)
+        return mask
+
+    def _run(self, min_corridor_area_px):
+        return build_room_label_map(
+            _contour(), [], self._closet_mask(), IMAGE_SHAPE,
+            wall_thickness_px=9,
+            min_room_area_px=int(25 * PPU ** 2),
+            endpoint_extend_px=8,
+            close_kernel_px=45,
+            min_corridor_area_px=min_corridor_area_px,
+        )
+
+    def test_closet_kept_with_corridor_floor(self):
+        _, rooms = self._run(min_corridor_area_px=int(8 * PPU ** 2))
+        assert len(rooms) == 2
+        closet = min(rooms, key=lambda r: r["area_px"])
+        assert int(8 * PPU ** 2) <= closet["area_px"] < int(25 * PPU ** 2)
+        x0, y0, x1, y1 = closet["bbox_px"]
+        assert max(x1 - x0, y1 - y0) / max(min(x1 - x0, y1 - y0), 1) >= 2.5
+
+    def test_closet_dropped_without_corridor_floor(self):
+        # Default (None) keeps the legacy behavior: one compact floor.
+        _, rooms = self._run(min_corridor_area_px=None)
+        assert len(rooms) == 1
+
+
+class TestDirectionalClose:
+    """The doorway close seals gaps along wall axes without filling the
+    concave pocket of an L-junction the way a square kernel does."""
+
+    def test_concave_corner_not_swallowed(self):
+        mask = np.zeros(IMAGE_SHAPE, np.uint8)
+        cv2.rectangle(mask, OUTER[:2], OUTER[2:], 255, 3)
+        cv2.rectangle(mask, INNER[:2], INNER[2:], 255, 3)
+        # Interior L: horizontal arm to (400, 300), vertical arm down from it
+        cv2.line(mask, (300, 300), (400, 300), 255, 3)
+        cv2.line(mask, (400, 300), (400, 400), 255, 3)
+        labels, rooms = build_room_label_map(
+            _contour(), [], mask, IMAGE_SHAPE,
+            wall_thickness_px=9,
+            min_room_area_px=int(25 * PPU ** 2),
+            endpoint_extend_px=8,
+            close_kernel_px=45,
+        )
+        assert rooms
+        # Pocket pixel ~10 px inside the concave corner: a 45 px square close
+        # fills it (within kernel/2 of both arms); the directional close must
+        # leave it part of the surrounding room.
+        assert labels[310, 390] > 0
+        assert labels[310, 390] == labels[400, 250]
+
+
+class TestOrphanReassignment:
+    def _run(self, mask, kept_min_area):
+        num, labels, stats, centroids = cv2.connectedComponentsWithStats(mask)
+        remap = np.zeros(num, dtype=np.int32)
+        rooms = []
+        for lbl in range(1, num):
+            if int(stats[lbl, cv2.CC_STAT_AREA]) < kept_min_area:
+                continue
+            remap[lbl] = len(rooms) + 1
+            x = int(stats[lbl, cv2.CC_STAT_LEFT])
+            y = int(stats[lbl, cv2.CC_STAT_TOP])
+            w = int(stats[lbl, cv2.CC_STAT_WIDTH])
+            h = int(stats[lbl, cv2.CC_STAT_HEIGHT])
+            rooms.append({
+                "id": f"R{len(rooms) + 1}",
+                "area_px": int(stats[lbl, cv2.CC_STAT_AREA]),
+                "centroid_px": [0, 0],
+                "bbox_px": [x, y, x + w, y + h],
+            })
+        relabeled = remap[labels].astype(np.int32)
+        _reassign_orphan_fragments(labels, relabeled, remap, stats, rooms)
+        return relabeled, rooms
+
+    def test_fragment_merged_into_single_neighbor(self):
+        mask = np.zeros((100, 200), np.uint8)
+        mask[10:90, 10:80] = 255    # kept room
+        mask[10:40, 82:90] = 255    # fragment, 2 px gap
+        relabeled, rooms = self._run(mask, kept_min_area=1000)
+        assert len(rooms) == 1
+        assert relabeled[20, 85] == 1
+        assert rooms[0]["area_px"] == 80 * 70 + 30 * 8
+        assert rooms[0]["bbox_px"] == [10, 10, 90, 90]
+
+    def test_fragment_between_two_rooms_not_merged(self):
+        mask = np.zeros((100, 200), np.uint8)
+        mask[10:90, 10:80] = 255     # room 1
+        mask[10:90, 97:170] = 255    # room 2
+        mask[10:40, 82:95] = 255     # fragment within 3 px of both
+        relabeled, rooms = self._run(mask, kept_min_area=1000)
+        assert len(rooms) == 2
+        assert relabeled[20, 85] == 0
+        assert rooms[0]["area_px"] == 80 * 70
+
+    def test_distant_fragment_not_merged(self):
+        mask = np.zeros((100, 200), np.uint8)
+        mask[10:90, 10:80] = 255
+        mask[10:40, 120:130] = 255   # 40 px away
+        relabeled, rooms = self._run(mask, kept_min_area=1000)
+        assert len(rooms) == 1
+        assert relabeled[20, 125] == 0
+        assert rooms[0]["area_px"] == 80 * 70
 
 
 class TestInwardNormal:

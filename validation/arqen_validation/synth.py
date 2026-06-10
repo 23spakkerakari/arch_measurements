@@ -287,7 +287,148 @@ def render_l_shape_plan(
     )
 
 
+def render_corridor_plan(
+    px_per_unit: float = DEFAULT_PX_PER_FT,
+    scale_str: str = DEFAULT_SCALE_STR,
+    dpi: int = DEFAULT_DPI,
+) -> SyntheticPlan:
+    """60 x 40 ft building with a 4 ft central corridor and a 24 ft² closet.
+
+    Layout (px at 18 px/ft): outer box (180, 220)-(1260, 940). Two horizontal
+    partitions (centerlines y=560 and y=641) bound a 4 ft corridor spanning
+    the full inner width; doors connect it to the rooms above and below. A
+    3 x 8 ft closet (24 ft² — below the 25 ft² compact-room floor, aspect
+    2.7; any narrower and the 2.5 ft doorway close would absorb it) sits in
+    the bottom-left corner, walled by a vertical partition and a horizontal
+    stub, with a door to the bottom room.
+
+    Exercises the interior-coverage recovery path: the corridor must survive
+    the doorway close, and the closet must pass via the corridor area floor.
+    """
+    if px_per_unit != DEFAULT_PX_PER_FT:
+        raise ValueError("render_corridor_plan currently supports px_per_unit=18 only")
+
+    sheet_w, sheet_h = 2200, 1500
+    img = _new_sheet(sheet_w, sheet_h)
+
+    g = int(round(1.0 * px_per_unit))         # exterior wall thickness: 18 px
+    pg = int(round(0.5 * px_per_unit))        # partition thickness: 9 px
+    x0, y0, x1, y1 = 180, 220, 1260, 940      # outer faces (60 ft x 40 ft)
+    ix0, iy0, ix1, iy1 = x0 + g, y0 + g, x1 - g, y1 - g  # inner faces
+
+    cv2.rectangle(img, (x0, y0), (x1, y1), (0, 0, 0), STROKE)
+    cv2.rectangle(img, (ix0, iy0), (ix1, iy1), (0, 0, 0), STROKE)
+
+    # Corridor partitions A (top) and B (bottom): 4 ft clear between them
+    yp_a, yp_b = 560, 641
+    pa_a = yp_a - pg // 2  # 556
+    pa_b = pa_a + pg       # 565
+    pb_a = yp_b - pg // 2  # 637
+    pb_b = pb_a + pg       # 646
+    for py in (pa_a, pa_b, pb_a, pb_b):
+        _line(img, (ix0, py), (ix1, py))
+
+    # Doors: 2 ft gaps connecting corridor to the rooms above and below
+    door_w = int(round(2.0 * px_per_unit))  # 36 px
+    da_x0, db_x0 = 400, 900
+    _erase(img, da_x0, pa_a - STROKE, da_x0 + door_w, pa_b + STROKE + 1)
+    _erase(img, db_x0, pb_a - STROKE, db_x0 + door_w, pb_b + STROKE + 1)
+
+    # Closet: 3 ft wide x 8 ft tall in the bottom-left corner.
+    # Vertical partition (centerline x=256) + horizontal stub (centerline y=794).
+    xc = ix0 + int(round(3.0 * px_per_unit)) + pg // 2  # 256
+    xc_a = xc - pg // 2  # 252
+    xc_b = xc_a + pg     # 261
+    yh = pb_b + int(round(8.0 * px_per_unit)) + pg // 2  # 794
+    yh_a = yh - pg // 2  # 790
+    yh_b = yh_a + pg     # 799
+    _line(img, (xc_a, pb_b), (xc_a, yh_b))
+    _line(img, (xc_b, pb_b), (xc_b, yh_b))
+    _line(img, (ix0, yh_a), (xc_b, yh_a))
+    _line(img, (ix0, yh_b), (xc_b, yh_b))
+
+    # Closet door: 2 ft gap in the vertical closet partition
+    door_h = door_w
+    dc_y0 = 690
+    _erase(img, xc_a - STROKE, dc_y0, xc_b + STROKE + 1, dc_y0 + door_h)
+
+    # Dimension strings (annotation ink the pipeline must reject)
+    _dimension_string(img, (x0, 1040), (x1, 1040), "60'-0\"")
+    _dimension_string(img, (140, y0), (140, y1), "40'-0\"")
+
+    half = g / 2.0
+    gt = {
+        "id": "synth_corridor",
+        "scale": scale_str,
+        "image_size_px": [sheet_w, sheet_h],
+        "rooms": [
+            {"id": "R1", "bbox_px": [ix0, iy0, ix1, pa_a],
+             "area_raw": round((ix1 - ix0) * (pa_a - iy0) / px_per_unit ** 2, 1)},
+            {"id": "R_corridor", "bbox_px": [ix0, pa_b, ix1, pb_a],
+             "area_raw": round((ix1 - ix0) * (pb_a - pa_b) / px_per_unit ** 2, 1)},
+            # Bottom room is L-shaped around the closet: bbox for matching,
+            # polygon for boundary-closure sampling.
+            {"id": "R2", "bbox_px": [ix0, pb_b, ix1, iy1],
+             "polygon_px": [[xc_b, pb_b], [ix1, pb_b], [ix1, iy1],
+                            [ix0, iy1], [ix0, yh_b], [xc_b, yh_b]]},
+            {"id": "R_closet", "bbox_px": [ix0, pb_b, xc_a, yh_a],
+             "area_raw": round((xc_a - ix0) * (yh_a - pb_b) / px_per_unit ** 2, 1)},
+        ],
+        "walls": [
+            {"id": "ext_n", "px_coords": [x0, y0 + half, x1, y0 + half],
+             "facing": "North", "is_exterior": True,
+             "length_raw": round((x1 - x0) / px_per_unit, 2)},
+            {"id": "ext_s", "px_coords": [x0, y1 - half, x1, y1 - half],
+             "facing": "South", "is_exterior": True,
+             "length_raw": round((x1 - x0) / px_per_unit, 2)},
+            {"id": "ext_w", "px_coords": [x0 + half, y0, x0 + half, y1],
+             "facing": "West", "is_exterior": True,
+             "length_raw": round((y1 - y0) / px_per_unit, 2)},
+            {"id": "ext_e", "px_coords": [x1 - half, y0, x1 - half, y1],
+             "facing": "East", "is_exterior": True,
+             "length_raw": round((y1 - y0) / px_per_unit, 2)},
+            {"id": "int_a", "px_coords": [ix0, yp_a, ix1, yp_a],
+             "facing": "North", "is_exterior": False,
+             "length_raw": round((ix1 - ix0) / px_per_unit, 2)},
+            {"id": "int_b", "px_coords": [ix0, yp_b, ix1, yp_b],
+             "facing": "North", "is_exterior": False,
+             "length_raw": round((ix1 - ix0) / px_per_unit, 2)},
+            {"id": "int_closet_v", "px_coords": [xc, pb_b, xc, yh_b],
+             "facing": "West", "is_exterior": False,
+             "length_raw": round((yh_b - pb_b) / px_per_unit, 2)},
+            {"id": "int_closet_h", "px_coords": [ix0, yh, xc_b, yh],
+             "facing": "North", "is_exterior": False,
+             "length_raw": round((xc_b - ix0) / px_per_unit, 2)},
+        ],
+        "doors": [
+            {"id": "d1", "host_wall_id": "int_a",
+             "bbox_px": [da_x0, pa_a - STROKE, da_x0 + door_w, pa_b + STROKE],
+             "center_px": [da_x0 + door_w / 2.0, yp_a]},
+            {"id": "d2", "host_wall_id": "int_b",
+             "bbox_px": [db_x0, pb_a - STROKE, db_x0 + door_w, pb_b + STROKE],
+             "center_px": [db_x0 + door_w / 2.0, yp_b]},
+            {"id": "d3", "host_wall_id": "int_closet_v",
+             "bbox_px": [xc_a - STROKE, dc_y0, xc_b + STROKE, dc_y0 + door_h],
+             "center_px": [xc, dc_y0 + door_h / 2.0]},
+        ],
+        "windows": [],
+        "labels": [],
+        "dimensions": [
+            {"id": "dim1", "text": "60'-0\"", "value_raw": 60.0, "unit": "ft",
+             "center_px": [(x0 + x1) / 2.0, 1040.0]},
+            {"id": "dim2", "text": "40'-0\"", "value_raw": 40.0, "unit": "ft",
+             "center_px": [140.0, (y0 + y1) / 2.0]},
+        ],
+    }
+
+    return SyntheticPlan(
+        name="synth_corridor", image=img, scale_str=scale_str, dpi=dpi,
+        px_per_unit=px_per_unit, ground_truth=gt,
+    )
+
+
 ALL_PLANS = {
     "synth_two_room": render_two_room_plan,
     "synth_l_shape": render_l_shape_plan,
+    "synth_corridor": render_corridor_plan,
 }

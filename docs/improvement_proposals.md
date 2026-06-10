@@ -16,7 +16,7 @@ cases (all changes are gated by `validation/compare_to_baseline.py`).
 | 2 | ~~Wall endpoint corner-snapping~~ **DONE 2026-06-10** | Delivered — closure 0.62–0.78 on real plans (was 0.54–0.58); synth 0.86–0.90 | Medium | Medium | closure rate, walls F1 |
 | 3 | Scale/DPI sanity guards | High (reliability) — prevents silently wrong *all* measurements on bad inputs | Low | Low | px_per_ft, error statuses |
 | 4 | ~~Dedup audit trail + safer fallbacks~~ **DONE 2026-06-10** | Length-conservation guard skips passes that would drop >40% of total wall length; optional per-wall drop audit | Low | Low | walls P, cleanup stats |
-| 5 | Interior coverage recovery (corridors/small rooms) | Medium — interior coverage 0.60–0.72 → 0.85+ | Medium | Medium-high | interior coverage, rooms R |
+| 5 | ~~Interior coverage recovery (corridors/small rooms)~~ **DONE 2026-06-10** | Delivered — coverage +0.01…+0.04 on real plans, +1 room on two of them; corridor/closet recovery exact on the new `synth_corridor` case. Remaining coverage gap is the footprint denominator (#6) and openings (#7) | Medium | Medium-high | interior coverage, rooms R |
 | 6 | Footprint confidence + parameterized morphology | Medium — protects the single highest-leverage failure point (stage [4] has no fallback) | Medium | Medium | error rate, area, polygon |
 | 7 | Door detection (geometric) | Unlocks doors 0% → ~60–80% recall | High | Medium | doors P/R/F1 |
 | 8 | Window detection (geometric) | Unlocks windows 0% → ~60–80% recall | High | Medium | windows P/R/F1 |
@@ -107,21 +107,43 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parsed to 19.5). *
 - **Tests:** unit test that the guard skips a pathological pass; baseline
   unchanged.
 
-## 5. Interior coverage recovery
+## 5. Interior coverage recovery — IMPLEMENTED 2026-06-10
 
-- **Baseline evidence:** interior coverage 0.640 / 0.603 / 0.717 on real
-  plans — up to 40% of the footprint belongs to no room. Causes: fixed
-  `min_room_ft2=25` (kills corridors/closets), aggressive wall-band erosion
-  (`wall_thickness_px * 2`), global `doorway_close_ft`.
-- **Change:** lower the area floor for high-aspect cells (corridors), scale
-  erosion with actual stroke gap instead of assumed thickness, and reassign
-  orphan interior pixels to the adjacent room cell.
-- **Expected impact:** interior coverage → 0.85+; rooms recall up on real
-  plans (more real rooms pass the filter).
-- **Risk + mitigation:** more cells = more phantom-room exposure — land
-  proposal #1 first; gate on room-count tolerances.
-- **Tests:** corridor fixture in the synth renderer with exact GT; coverage
-  floor test.
+- **Baseline evidence:** interior coverage 0.605 / 0.619 / 0.654 on real
+  plans — up to 40% of the footprint belonged to no room. Causes: fixed
+  `min_room_ft2=25` (kills corridors/closets), assumed-thickness erosion
+  (`wall_thickness_px * 2`), square doorway-close kernel.
+- **What landed** (all in `Arqen/room_wall_split.py`, signature-additive):
+  - Measured erosion: `_contour_ink_gap` measures the median distance from
+    the (morphologically inflated) footprint contour to real wall ink; the
+    interior mask erodes by `max(thickness, gap+2)` capped at the legacy
+    `2*thickness` instead of always `2*thickness`.
+  - Directional doorway close: the square `close_kernel` on the cut layer is
+    now two 1-D closes (H + V, OR-ed) — door gaps still seal along the wall
+    axis, but concave corner pockets are no longer absorbed.
+  - Aspect-aware floor: cells with bbox aspect >= 2.5 pass at
+    `min_corridor_ft2=8` instead of `min_room_ft2=25`; **and** every cell
+    must be at least one close-kernel (2.5 ft) wide in its narrow dimension —
+    anything narrower is a boundary/cavity sliver the close would have sealed
+    (this guard is what kept mcginnies at 41 rooms instead of 49 phantoms).
+  - Orphan reabsorption: `_reassign_orphan_fragments` merges sub-floor
+    fragments separated from exactly one kept room by <= 3 px (the opening
+    artifact scale) back into that room; fragments bordering 2+ rooms are
+    never merged.
+- **Measured impact:** interior coverage 0.605 → 0.646, 0.619 → 0.662,
+  0.654 → 0.665 on the real plans; `capture_165134` recovers a 7th room,
+  `mcginnies_pdf` a 41st. New `synth_corridor` case (4 ft corridor, 24 ft²
+  closet below the compact floor, 3 doors) detects all 4 rooms at P/R
+  1.0/1.0. All other gated metrics flat; gate passed before re-capture.
+- **Residuals:** the 0.85+ coverage target needs the footprint denominator
+  fix (#6 — the dimension strip still inflates `footprint_area_px`) and
+  opening detection (#7 — unsealed gaps still merge/leak space). The closet
+  partitions are found by the room map but not emitted as `walls[]` (Hough
+  interior filter requires an exterior T-junction) — fold into #7.
+- **Tests:** `tests/unit/test_room_split.py` (corridor floor keeps/drops,
+  directional-close corner pocket, orphan merge one/two/zero neighbors);
+  `tests/integration/test_synth_plans.py::TestCorridor*` (4 rooms, sub-25 ft²
+  closet recovery, corridor aspect, coverage/closure floors).
 
 ## 6. Footprint confidence + parameterized morphology
 

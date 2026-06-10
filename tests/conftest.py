@@ -43,3 +43,10 @@ def l_shape_plan():
     from arqen_validation.synth import render_l_shape_plan
 
     return render_l_shape_plan()
+
+
+@pytest.fixture(scope="session")
+def corridor_plan():
+    from arqen_validation.synth import render_corridor_plan
+
+    return render_corridor_plan()

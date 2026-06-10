@@ -128,6 +128,49 @@ def find_interior_segments(all_segs, exterior_walls, footprint_contour, near_tol
 
 # ── Room cell detection ──────────────────────────────────────────────────────
 
+# Cells whose bbox aspect ratio is at least this are corridor-like and use the
+# lower corridor area floor instead of the room floor. The doorway close fills
+# any interior span narrower than doorway_close_ft (2.5 ft), so a sub-25 ft²
+# cell is at least ~3 ft wide and tops out near aspect 2.8 — a threshold of 3
+# would never fire on real geometry.
+CORRIDOR_ASPECT = 2.5
+
+# Max separation (px) between a sub-floor fragment and a kept room for the
+# fragment to be reabsorbed — the scale of the 3x3 opening artifact, well
+# below any real wall band (cut lines are >= 6 px thick).
+ORPHAN_MERGE_PX = 3
+
+
+def _contour_ink_gap(footprint_contour, wall_mask):
+    """Median distance (px) from the footprint contour to the nearest ink.
+
+    The contour is traced on a dilated/closed mask, so it rides a roughly
+    constant band outside the real wall strokes. The median over the outline
+    is robust to door/window gaps and annotation bulges, where the nearest
+    ink is far away.
+    """
+    h, w = wall_mask.shape[:2]
+    cx, cy, cw, ch = cv2.boundingRect(footprint_contour)
+    pad = 50
+    x_lo, y_lo = max(0, cx - pad), max(0, cy - pad)
+    x_hi, y_hi = min(w, cx + cw + pad), min(h, cy + ch + pad)
+    crop_ink = wall_mask[y_lo:y_hi, x_lo:x_hi]
+    if not crop_ink.any():
+        return 0.0
+    ink_dist = cv2.distanceTransform(
+        (crop_ink == 0).astype(np.uint8), cv2.DIST_L2, 3
+    )
+    outline = np.zeros(crop_ink.shape, dtype=np.uint8)
+    shifted = footprint_contour.reshape(-1, 2) - np.array([x_lo, y_lo])
+    cv2.drawContours(
+        outline, [shifted.reshape(-1, 1, 2).astype(np.int32)], -1, 255, 1
+    )
+    oys, oxs = np.nonzero(outline)
+    if len(oys) == 0:
+        return 0.0
+    return float(np.median(ink_dist[oys, oxs]))
+
+
 def build_room_label_map(
     footprint_contour,
     interior_segments,
@@ -137,15 +180,27 @@ def build_room_label_map(
     min_room_area_px,
     endpoint_extend_px,
     close_kernel_px,
+    min_corridor_area_px=None,
+    min_cell_width_px=0,
     debug_dir=None,
 ):
     h, w = image_shape[:2]
+    if min_corridor_area_px is None:
+        min_corridor_area_px = min_room_area_px
 
     interior_mask = np.zeros((h, w), dtype=np.uint8)
     cv2.drawContours(
         interior_mask, [footprint_contour], -1, 255, thickness=cv2.FILLED
     )
-    erode_size = max(wall_thickness_px * 2, 3)
+    # The erosion exists to remove the band between the morphologically
+    # inflated footprint contour and the real wall ink. That inflation is a
+    # fixed pixel amount (downscale dilation), not a multiple of wall
+    # thickness — the old 2x-thickness erosion taxed every room's perimeter.
+    # Measure the actual contour-to-ink gap and erode just past it, capped at
+    # the legacy 2x thickness so a pathological mask can never do worse.
+    inflation = _contour_ink_gap(footprint_contour, wall_mask)
+    erode_size = max(wall_thickness_px, int(math.ceil(inflation)) + 2, 3)
+    erode_size = min(erode_size, max(2 * wall_thickness_px, 12))
     erode_k = cv2.getStructuringElement(cv2.MORPH_RECT, (erode_size, erode_size))
     interior_mask = cv2.erode(interior_mask, erode_k, iterations=1)
 
@@ -164,10 +219,16 @@ def build_room_label_map(
                  thickness=wall_thickness_px)
 
     if close_kernel_px > 1:
-        ck = cv2.getStructuringElement(
-            cv2.MORPH_RECT, (close_kernel_px, close_kernel_px)
+        # Directional close: seal doorway gaps along each wall's own axis and
+        # fill the band between a wall's paired strokes, without absorbing
+        # interior spaces (corridors) narrower than the kernel in both axes
+        # the way a square kernel does.
+        ck_h = cv2.getStructuringElement(cv2.MORPH_RECT, (close_kernel_px, 1))
+        ck_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, close_kernel_px))
+        cut_layer = cv2.bitwise_or(
+            cv2.morphologyEx(cut_layer, cv2.MORPH_CLOSE, ck_h),
+            cv2.morphologyEx(cut_layer, cv2.MORPH_CLOSE, ck_v),
         )
-        cut_layer = cv2.morphologyEx(cut_layer, cv2.MORPH_CLOSE, ck)
 
     room_mask = cv2.bitwise_and(interior_mask, cv2.bitwise_not(cut_layer))
 
@@ -190,14 +251,26 @@ def build_room_label_map(
     next_id = 1
     for lbl in range(1, num_labels):
         area = int(stats[lbl, cv2.CC_STAT_AREA])
-        if area < min_room_area_px:
-            continue
-        remap[lbl] = next_id
-        cx, cy = centroids[lbl]
         x = int(stats[lbl, cv2.CC_STAT_LEFT])
         y = int(stats[lbl, cv2.CC_STAT_TOP])
         rw = int(stats[lbl, cv2.CC_STAT_WIDTH])
         rh = int(stats[lbl, cv2.CC_STAT_HEIGHT])
+        # No genuine interior space is narrower than the doorway close kernel
+        # (the close would have sealed it); cells below that width are
+        # boundary/cavity slivers regardless of their area.
+        if min(rw, rh) < min_cell_width_px:
+            continue
+        # Elongated cells (corridors, closets) use a lower area floor: a 25 ft²
+        # compact floor rejects most real corridors outright.
+        aspect = max(rw, rh) / max(min(rw, rh), 1)
+        floor_px = (
+            min_corridor_area_px if aspect >= CORRIDOR_ASPECT
+            else min_room_area_px
+        )
+        if area < floor_px:
+            continue
+        remap[lbl] = next_id
+        cx, cy = centroids[lbl]
         rooms.append({
             "id": f"R{next_id}",
             "area_px": area,
@@ -207,7 +280,52 @@ def build_room_label_map(
         next_id += 1
 
     relabeled = remap[labels].astype(np.int32)
+    _reassign_orphan_fragments(labels, relabeled, remap, stats, rooms)
     return relabeled, rooms
+
+
+def _reassign_orphan_fragments(labels, relabeled, remap, stats, rooms):
+    """Merge sub-floor fragments back into the single kept room they border.
+
+    The 3x3 opening (and cut-line crossings) can shear small slivers off a
+    room cell; those pixels are real interior area lost from the coverage
+    numerator. A fragment separated from exactly one kept room by no more
+    than ORPHAN_MERGE_PX is reabsorbed into it (label, area, bbox). Fragments
+    bordering zero or 2+ kept rooms are left dropped — a sliver must never
+    bridge two rooms, and isolated specks stay out.
+    """
+    if not rooms:
+        return
+    h, w = labels.shape
+    k = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (2 * ORPHAN_MERGE_PX + 1, 2 * ORPHAN_MERGE_PX + 1)
+    )
+    for lbl in range(1, len(remap)):
+        if remap[lbl] != 0:
+            continue
+        x = int(stats[lbl, cv2.CC_STAT_LEFT])
+        y = int(stats[lbl, cv2.CC_STAT_TOP])
+        bw = int(stats[lbl, cv2.CC_STAT_WIDTH])
+        bh = int(stats[lbl, cv2.CC_STAT_HEIGHT])
+        x0 = max(0, x - ORPHAN_MERGE_PX)
+        y0 = max(0, y - ORPHAN_MERGE_PX)
+        x1 = min(w, x + bw + ORPHAN_MERGE_PX)
+        y1 = min(h, y + bh + ORPHAN_MERGE_PX)
+        comp = (labels[y0:y1, x0:x1] == lbl).astype(np.uint8)
+        halo = cv2.dilate(comp, k) > 0
+        view = relabeled[y0:y1, x0:x1]
+        neighbors = np.unique(view[halo])
+        neighbors = neighbors[neighbors > 0]
+        if neighbors.size != 1:
+            continue
+        target = int(neighbors[0])
+        view[comp > 0] = target
+        room = rooms[target - 1]
+        room["area_px"] += int(stats[lbl, cv2.CC_STAT_AREA])
+        bx0, by0, bx1, by1 = room["bbox_px"]
+        room["bbox_px"] = [
+            min(bx0, x), min(by0, y), max(bx1, x + bw), max(by1, y + bh),
+        ]
 
 
 def exterior_axis_envelope(
@@ -500,6 +618,7 @@ def split_exterior_walls_by_room(
     unit_label: str,
     near_tol: int = 15,
     min_room_ft2: float = 25.0,
+    min_corridor_ft2: float = 8.0,
     doorway_close_ft: float = 2.5,
     min_segment_ft: float = 4.0,
     interior_segments: Optional[list[tuple]] = None,
@@ -517,6 +636,7 @@ def split_exterior_walls_by_room(
 
     wall_thickness_px = max(int(round(0.5 * px_per_unit)), 6)
     min_room_area_px = int(round(min_room_ft2 * px_per_unit ** 2))
+    min_corridor_area_px = int(round(min_corridor_ft2 * px_per_unit ** 2))
     endpoint_extend_px = max(int(round(1.0 * px_per_unit)), 8)
     close_kernel_px = max(int(round(doorway_close_ft * px_per_unit)), 3)
 
@@ -530,6 +650,8 @@ def split_exterior_walls_by_room(
         contour, interior_segments, wall_pair_mask, image_shape,
         wall_thickness_px, min_room_area_px,
         endpoint_extend_px, close_kernel_px,
+        min_corridor_area_px=min_corridor_area_px,
+        min_cell_width_px=close_kernel_px,
         debug_dir=debug_dir,
     )
 

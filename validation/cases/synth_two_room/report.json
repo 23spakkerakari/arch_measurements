@@ -14,7 +14,7 @@
       "false_positives": 4,
       "false_negatives": 7
     },
-    "mean_iou": 0.9734
+    "mean_iou": 0.9659
   },
   "categories": {
     "rooms": {
@@ -27,12 +27,12 @@
       "precision": 1.0,
       "recall": 1.0,
       "f1": 1.0,
-      "mean_iou": 0.969,
+      "mean_iou": 0.9541,
       "matches": [
         {
           "ground_truth_id": "R1",
           "predicted_id": "R1",
-          "score": 0.9737,
+          "score": 0.9587,
           "ground_truth": {
             "id": "R1",
             "area_raw": 1220.2,
@@ -45,10 +45,10 @@
           },
           "predicted": {
             "id": "R1",
-            "area_raw": 1193.44,
+            "area_raw": 1195.66,
             "bbox_px": [
               201.0,
-              230.0,
+              219.0,
               772.0,
               920.0
             ],
@@ -61,7 +61,7 @@
         {
           "ground_truth_id": "R2",
           "predicted_id": "R2",
-          "score": 0.9642,
+          "score": 0.9495,
           "ground_truth": {
             "id": "R2",
             "area_raw": 964.8,
@@ -74,10 +74,10 @@
           },
           "predicted": {
             "id": "R2",
-            "area_raw": 938.05,
+            "area_raw": 940.27,
             "bbox_px": [
               793.0,
-              230.0,
+              219.0,
               1240.0,
               920.0
             ],
@@ -449,9 +449,9 @@
       ]
     },
     "interior_coverage": {
-      "rooms_area_px": 690600.0,
+      "rooms_area_px": 692040.0,
       "footprint_area_px": 956501.0,
-      "coverage": 0.722
+      "coverage": 0.7235
     }
   }
 }

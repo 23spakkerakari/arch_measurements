@@ -339,39 +339,39 @@
   "rooms": [
     {
       "id": "R1",
-      "area_px": 2428,
+      "area_px": 2514,
       "centroid_px": [
         2181,
-        753
+        752
       ],
       "bbox_px": [
         2158,
-        722,
+        720,
         2207,
         780
       ],
-      "area": "27.6 ft\u00b2",
-      "area_raw": 27.63
+      "area": "28.6 ft\u00b2",
+      "area_raw": 28.6
     },
     {
       "id": "R2",
-      "area_px": 15759,
+      "area_px": 15815,
       "centroid_px": [
         1976,
         791
       ],
       "bbox_px": [
-        1910,
-        733,
+        1900,
+        724,
         2044,
         851
       ],
-      "area": "179.3 ft\u00b2",
-      "area_raw": 179.3
+      "area": "179.9 ft\u00b2",
+      "area_raw": 179.94
     },
     {
       "id": "R3",
-      "area_px": 41630,
+      "area_px": 41634,
       "centroid_px": [
         2063,
         1204
@@ -383,7 +383,7 @@
         1593
       ],
       "area": "473.7 ft\u00b2",
-      "area_raw": 473.66
+      "area_raw": 473.7
     },
     {
       "id": "R4",
@@ -467,23 +467,23 @@
     },
     {
       "id": "R9",
-      "area_px": 14571,
+      "area_px": 14797,
       "centroid_px": [
-        1978,
+        1977,
         1288
       ],
       "bbox_px": [
-        1914,
+        1912,
         1232,
         2045,
         1345
       ],
-      "area": "165.8 ft\u00b2",
-      "area_raw": 165.79
+      "area": "168.4 ft\u00b2",
+      "area_raw": 168.36
     },
     {
       "id": "R10",
-      "area_px": 10892,
+      "area_px": 10903,
       "centroid_px": [
         1972,
         1409
@@ -491,11 +491,11 @@
       "bbox_px": [
         1911,
         1366,
-        2045,
+        2046,
         1457
       ],
-      "area": "123.9 ft\u00b2",
-      "area_raw": 123.93
+      "area": "124.1 ft\u00b2",
+      "area_raw": 124.05
     },
     {
       "id": "R11",
@@ -515,35 +515,35 @@
     },
     {
       "id": "R12",
-      "area_px": 15589,
+      "area_px": 15704,
       "centroid_px": [
         1772,
         1538
       ],
       "bbox_px": [
-        1707,
-        1479,
+        1703,
+        1472,
         1838,
-        1598
+        1603
       ],
-      "area": "177.4 ft\u00b2",
-      "area_raw": 177.37
+      "area": "178.7 ft\u00b2",
+      "area_raw": 178.68
     },
     {
       "id": "R13",
-      "area_px": 35503,
+      "area_px": 35603,
       "centroid_px": [
         1873,
-        1906
+        1907
       ],
       "bbox_px": [
         1848,
         1479,
         1909,
-        2295
+        2297
       ],
-      "area": "403.9 ft\u00b2",
-      "area_raw": 403.95
+      "area": "405.1 ft\u00b2",
+      "area_raw": 405.08
     },
     {
       "id": "R14",
@@ -563,19 +563,19 @@
     },
     {
       "id": "R15",
-      "area_px": 11747,
+      "area_px": 11777,
       "centroid_px": [
         1751,
         1677
       ],
       "bbox_px": [
-        1707,
+        1703,
         1612,
         1802,
         1749
       ],
-      "area": "133.7 ft\u00b2",
-      "area_raw": 133.65
+      "area": "134.0 ft\u00b2",
+      "area_raw": 134.0
     },
     {
       "id": "R16",
@@ -643,35 +643,35 @@
     },
     {
       "id": "R20",
-      "area_px": 10108,
+      "area_px": 10356,
       "centroid_px": [
-        1967,
-        2131
+        1966,
+        2132
       ],
       "bbox_px": [
-        1907,
+        1905,
         2090,
         2030,
-        2176
+        2186
       ],
-      "area": "115.0 ft\u00b2",
-      "area_raw": 115.01
+      "area": "117.8 ft\u00b2",
+      "area_raw": 117.83
     },
     {
       "id": "R21",
-      "area_px": 12510,
+      "area_px": 12758,
       "centroid_px": [
         1976,
-        2237
+        2238
       ],
       "bbox_px": [
         1916,
-        2178,
+        2173,
         2030,
-        2295
+        2297
       ],
-      "area": "142.3 ft\u00b2",
-      "area_raw": 142.34
+      "area": "145.2 ft\u00b2",
+      "area_raw": 145.16
     },
     {
       "id": "R22",
@@ -691,23 +691,23 @@
     },
     {
       "id": "R23",
-      "area_px": 4069,
+      "area_px": 4126,
       "centroid_px": [
         1765,
         2263
       ],
       "bbox_px": [
-        1707,
+        1703,
         2246,
         1824,
         2281
       ],
-      "area": "46.3 ft\u00b2",
-      "area_raw": 46.3
+      "area": "46.9 ft\u00b2",
+      "area_raw": 46.94
     },
     {
       "id": "R24",
-      "area_px": 19136,
+      "area_px": 19370,
       "centroid_px": [
         1756,
         2372
@@ -718,24 +718,24 @@
         1845,
         2439
       ],
-      "area": "217.7 ft\u00b2",
-      "area_raw": 217.73
+      "area": "220.4 ft\u00b2",
+      "area_raw": 220.39
     },
     {
       "id": "R25",
-      "area_px": 4603,
+      "area_px": 4829,
       "centroid_px": [
-        2150,
+        2151,
         2388
       ],
       "bbox_px": [
         2126,
         2335,
-        2183,
+        2185,
         2440
       ],
-      "area": "52.4 ft\u00b2",
-      "area_raw": 52.37
+      "area": "54.9 ft\u00b2",
+      "area_raw": 54.94
     },
     {
       "id": "R26",
@@ -755,35 +755,35 @@
     },
     {
       "id": "R27",
-      "area_px": 7064,
+      "area_px": 7335,
       "centroid_px": [
-        1148,
-        2525
+        1147,
+        2527
       ],
       "bbox_px": [
         1059,
-        2442,
+        2440,
         1174,
-        2599
+        2601
       ],
-      "area": "80.4 ft\u00b2",
-      "area_raw": 80.37
+      "area": "83.5 ft\u00b2",
+      "area_raw": 83.46
     },
     {
       "id": "R28",
-      "area_px": 6342,
+      "area_px": 6761,
       "centroid_px": [
-        1422,
-        2510
+        1424,
+        2508
       ],
       "bbox_px": [
-        1396,
+        1392,
         2443,
         1510,
-        2580
+        2584
       ],
-      "area": "72.2 ft\u00b2",
-      "area_raw": 72.16
+      "area": "76.9 ft\u00b2",
+      "area_raw": 76.93
     },
     {
       "id": "R29",
@@ -803,23 +803,23 @@
     },
     {
       "id": "R30",
-      "area_px": 2370,
+      "area_px": 2430,
       "centroid_px": [
-        1686,
-        2467
+        1685,
+        2466
       ],
       "bbox_px": [
-        1658,
+        1656,
         2446,
         1715,
         2488
       ],
-      "area": "27.0 ft\u00b2",
-      "area_raw": 26.97
+      "area": "27.6 ft\u00b2",
+      "area_raw": 27.65
     },
     {
       "id": "R31",
-      "area_px": 11092,
+      "area_px": 11309,
       "centroid_px": [
         1720,
         2524
@@ -827,11 +827,11 @@
       "bbox_px": [
         1659,
         2446,
-        1777,
+        1782,
         2580
       ],
-      "area": "126.2 ft\u00b2",
-      "area_raw": 126.2
+      "area": "128.7 ft\u00b2",
+      "area_raw": 128.67
     },
     {
       "id": "R32",
@@ -899,19 +899,19 @@
     },
     {
       "id": "R36",
-      "area_px": 11657,
+      "area_px": 12761,
       "centroid_px": [
         992,
         2522
       ],
       "bbox_px": [
-        948,
+        932,
         2456,
         1037,
-        2592
+        2642
       ],
-      "area": "132.6 ft\u00b2",
-      "area_raw": 132.63
+      "area": "145.2 ft\u00b2",
+      "area_raw": 145.19
     },
     {
       "id": "R37",
@@ -947,35 +947,51 @@
     },
     {
       "id": "R39",
-      "area_px": 3225,
+      "area_px": 4691,
       "centroid_px": [
-        1507,
-        2596
+        1495,
+        2598
       ],
       "bbox_px": [
         1185,
         2594,
         1830,
-        2599
+        2645
       ],
-      "area": "36.7 ft\u00b2",
-      "area_raw": 36.69
+      "area": "53.4 ft\u00b2",
+      "area_raw": 53.37
     },
     {
       "id": "R40",
-      "area_px": 8317,
+      "area_px": 10878,
       "centroid_px": [
-        379,
-        2636
+        384,
+        2634
       ],
       "bbox_px": [
-        330,
+        325,
         2597,
-        451,
-        2690
+        558,
+        2693
       ],
-      "area": "94.6 ft\u00b2",
-      "area_raw": 94.63
+      "area": "123.8 ft\u00b2",
+      "area_raw": 123.77
+    },
+    {
+      "id": "R41",
+      "area_px": 1483,
+      "centroid_px": [
+        717,
+        2610
+      ],
+      "bbox_px": [
+        572,
+        2597,
+        806,
+        2642
+      ],
+      "area": "16.9 ft\u00b2",
+      "area_raw": 16.87
     }
   ],
   "walls": [
@@ -1667,13 +1683,13 @@
       "id": "w28.s2",
       "name": "North Wall 28 part 2 \u2192 R28",
       "facing": "South",
-      "length": "5.12 ft",
-      "length_raw": 5.12,
+      "length": "5.44 ft",
+      "length_raw": 5.44,
       "angle_deg": 90.0,
       "px_coords": [
         1395,
         2584,
-        1443,
+        1446,
         2584
       ],
       "room_id": "R28",
@@ -1686,11 +1702,11 @@
       "id": "w28.s3",
       "name": "North Wall 28 part 3 \u2192 (no room)",
       "facing": "North",
-      "length": "22.29 ft",
-      "length_raw": 22.29,
+      "length": "21.97 ft",
+      "length_raw": 21.97,
       "angle_deg": 90.0,
       "px_coords": [
-        1443,
+        1446,
         2584,
         1652,
         2584
@@ -1779,21 +1795,40 @@
     },
     {
       "id": "w30.s1",
-      "name": "South Wall 30 part 1 \u2192 R21",
+      "name": "South Wall 30 part 1 \u2192 R20",
       "facing": "South",
-      "length": "14.83 ft",
-      "length_raw": 14.83,
+      "length": "4.48 ft",
+      "length_raw": 4.48,
       "angle_deg": 90.0,
       "px_coords": [
         1898,
+        2174,
+        1940,
+        2174
+      ],
+      "room_id": "R20",
+      "parent_wall_id": "w30",
+      "segment_index": 1,
+      "segment_count": 2,
+      "is_exterior": true
+    },
+    {
+      "id": "w30.s2",
+      "name": "South Wall 30 part 2 \u2192 R21",
+      "facing": "South",
+      "length": "10.35 ft",
+      "length_raw": 10.35,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1940,
         2174,
         2037,
         2174
       ],
       "room_id": "R21",
       "parent_wall_id": "w30",
-      "segment_index": 1,
-      "segment_count": 1,
+      "segment_index": 2,
+      "segment_count": 2,
       "is_exterior": true
     },
     {
@@ -3118,5 +3153,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 12.06
+  "runtime_s": 8.73
 }

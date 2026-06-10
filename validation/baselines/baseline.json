@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-10T15:17:42Z",
+  "created_utc": "2026-06-10T16:21:05Z",
   "env": {
     "python": "3.14.2",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -11,17 +11,17 @@
     "capture_153430": {
       "structural": {
         "error": null,
-        "wall_count": 39,
-        "exterior_wall_count": 19,
+        "wall_count": 38,
+        "exterior_wall_count": 18,
         "interior_wall_count": 20,
         "room_count": 6,
         "total_area_raw": 2797.0,
         "px_per_ft": 54.0,
         "polygon_vertices": 23,
-        "wall_network_closure_rate": 0.6154,
+        "wall_network_closure_rate": 0.6053,
         "dangling_endpoints": 30,
-        "interior_coverage": 0.6045,
-        "runtime_s": 3.21
+        "interior_coverage": 0.6464,
+        "runtime_s": 3.14
       },
       "scores": null,
       "closure": null
@@ -29,17 +29,17 @@
     "capture_165134": {
       "structural": {
         "error": null,
-        "wall_count": 35,
-        "exterior_wall_count": 17,
+        "wall_count": 34,
+        "exterior_wall_count": 16,
         "interior_wall_count": 18,
-        "room_count": 6,
+        "room_count": 7,
         "total_area_raw": 2623.2,
         "px_per_ft": 54.0,
         "polygon_vertices": 19,
-        "wall_network_closure_rate": 0.6429,
+        "wall_network_closure_rate": 0.6324,
         "dangling_endpoints": 25,
-        "interior_coverage": 0.6186,
-        "runtime_s": 4.42
+        "interior_coverage": 0.6621,
+        "runtime_s": 4.12
       },
       "scores": null,
       "closure": null
@@ -125,20 +125,98 @@
     "mcginnies_pdf": {
       "structural": {
         "error": null,
-        "wall_count": 126,
-        "exterior_wall_count": 58,
+        "wall_count": 127,
+        "exterior_wall_count": 59,
         "interior_wall_count": 68,
-        "room_count": 40,
+        "room_count": 41,
         "total_area_raw": 8702.1,
         "px_per_ft": 9.38,
         "polygon_vertices": 80,
-        "wall_network_closure_rate": 0.7778,
+        "wall_network_closure_rate": 0.7795,
         "dangling_endpoints": 56,
-        "interior_coverage": 0.6535,
-        "runtime_s": 12.06
+        "interior_coverage": 0.6654,
+        "runtime_s": 10.86
       },
       "scores": null,
       "closure": null
+    },
+    "synth_corridor": {
+      "structural": {
+        "error": null,
+        "wall_count": 9,
+        "exterior_wall_count": 5,
+        "interior_wall_count": 4,
+        "room_count": 4,
+        "total_area_raw": 2957.9,
+        "px_per_ft": 18.0,
+        "polygon_vertices": 8,
+        "wall_network_closure_rate": 0.7778,
+        "dangling_endpoints": 4,
+        "interior_coverage": 0.6788,
+        "runtime_s": 1.19
+      },
+      "scores": {
+        "rooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 4,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.5556,
+          "recall": 0.625,
+          "f1": 0.5882,
+          "true_positives": 5,
+          "false_positives": 4,
+          "false_negatives": 3
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 3
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "dimensions": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "walls_coverage": {
+          "precision": 1.0,
+          "recall": 0.9732,
+          "f1": 0.9864
+        }
+      },
+      "closure": {
+        "tolerance_px": 36.0,
+        "wall_network_closure_rate": 0.7778,
+        "room_boundary_closure_rate": 0.5,
+        "mean_boundary_coverage": 0.8962,
+        "interior_coverage": 0.6788
+      }
     },
     "synth_l_shape": {
       "structural": {
@@ -153,7 +231,7 @@
         "wall_network_closure_rate": 0.9,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7129,
-        "runtime_s": 1.22
+        "runtime_s": 1.16
       },
       "scores": {
         "rooms": {
@@ -230,8 +308,8 @@
         "polygon_vertices": 8,
         "wall_network_closure_rate": 0.8571,
         "dangling_endpoints": 2,
-        "interior_coverage": 0.722,
-        "runtime_s": 1.24
+        "interior_coverage": 0.7235,
+        "runtime_s": 1.11
       },
       "scores": {
         "rooms": {
@@ -293,7 +371,7 @@
         "wall_network_closure_rate": 0.8571,
         "room_boundary_closure_rate": 1.0,
         "mean_boundary_coverage": 1.0,
-        "interior_coverage": 0.722
+        "interior_coverage": 0.7235
       }
     }
   }

@@ -1,0 +1,241 @@
+{
+  "id": "synth_corridor",
+  "scale": "1/8in=1ft",
+  "image_size_px": [
+    2200,
+    1500
+  ],
+  "rooms": [
+    {
+      "id": "R1",
+      "bbox_px": [
+        198,
+        238,
+        1242,
+        556
+      ],
+      "area_raw": 1024.7
+    },
+    {
+      "id": "R_corridor",
+      "bbox_px": [
+        198,
+        565,
+        1242,
+        637
+      ],
+      "area_raw": 232.0
+    },
+    {
+      "id": "R2",
+      "bbox_px": [
+        198,
+        646,
+        1242,
+        922
+      ],
+      "polygon_px": [
+        [
+          261,
+          646
+        ],
+        [
+          1242,
+          646
+        ],
+        [
+          1242,
+          922
+        ],
+        [
+          198,
+          922
+        ],
+        [
+          198,
+          799
+        ],
+        [
+          261,
+          799
+        ]
+      ]
+    },
+    {
+      "id": "R_closet",
+      "bbox_px": [
+        198,
+        646,
+        252,
+        790
+      ],
+      "area_raw": 24.0
+    }
+  ],
+  "walls": [
+    {
+      "id": "ext_n",
+      "px_coords": [
+        180,
+        229.0,
+        1260,
+        229.0
+      ],
+      "facing": "North",
+      "is_exterior": true,
+      "length_raw": 60.0
+    },
+    {
+      "id": "ext_s",
+      "px_coords": [
+        180,
+        931.0,
+        1260,
+        931.0
+      ],
+      "facing": "South",
+      "is_exterior": true,
+      "length_raw": 60.0
+    },
+    {
+      "id": "ext_w",
+      "px_coords": [
+        189.0,
+        220,
+        189.0,
+        940
+      ],
+      "facing": "West",
+      "is_exterior": true,
+      "length_raw": 40.0
+    },
+    {
+      "id": "ext_e",
+      "px_coords": [
+        1251.0,
+        220,
+        1251.0,
+        940
+      ],
+      "facing": "East",
+      "is_exterior": true,
+      "length_raw": 40.0
+    },
+    {
+      "id": "int_a",
+      "px_coords": [
+        198,
+        560,
+        1242,
+        560
+      ],
+      "facing": "North",
+      "is_exterior": false,
+      "length_raw": 58.0
+    },
+    {
+      "id": "int_b",
+      "px_coords": [
+        198,
+        641,
+        1242,
+        641
+      ],
+      "facing": "North",
+      "is_exterior": false,
+      "length_raw": 58.0
+    },
+    {
+      "id": "int_closet_v",
+      "px_coords": [
+        256,
+        646,
+        256,
+        799
+      ],
+      "facing": "West",
+      "is_exterior": false,
+      "length_raw": 8.5
+    },
+    {
+      "id": "int_closet_h",
+      "px_coords": [
+        198,
+        794,
+        261,
+        794
+      ],
+      "facing": "North",
+      "is_exterior": false,
+      "length_raw": 3.5
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "int_a",
+      "bbox_px": [
+        400,
+        553,
+        436,
+        568
+      ],
+      "center_px": [
+        418.0,
+        560
+      ]
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "int_b",
+      "bbox_px": [
+        900,
+        634,
+        936,
+        649
+      ],
+      "center_px": [
+        918.0,
+        641
+      ]
+    },
+    {
+      "id": "d3",
+      "host_wall_id": "int_closet_v",
+      "bbox_px": [
+        249,
+        690,
+        264,
+        726
+      ],
+      "center_px": [
+        256,
+        708.0
+      ]
+    }
+  ],
+  "windows": [],
+  "labels": [],
+  "dimensions": [
+    {
+      "id": "dim1",
+      "text": "60'-0\"",
+      "value_raw": 60.0,
+      "unit": "ft",
+      "center_px": [
+        720.0,
+        1040.0
+      ]
+    },
+    {
+      "id": "dim2",
+      "text": "40'-0\"",
+      "value_raw": 40.0,
+      "unit": "ft",
+      "center_px": [
+        140.0,
+        580.0
+      ]
+    }
+  ]
+}

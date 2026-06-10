@@ -148,6 +148,67 @@ class TestLShapeAccuracy:
         assert closure["interior_coverage"]["coverage"] >= 0.6
 
 
+@pytest.fixture(scope="module")
+def corridor_result(corridor_plan):
+    return _analyze(corridor_plan)
+
+
+@pytest.fixture(scope="module")
+def corridor_report(corridor_plan, corridor_result):
+    from arqen_validation.score import score_prediction
+
+    return score_prediction(corridor_plan.ground_truth, corridor_result)
+
+
+class TestCorridorStructure:
+    def test_no_error(self, corridor_result):
+        assert "error" not in corridor_result
+
+    def test_all_four_rooms_detected(self, corridor_result):
+        # Two compact rooms, the 4 ft corridor, and the 24 ft² closet.
+        assert len(corridor_result["rooms"]) >= 4
+
+    def test_closet_recovered_below_compact_floor(self, corridor_result):
+        # The closet (24 ft² GT) is below the 25 ft² compact-room floor and
+        # only survives via the corridor (aspect-aware) floor.
+        small = [r for r in corridor_result["rooms"] if r["area_raw"] < 25.0]
+        assert small
+        for r in small:
+            assert r["area_raw"] >= 8.0
+
+    def test_corridor_detected(self, corridor_result):
+        # One elongated cell ~58 x 4 ft (GT 232 ft²).
+        def aspect(r):
+            x0, y0, x1, y1 = r["bbox_px"]
+            w, h = x1 - x0, y1 - y0
+            return max(w, h) / max(min(w, h), 1)
+        corridors = [
+            r for r in corridor_result["rooms"]
+            if aspect(r) >= 10 and 150 <= r["area_raw"] <= 300
+        ]
+        assert len(corridors) == 1
+
+    def test_no_coaxial_spanning_duplicates(self, corridor_result):
+        assert_no_coaxial_spanning_duplicates(
+            corridor_result["walls"], corridor_result["px_per_ft"],
+        )
+
+
+class TestCorridorAccuracy:
+    def test_room_precision_and_recall(self, corridor_report):
+        rooms = corridor_report["categories"]["rooms"]
+        assert rooms["precision"] >= 0.99
+        assert rooms["recall"] >= 0.99
+
+    def test_coverage_floor(self, corridor_report):
+        closure = corridor_report["closure"]
+        assert closure["interior_coverage"]["coverage"] >= 0.6
+
+    def test_closure_floor(self, corridor_report):
+        closure = corridor_report["closure"]
+        assert closure["wall_network"]["closure_rate"] >= 0.7
+
+
 class TestCalibrationGuards:
     def test_wrong_dpi_emits_warning(self, two_room_plan):
         from preprocess import analyze_page

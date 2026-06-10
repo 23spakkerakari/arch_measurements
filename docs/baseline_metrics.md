@@ -1,6 +1,6 @@
 # Baseline Metrics — Current Implementation
 
-Captured **2026-06-10T15:17:42Z** on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
+Captured **2026-06-10** (post interior-coverage recovery, proposal #5) on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
 Source of truth: `validation/baselines/baseline.json`. Reproduce with:
 
 ```bash
@@ -20,6 +20,7 @@ matches the historical `Arqen/out.json` run bit-for-bit).
 |------|-------|--------------|-------|
 | `synth_two_room` | Generated 60x40 ft rectangle, 1 partition, door, 2 windows | Exact (generated) | True accuracy measurable |
 | `synth_l_shape` | Generated 70x50 ft L-shape, 1 partition, door | Exact (generated) | Tests notch geometry |
+| `synth_corridor` | Generated 60x40 ft, 4 ft corridor, 24 ft² closet, 3 doors | Exact (generated) | Tests corridor/small-room recovery |
 | `capture_153430` | Web-app capture (TRDI plan), 3/8"=1ft @ 144 DPI, ROI | None yet | Structural + snapshot only |
 | `capture_165134` | Web-app capture (room-split plan), 3/8"=1ft @ 144 DPI, ROI | None yet | Structural + snapshot only |
 | `mcginnies_pdf` | `Arqen/test.pdf` full sheet, 1in=16ft @ 150 DPI | None yet | Largest/slowest case |
@@ -29,14 +30,15 @@ matches the historical `Arqen/out.json` run bit-for-bit).
 
 | Case | Walls (ext/int) | Rooms | Area (ft²) | Wall-network closure | Dangling ends | Interior coverage | Runtime |
 |------|-----------------|-------|------------|----------------------|---------------|-------------------|---------|
-| `synth_two_room` | 7 (5/2) | 2 | 2957.9 | 0.857 | 2 | 0.722 | 1.2 s |
+| `synth_two_room` | 7 (5/2) | 2 | 2957.9 | 0.857 | 2 | 0.724 | 1.1 s |
 | `synth_l_shape` | 10 (8/2) | 2 | 3045.3 | 0.900 | 2 | 0.713 | 1.2 s |
-| `capture_153430` | 39 (19/20) | 6 | 2797.0 | 0.615 | 30 | 0.605 | 3.2 s |
-| `capture_165134` | 35 (17/18) | 6 | 2623.2 | 0.643 | 25 | 0.619 | 4.4 s |
-| `mcginnies_pdf` | 126 (58/68) | 40 | 8702.1 | 0.778 | 56 | 0.654 | 12.1 s |
+| `synth_corridor` | 9 (5/4) | 4 | 2957.9 | 0.778 | 4 | 0.679 | 1.2 s |
+| `capture_153430` | 38 (18/20) | 6 | 2797.0 | 0.605 | 30 | 0.646 | 3.1 s |
+| `capture_165134` | 34 (16/18) | 7 | 2623.2 | 0.632 | 25 | 0.662 | 4.1 s |
+| `mcginnies_pdf` | 127 (59/68) | 41 | 8702.1 | 0.780 | 56 | 0.665 | 10.9 s |
 
-The synth cases' remaining dangling endpoints (2 each) are the partition ends
-at the drawn door opening — genuinely open geometry, correctly not bridged.
+The synth cases' remaining dangling endpoints (2 per partition with a drawn
+door opening) are genuinely open geometry, correctly not bridged.
 
 Synthetic `total_area` and interior coverage are distorted by a known issue:
 the footprint polygon swallows the adjacent dimension-string strip, inflating
@@ -48,24 +50,31 @@ annotation separation item in `docs/improvement_proposals.md`.
 
 Precision / Recall / F1 at the default matching thresholds:
 
-| Category | synth_two_room | synth_l_shape | Interpretation |
-|----------|----------------|---------------|----------------|
-| Rooms | **1.00** / **1.00** / 1.00 | **1.00** / **1.00** / 1.00 | Exact room detection (IoU 0.97), including the L-shaped room polygon; phantom cells eliminated |
-| Walls (strict 1:1) | 0.43 / **0.60** / 0.50 | 0.60 / **0.86** / 0.71 | Reported but not gated: per-room sub-segments of one GT wall read as FP under greedy 1:1 matching |
-| Walls (span coverage) | 1.00 / **1.00** / 1.00 | 1.00 / **1.00** / 1.00 | Length-weighted coverage (M2): every GT wall length is traced by predictions and vice versa; this is the gated wall metric |
-| Doors | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not detected** — no door geometry in the CV path |
-| Windows | 0.00 / **0.00** / 0.00 | — (none drawn) | **Not detected** — windows only bridged morphologically |
-| Dimensions | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not extracted** — dimension strings are deliberately filtered as annotation ink; no OCR |
-| Labels | — (none drawn) | — | No OCR in CV path (LLM-only in web app) |
+| Category | synth_two_room | synth_l_shape | synth_corridor | Interpretation |
+|----------|----------------|---------------|----------------|----------------|
+| Rooms | **1.00** / **1.00** / 1.00 | **1.00** / **1.00** / 1.00 | **1.00** / **1.00** / 1.00 | Exact room detection, including the 4 ft corridor and the 24 ft² closet (below the compact 25 ft² floor — recovered via the corridor floor) |
+| Walls (strict 1:1) | 0.43 / **0.60** / 0.50 | 0.60 / **0.86** / 0.71 | 0.56 / **0.62** / 0.59 | Reported but not gated: per-room sub-segments of one GT wall read as FP under greedy 1:1 matching |
+| Walls (span coverage) | 1.00 / **1.00** / 1.00 | 1.00 / **1.00** / 1.00 | 1.00 / **0.97** / 0.99 | Length-weighted coverage (M2): every GT wall length is traced by predictions and vice versa; this is the gated wall metric |
+| Doors | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not detected** — no door geometry in the CV path |
+| Windows | 0.00 / **0.00** / 0.00 | — (none drawn) | — (none drawn) | **Not detected** — windows only bridged morphologically |
+| Dimensions | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not extracted** — dimension strings are deliberately filtered as annotation ink; no OCR |
+| Labels | — (none drawn) | — | — | No OCR in CV path (LLM-only in web app) |
 
 ### Space boundary closure
 
-| Measure | synth_two_room | synth_l_shape | capture_153430 | capture_165134 | mcginnies_pdf |
-|---------|----------------|---------------|----------------|----------------|---------------|
-| Wall-network closure rate | 0.857 | 0.900 | 0.615 | 0.643 | 0.778 |
-| GT-room boundary closure rate (>=95% perimeter) | 1.00 | 1.00 | n/a | n/a | n/a |
-| Mean GT-room boundary coverage | 1.00 | 1.00 | n/a | n/a | n/a |
-| Interior coverage (room cells / footprint) | 0.722 | 0.713 | 0.605 | 0.619 | 0.654 |
+| Measure | synth_two_room | synth_l_shape | synth_corridor | capture_153430 | capture_165134 | mcginnies_pdf |
+|---------|----------------|---------------|----------------|----------------|----------------|---------------|
+| Wall-network closure rate | 0.857 | 0.900 | 0.778 | 0.605 | 0.632 | 0.780 |
+| GT-room boundary closure rate (>=95% perimeter) | 1.00 | 1.00 | 0.50 | n/a | n/a | n/a |
+| Mean GT-room boundary coverage | 1.00 | 1.00 | 0.90 | n/a | n/a | n/a |
+| Interior coverage (room cells / footprint) | 0.724 | 0.713 | 0.679 | 0.646 | 0.662 | 0.665 |
+
+The `synth_corridor` boundary-closure 0.50 is a wall-list artifact, not a room
+miss: the closet's interior partitions are detected as room-map ink (all four
+rooms are found exactly) but are not emitted as wall segments — the Hough
+interior filter only keeps segments that T-junction into the exterior
+boundary, so the closet stub/partition are absent from `walls[]` and the
+closet/bottom-room perimeters read as uncovered.
 
 ## Honest read of the baseline
 
@@ -80,11 +89,16 @@ Precision / Recall / F1 at the default matching thresholds:
    endpoint snapping (proposal #2) landed; the remaining dangling endpoints
    are genuine openings (doors, garage fronts) and gaps larger than 2 ft
    that need opening detection (#7) rather than more aggressive snapping.
-4. **Interior coverage 0.60-0.72** — partly real (corridors lost to the
-   `min_room_ft2` filter, wall-band erosion, doorway over-closing) and partly
-   the inflated footprint denominator noted above.
-5. **Rooms are exact on synthetic plans** (P=R=1.0, boundary closure 1.0);
-   on captures the room map still merges areas through unsealed door gaps.
+4. **Interior coverage 0.65-0.72** — the recovery pass (proposal #5:
+   measured-gap erosion, directional doorway close, corridor area floor,
+   orphan reabsorption) lifted real plans +0.01…+0.04 and recovered one room
+   each on `capture_165134` and `mcginnies_pdf`. The remaining gap is
+   dominated by the inflated footprint denominator (the dimension-strip
+   artifact, tracked under proposal #6) and by openings that merge or leak
+   spaces (proposal #7) — not by the room-cell filters anymore.
+5. **Rooms are exact on synthetic plans** (P=R=1.0 on all three, including
+   the 4 ft corridor and sub-floor closet); on captures the room map still
+   merges areas through unsealed door gaps.
 6. **Against `docs/project_context.md` targets** (>95% rooms/walls, >90%
    windows/doors): rooms 100% on synth, walls 80-86% recall,
    windows/doors 0%. The gap is measured and tracked now.
@@ -101,3 +115,4 @@ interior coverage +/-0.10, per-category F1 and recall drop <=0.02.
 |------------|--------|
 | 2026-06-10T04:07 | Initial baseline of the untouched pipeline. |
 | 2026-06-10T14:49 | Accepted after the phantom-suppression + snap-validation iteration (proposal #1): pair-validated snapping with annotation hop, stroke-partner stats, exterior-envelope filters for rooms and Hough interiors, span trim/clamp, dedup span-overlap fix. Synth rooms 0.5 → 1.0 precision, both synth cases exact; wall-network closure +0.07…+0.18 and dangling endpoints −2…−28 on every real plan; mcginnies recovers 21 walls (105 → 126) at stable room count 40. Synth `total_area`/coverage shifts are the footprint-strip artifact described above, accepted knowingly. |
+| 2026-06-10 (#5) | Accepted after interior-coverage recovery (proposal #5): measured contour-to-ink erosion (capped at the legacy 2x thickness), directional doorway close, aspect-aware corridor area floor (8 ft² at aspect >= 2.5) with a minimum cell width of one close kernel, and orphan-fragment reabsorption. New `synth_corridor` case (4 ft corridor + 24 ft² closet) added with exact GT, rooms P/R 1.0/1.0. Interior coverage +0.042/+0.044/+0.012 on the real plans; `capture_165134` 6 → 7 rooms and `mcginnies_pdf` 40 → 41 rooms (recovered, width-guarded against cavity slivers); all other gated metrics flat within tolerance. The gate passed against the previous baseline before re-capture (coverage deltas < +0.10). |

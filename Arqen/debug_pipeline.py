@@ -359,6 +359,19 @@ def run(args) -> None:
     )
     print(f"room split: {len(rooms)} rooms, {len(ext_sub_walls)} exterior sub-segments")
 
+    interior_walls = [{**w, "is_exterior": False} for w in walls if w["length_raw"] >= 8.0]
+    combined = ext_sub_walls + interior_walls
+    before_cleanup = len(combined)
+    combined, cleanup_stats = pp.cleanup_wall_list(
+        combined, axis_tol_px, px_per_unit, "ft",
+    )
+    parts = ", ".join(f"{k}={v}" for k, v in cleanup_stats.items() if v)
+    print(f"wall cleanup: {before_cleanup} -> {len(combined)} ({parts or 'no change'})")
+    tracker.check_segments(
+        "7-after_wall_cleanup",
+        [tuple(w["px_coords"]) for w in combined],
+    )
+
     if (room_debug / "room_labels_color.png").exists():
         color_vis = cv2.imread(str(room_debug / "room_labels_color.png"))
         if color_vis is not None:

@@ -30,7 +30,7 @@ import fitz  # PyMuPDF — no external Poppler binaries needed
 import numpy as np
 from scale_parse import parse_scale
 from extract_wall_segments_class import extract_wall_segments
-from room_wall_split import split_exterior_walls_by_room
+from room_wall_split import segment_traces_exterior, split_exterior_walls_by_room
 
 
 # ─── Step 1: PDF → high-res raster ──────────────────────────────────────────
@@ -1028,6 +1028,482 @@ def merge_and_deduplicate_segments(
     return final
 
 
+def _coaxial_wall_seg(w: dict) -> tuple[int, int, int, int]:
+    c = w["px_coords"]
+    return (c[0], c[1], c[2], c[3])
+
+
+def _union_interval_length(intervals: list[tuple[int, int]]) -> int:
+    if not intervals:
+        return 0
+    merged = [intervals[0]]
+    for lo, hi in sorted(intervals[1:]):
+        if lo <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], hi))
+        else:
+            merged.append((lo, hi))
+    return sum(hi - lo for lo, hi in merged)
+
+
+def _perp_band_tol(px_per_unit: float, axis_tol_px: int) -> int:
+    """Perpendicular tolerance for grouping parallel wall strokes / dimension bands."""
+    return max(axis_tol_px * 2, int(4.0 * px_per_unit))
+
+
+def _wall_is_horiz(w: dict) -> bool:
+    c = w["px_coords"]
+    return abs(c[2] - c[0]) >= abs(c[3] - c[1])
+
+
+def _wall_perp(seg: tuple, horiz: bool) -> int:
+    return (seg[1] + seg[3]) // 2 if horiz else (seg[0] + seg[2]) // 2
+
+
+def _wall_proj(seg: tuple, horiz: bool) -> tuple[int, int]:
+    if horiz:
+        return min(seg[0], seg[2]), max(seg[0], seg[2])
+    return min(seg[1], seg[3]), max(seg[1], seg[3])
+
+
+def coaxial_spanning_wall_indices(
+    walls: list[dict],
+    axis_tol_px: int,
+    cover_frac: float = 0.85,
+    perp_band_tol: Optional[int] = None,
+) -> set[int]:
+    """Indices of walls tiled along the same axis by at least two other segments."""
+    if len(walls) < 2:
+        return set()
+
+    band_tol = perp_band_tol if perp_band_tol is not None else axis_tol_px
+
+    drop_indices: set[int] = set()
+
+    for is_horiz in (True, False):
+        indexed = [
+            (i, _coaxial_wall_seg(w))
+            for i, w in enumerate(walls)
+            if _wall_is_horiz(w) == is_horiz
+        ]
+        if len(indexed) < 2:
+            continue
+
+        indexed.sort(key=lambda t: _wall_perp(t[1], is_horiz))
+
+        clusters: list[list[tuple[int, tuple]]] = []
+        for idx, seg in indexed:
+            p = _wall_perp(seg, is_horiz)
+            placed = False
+            for cluster in clusters:
+                perps = [_wall_perp(s, is_horiz) for _, s in cluster] + [p]
+                if max(perps) - min(perps) <= band_tol:
+                    cluster.append((idx, seg))
+                    placed = True
+                    break
+            if not placed:
+                clusters.append([(idx, seg)])
+
+        for cluster in clusters:
+            if len(cluster) < 2:
+                continue
+
+            for i, seg_l in cluster:
+                lo_l, hi_l = _wall_proj(seg_l, is_horiz)
+                len_l = hi_l - lo_l
+                if len_l < 1:
+                    continue
+
+                contributor_intervals: list[tuple[int, int]] = []
+                max_contrib_len = 0
+                for j, seg_j in cluster:
+                    if i == j:
+                        continue
+                    lo_j, hi_j = _wall_proj(seg_j, is_horiz)
+                    overlap_lo = max(lo_l, lo_j)
+                    overlap_hi = min(hi_l, hi_j)
+                    if overlap_hi <= overlap_lo:
+                        continue
+                    contributor_intervals.append((overlap_lo, overlap_hi))
+                    max_contrib_len = max(max_contrib_len, hi_j - lo_j)
+
+                if len(contributor_intervals) < 2:
+                    continue
+                if max_contrib_len >= len_l:
+                    continue
+
+                covered = _union_interval_length(contributor_intervals)
+                threshold = cover_frac
+                if walls[i].get("is_exterior") and walls[i]["length_raw"] >= 40:
+                    threshold = min(cover_frac, 0.55)
+                elif not walls[i].get("is_exterior") and walls[i]["length_raw"] >= 50:
+                    threshold = min(cover_frac, 0.45)
+                if covered / len_l >= threshold:
+                    drop_indices.add(i)
+
+    return drop_indices
+
+
+def drop_spanning_coaxial_walls(
+    walls: list[dict],
+    axis_tol_px: int,
+    cover_frac: float = 0.85,
+    px_per_unit: Optional[float] = None,
+) -> list[dict]:
+    """Drop long coaxial walls when shorter segments already tile the same run."""
+    band_tol = _perp_band_tol(px_per_unit, axis_tol_px) if px_per_unit else axis_tol_px
+    drop_indices = coaxial_spanning_wall_indices(
+        walls, axis_tol_px, cover_frac, perp_band_tol=band_tol,
+    )
+    if not drop_indices:
+        return walls
+    return [w for i, w in enumerate(walls) if i not in drop_indices]
+
+
+def drop_duplicate_exterior_strokes(
+    walls: list[dict],
+    px_per_unit: float,
+) -> list[dict]:
+    """
+    Drop parallel exterior polygon strokes (double-drawn wall ink).
+
+    The footprint polygon often traces both faces of a double-line wall as
+    separate parents.  Keep the parent with the most room splits; drop the
+    others when their spans overlap on the same side.
+    """
+    stroke_tol = max(int(2.5 * px_per_unit), 40)
+    exterior = [w for w in walls if w.get("is_exterior")]
+    if len(exterior) < 2:
+        return walls
+
+    drop_parents: set[str] = set()
+
+    for facing in ("North", "South", "East", "West"):
+        by_parent: dict[str, list[dict]] = {}
+        for w in exterior:
+            if w.get("facing") != facing:
+                continue
+            pid = w.get("parent_wall_id") or w["id"]
+            by_parent.setdefault(pid, []).append(w)
+
+        if len(by_parent) < 2:
+            continue
+
+        parent_info = []
+        for pid, segs in by_parent.items():
+            horiz = _wall_is_horiz(segs[0])
+            perps = [_wall_perp(_coaxial_wall_seg(s), horiz) for s in segs]
+            lo = min(_wall_proj(_coaxial_wall_seg(s), horiz)[0] for s in segs)
+            hi = max(_wall_proj(_coaxial_wall_seg(s), horiz)[1] for s in segs)
+            max_seg = max(s["length_raw"] for s in segs)
+            parent_info.append({
+                "pid": pid,
+                "perp": sum(perps) / len(perps),
+                "lo": lo,
+                "hi": hi,
+                "n_segs": len(segs),
+                "max_seg": max_seg,
+                "horiz": horiz,
+            })
+
+        n = len(parent_info)
+        parent = list(range(n))
+
+        def _find(a: int) -> int:
+            while parent[a] != a:
+                parent[a] = parent[parent[a]]
+                a = parent[a]
+            return a
+
+        def _union(a: int, b: int) -> None:
+            ra, rb = _find(a), _find(b)
+            if ra != rb:
+                parent[ra] = rb
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if parent_info[i]["horiz"] != parent_info[j]["horiz"]:
+                    continue
+                if abs(parent_info[i]["perp"] - parent_info[j]["perp"]) <= stroke_tol:
+                    _union(i, j)
+
+        clusters: dict[int, list[int]] = {}
+        for i in range(n):
+            clusters.setdefault(_find(i), []).append(i)
+
+        for members in clusters.values():
+            if len(members) < 2:
+                continue
+            best = max(
+                members,
+                key=lambda k: (
+                    parent_info[k]["n_segs"],
+                    -(parent_info[k]["max_seg"]),
+                ),
+            )
+            for k in members:
+                if k != best:
+                    drop_parents.add(parent_info[k]["pid"])
+
+    if not drop_parents:
+        return walls
+    return [
+        w for w in walls
+        if not (w.get("is_exterior") and (w.get("parent_wall_id") or w["id"]) in drop_parents)
+    ]
+
+
+def consolidate_coaxial_wall_duplicates(
+    walls: list[dict],
+    axis_tol_px: int,
+    px_per_unit: float,
+    unit_label: str,
+) -> list[dict]:
+    """Merge overlapping coaxial walls (double ink strokes) into a single entry."""
+    if len(walls) < 2:
+        return walls
+
+    merge_tol = max(axis_tol_px + 6, int(0.8 * px_per_unit))
+    merged_flags = [False] * len(walls)
+    result: list[dict] = []
+
+    for is_horiz in (True, False):
+        indices = [i for i, w in enumerate(walls) if _wall_is_horiz(w) == is_horiz]
+        if len(indices) < 2:
+            continue
+
+        indices.sort(key=lambda i: _wall_perp(_coaxial_wall_seg(walls[i]), is_horiz))
+
+        clusters: list[list[int]] = []
+        for i in indices:
+            p = _wall_perp(_coaxial_wall_seg(walls[i]), is_horiz)
+            placed = False
+            for cluster in clusters:
+                perps = [_wall_perp(_coaxial_wall_seg(walls[k]), is_horiz) for k in cluster] + [p]
+                if max(perps) - min(perps) <= merge_tol:
+                    cluster.append(i)
+                    placed = True
+                    break
+            if not placed:
+                clusters.append([i])
+
+        for cluster in clusters:
+            if len(cluster) < 2:
+                continue
+
+            remaining = [i for i in cluster if not merged_flags[i]]
+            while len(remaining) >= 2:
+                remaining.sort(
+                    key=lambda i: _wall_proj(_coaxial_wall_seg(walls[i]), is_horiz)[0]
+                )
+                base = remaining[0]
+                base_seg = _coaxial_wall_seg(walls[base])
+                lo_b, hi_b = _wall_proj(base_seg, is_horiz)
+                merged_any = False
+                for other in remaining[1:]:
+                    if merged_flags[other]:
+                        continue
+                    if walls[base].get("is_exterior") != walls[other].get("is_exterior"):
+                        continue
+                    lo_o, hi_o = _wall_proj(_coaxial_wall_seg(walls[other]), is_horiz)
+                    overlap = min(hi_b, hi_o) - max(lo_b, lo_o)
+                    min_len = max(1, min(hi_b - lo_b, hi_o - lo_o))
+                    if overlap / min_len < 0.45:
+                        continue
+
+                    lo_b, hi_b = min(lo_b, lo_o), max(hi_b, hi_o)
+                    pick = base
+                    if walls[other].get("is_exterior") and not walls[base].get("is_exterior"):
+                        pick = other
+                    elif walls[other]["length_raw"] > walls[base]["length_raw"]:
+                        if not walls[base].get("is_exterior") or walls[other].get("is_exterior"):
+                            pick = other
+
+                    perp = _wall_perp(_coaxial_wall_seg(walls[pick]), is_horiz)
+                    if is_horiz:
+                        new_coords = [lo_b, perp, hi_b, perp]
+                    else:
+                        new_coords = [perp, lo_b, perp, hi_b]
+
+                    px_len = pixel_length(*new_coords)
+                    real_len = px_len / px_per_unit
+                    walls[pick]["px_coords"] = new_coords
+                    walls[pick]["length_raw"] = round(real_len, 2)
+                    walls[pick]["length"] = f"{real_len:.2f} {unit_label}"
+                    walls[pick]["angle_deg"] = round(
+                        wall_angle_deg(*new_coords), 1
+                    )
+
+                    merged_flags[other] = True
+                    base = pick
+                    merged_any = True
+
+                remaining = [i for i in cluster if not merged_flags[i]]
+                if not merged_any:
+                    break
+
+    for i, w in enumerate(walls):
+        if not merged_flags[i]:
+            result.append(w)
+    return result
+
+
+def drop_dimension_like_walls(
+    walls: list[dict],
+    axis_tol_px: int,
+    px_per_unit: float,
+) -> list[dict]:
+    """
+    Drop interior segments parallel to a nearby wall at dimension-line offset.
+
+    Dimension extension lines sit just outside a wall (typically 1–2 ft away)
+    and overlap the wall run; they are not structural walls.
+    """
+    offset_min = axis_tol_px + 1
+    offset_max = max(int(2.5 * px_per_unit), axis_tol_px * 2)
+    drop_indices: set[int] = set()
+
+    for i, w_i in enumerate(walls):
+        if w_i.get("is_exterior"):
+            continue
+        if w_i["length_raw"] >= 14.0:
+            continue
+        seg_i = _coaxial_wall_seg(w_i)
+        horiz_i = _wall_is_horiz(w_i)
+        lo_i, hi_i = _wall_proj(seg_i, horiz_i)
+        len_i = max(1, hi_i - lo_i)
+        perp_i = _wall_perp(seg_i, horiz_i)
+
+        for j, w_j in enumerate(walls):
+            if i == j:
+                continue
+            if w_j.get("facing") != w_i.get("facing"):
+                continue
+            seg_j = _coaxial_wall_seg(w_j)
+            if _wall_is_horiz(w_j) != horiz_i:
+                continue
+            perp_j = _wall_perp(seg_j, horiz_i)
+            perp_dist = abs(perp_i - perp_j)
+            if perp_dist < offset_min or perp_dist > offset_max:
+                continue
+            lo_j, hi_j = _wall_proj(seg_j, horiz_i)
+            overlap = min(hi_i, hi_j) - max(lo_i, lo_j)
+            if overlap <= 0:
+                continue
+            min_len = min(len_i, max(1, hi_j - lo_j))
+            if overlap / min_len >= 0.35:
+                drop_indices.add(i)
+                break
+
+    if not drop_indices:
+        return walls
+    return [w for i, w in enumerate(walls) if i not in drop_indices]
+
+
+def drop_redundant_exterior_spans(
+    walls: list[dict],
+    px_per_unit: float,
+    axis_tol_px: int,
+    min_span_ft: float = 30.0,
+    cover_frac: float = 0.50,
+) -> list[dict]:
+    """
+    Drop single-run exterior walls when shorter same-side segments already
+    cover the same physical wall run (common when polygon + Hough disagree).
+    """
+    band_tol = _perp_band_tol(px_per_unit, axis_tol_px)
+    drop_indices: set[int] = set()
+
+    for i, w_long in enumerate(walls):
+        if not w_long.get("is_exterior"):
+            continue
+        if (w_long.get("segment_count") or 1) > 1:
+            continue
+        if w_long["length_raw"] < min_span_ft:
+            continue
+
+        seg_l = _coaxial_wall_seg(w_long)
+        horiz = _wall_is_horiz(w_long)
+        lo_l, hi_l = _wall_proj(seg_l, horiz)
+        len_l = hi_l - lo_l
+        if len_l < 1:
+            continue
+        perp_l = _wall_perp(seg_l, horiz)
+
+        contributor_intervals: list[tuple[int, int]] = []
+        for j, w_short in enumerate(walls):
+            if i == j or w_short.get("facing") != w_long.get("facing"):
+                continue
+            if _wall_is_horiz(w_short) != horiz:
+                continue
+            if w_short["length_raw"] >= w_long["length_raw"]:
+                continue
+            seg_s = _coaxial_wall_seg(w_short)
+            if abs(_wall_perp(seg_s, horiz) - perp_l) > band_tol:
+                continue
+            lo_s, hi_s = _wall_proj(seg_s, horiz)
+            overlap_lo = max(lo_l, lo_s)
+            overlap_hi = min(hi_l, hi_s)
+            if overlap_hi > overlap_lo:
+                contributor_intervals.append((overlap_lo, overlap_hi))
+
+        if len(contributor_intervals) < 2:
+            continue
+        if _union_interval_length(contributor_intervals) / len_l >= cover_frac:
+            drop_indices.add(i)
+
+    if not drop_indices:
+        return walls
+    return [w for i, w in enumerate(walls) if i not in drop_indices]
+
+
+def cleanup_wall_list(
+    walls: list[dict],
+    axis_tol_px: int,
+    px_per_unit: float,
+    unit_label: str,
+) -> tuple[list[dict], dict[str, int]]:
+    """Run post-merge wall cleanup passes; return walls and per-pass drop counts."""
+    stats: dict[str, int] = {}
+
+    before = len(walls)
+    walls = drop_duplicate_exterior_strokes(walls, px_per_unit)
+    stats["duplicate_exterior_strokes"] = before - len(walls)
+
+    before = len(walls)
+    walls = drop_dimension_like_walls(walls, axis_tol_px, px_per_unit)
+    stats["dimension_like"] = before - len(walls)
+
+    before = len(walls)
+    walls = drop_spanning_coaxial_walls(
+        walls, axis_tol_px, px_per_unit=px_per_unit,
+    )
+    stats["spanning"] = before - len(walls)
+
+    before = len(walls)
+    walls = consolidate_coaxial_wall_duplicates(
+        walls, axis_tol_px, px_per_unit, unit_label,
+    )
+    stats["coaxial_merge"] = before - len(walls)
+
+    before = len(walls)
+    walls = drop_redundant_exterior_spans(walls, px_per_unit, axis_tol_px)
+    stats["exterior_span"] = before - len(walls)
+
+    before = len(walls)
+    walls = drop_spanning_coaxial_walls(
+        walls, axis_tol_px, px_per_unit=px_per_unit,
+    )
+    stats["spanning_final"] = before - len(walls)
+
+    before = len(walls)
+    walls = consolidate_coaxial_wall_duplicates(
+        walls, axis_tol_px, px_per_unit, unit_label,
+    )
+    stats["coaxial_merge_final"] = before - len(walls)
+
+    return walls, stats
+
+
 def _has_parallel_partner(
     wall_mask: np.ndarray,
     seg: tuple,
@@ -1412,11 +1888,14 @@ def analyze_page(
     )
 
     # Supplement with Hough lines for interior walls missed by the polygon.
+    ext_sub_segs = [tuple(w["px_coords"]) for w in exterior_walls]
+    dedup_ref = ext_sub_segs + exterior_segs
+    near_tol = max(15, int(0.5 * px_per_unit))
     pair_gap_range = wall_pair_gap_range(px_per_unit)
     hough_min_px = max(60, int(6 * px_per_unit))
     hough_dedup_tol = dedup_axis_tol_px(px_per_unit)
     hough_segs = _hough_supplement(
-        wall_pair_mask, exterior_segs,
+        wall_pair_mask, dedup_ref,
         min_length_px=hough_min_px,
         dedup_tol_px=hough_dedup_tol,
         pair_gap_range=pair_gap_range,
@@ -1426,6 +1905,17 @@ def analyze_page(
             hough_segs, img_w, img_h, roi=filter_roi, max_span_frac=max_span_frac
         )
         hough_segs = snap_segments_to_walls(hough_segs, wall_pair_mask, px_per_unit=px_per_unit)
+        before_trace = len(hough_segs)
+        hough_segs = [
+            s for s in hough_segs
+            if not segment_traces_exterior(s, dedup_ref, near_tol)
+        ]
+        if before_trace > len(hough_segs):
+            print(
+                f"  [pipeline] rejected {before_trace - len(hough_segs)} "
+                f"exterior-tracing Hough segments",
+                file=sys.stderr,
+            )
         print(f"  [pipeline] Hough supplement: +{len(hough_segs)} interior segments",
               file=sys.stderr)
 
@@ -1450,6 +1940,20 @@ def analyze_page(
         w["is_exterior"] = False
 
     walls = exterior_walls + interior_walls
+    before_cleanup = len(walls)
+    walls, cleanup_stats = cleanup_wall_list(
+        walls, axis_tol_px, px_per_unit, unit_label,
+    )
+    dropped = before_cleanup - len(walls)
+    if dropped:
+        parts = ", ".join(
+            f"{k}={v}" for k, v in cleanup_stats.items() if v
+        )
+        print(
+            f"  [pipeline] wall cleanup: {before_cleanup} → {len(walls)} "
+            f"({parts or 'no change'})",
+            file=sys.stderr,
+        )
     min_real = 8.0 if unit_label == "ft" else 2.5
     walls_before_len = list(walls)
     if roi:

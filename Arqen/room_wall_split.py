@@ -72,6 +72,20 @@ def detect_hough_segments(wall_mask, bbox, margin=30):
     ]
 
 
+def segment_traces_exterior(seg, exterior_walls, near_tol):
+    """True if seg is parallel to and lies on an exterior wall (both endpoints near it)."""
+    x1, y1, x2, y2 = seg
+    seg_ang = seg_angle_deg(x1, y1, x2, y2)
+    for ew in exterior_walls:
+        ew_ang = seg_angle_deg(*ew)
+        if angle_diff(seg_ang, ew_ang) < 15:
+            _, d1 = project_point_onto_segment(x1, y1, *ew)
+            _, d2 = project_point_onto_segment(x2, y2, *ew)
+            if d1 < near_tol and d2 < near_tol:
+                return True
+    return False
+
+
 def find_interior_segments(all_segs, exterior_walls, footprint_contour, near_tol):
     """Keep Hough segments that T-junction into the exterior boundary."""
     interior = []
@@ -82,18 +96,7 @@ def find_interior_segments(all_segs, exterior_walls, footprint_contour, near_tol
         if not point_in_contour(mx, my, footprint_contour):
             continue
 
-        seg_ang = seg_angle_deg(x1, y1, x2, y2)
-
-        tracing = False
-        for ew in exterior_walls:
-            ew_ang = seg_angle_deg(*ew)
-            if angle_diff(seg_ang, ew_ang) < 15:
-                _, d1 = project_point_onto_segment(x1, y1, *ew)
-                _, d2 = project_point_onto_segment(x2, y2, *ew)
-                if d1 < near_tol and d2 < near_tol:
-                    tracing = True
-                    break
-        if tracing:
+        if segment_traces_exterior(seg, exterior_walls, near_tol):
             continue
 
         def near_any_exterior(px, py):

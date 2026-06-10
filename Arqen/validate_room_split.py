@@ -7,7 +7,32 @@ import cv2
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from preprocess import analyze_page  # noqa: E402
+from preprocess import (  # noqa: E402
+    _perp_band_tol,
+    analyze_page,
+    coaxial_spanning_wall_indices,
+    dedup_axis_tol_px,
+)
+
+
+def assert_no_coaxial_spanning_duplicates(walls, px_per_unit, cover_frac=0.85):
+    """Fail if any exterior wall is a spanning duplicate of shorter tiled segments."""
+    axis_tol_px = dedup_axis_tol_px(px_per_unit)
+    band_tol = _perp_band_tol(px_per_unit, axis_tol_px)
+    offenders = coaxial_spanning_wall_indices(
+        walls, axis_tol_px, cover_frac, perp_band_tol=band_tol,
+    )
+    exterior_offenders = [
+        i for i in offenders
+        if walls[i].get("is_exterior") and walls[i]["length_raw"] >= 30
+    ]
+    if not exterior_offenders:
+        return
+    names = [walls[i].get("name", walls[i].get("id")) for i in sorted(exterior_offenders)]
+    raise AssertionError(
+        f"{len(exterior_offenders)} exterior spanning duplicate(s) remain: {names[:8]}"
+        + (" …" if len(names) > 8 else "")
+    )
 
 
 def main():
@@ -40,9 +65,13 @@ def main():
     walls = result.get("walls", [])
     exterior = [w for w in walls if w.get("is_exterior")]
     interior = [w for w in walls if not w.get("is_exterior")]
+    px_per_unit = result.get("px_per_ft") or 18.0
 
     print(f"rooms: {len(rooms)}")
     print(f"walls: {len(walls)} ({len(exterior)} exterior sub-segs, {len(interior)} interior)")
+
+    assert_no_coaxial_spanning_duplicates(walls, px_per_unit)
+    print("OK: no coaxial spanning duplicates")
 
     # North-facing exterior sub-segments (top of building in image-up coords)
     north = [w for w in exterior if w.get("facing") == "North"]

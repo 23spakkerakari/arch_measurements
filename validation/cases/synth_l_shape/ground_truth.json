@@ -1,0 +1,144 @@
+{
+  "id": "synth_l_shape",
+  "scale": "1/8in=1ft",
+  "image_size_px": [
+    2400,
+    1600
+  ],
+  "rooms": [
+    {
+      "id": "R1",
+      "bbox_px": [
+        178,
+        218,
+        1402,
+        736
+      ]
+    },
+    {
+      "id": "R2",
+      "bbox_px": [
+        178,
+        745,
+        1402,
+        1082
+      ]
+    }
+  ],
+  "walls": [
+    {
+      "id": "ext_top",
+      "px_coords": [
+        160,
+        209.0,
+        880,
+        209.0
+      ],
+      "facing": "North",
+      "is_exterior": true,
+      "length_raw": 40.0
+    },
+    {
+      "id": "ext_notch_v",
+      "px_coords": [
+        871.0,
+        200,
+        871.0,
+        560
+      ],
+      "facing": "East",
+      "is_exterior": true,
+      "length_raw": 20.0
+    },
+    {
+      "id": "ext_notch_h",
+      "px_coords": [
+        880,
+        569.0,
+        1420,
+        569.0
+      ],
+      "facing": "North",
+      "is_exterior": true,
+      "length_raw": 30.0
+    },
+    {
+      "id": "ext_e",
+      "px_coords": [
+        1411.0,
+        560,
+        1411.0,
+        1100
+      ],
+      "facing": "East",
+      "is_exterior": true,
+      "length_raw": 30.0
+    },
+    {
+      "id": "ext_s",
+      "px_coords": [
+        160,
+        1091.0,
+        1420,
+        1091.0
+      ],
+      "facing": "South",
+      "is_exterior": true,
+      "length_raw": 70.0
+    },
+    {
+      "id": "ext_w",
+      "px_coords": [
+        169.0,
+        200,
+        169.0,
+        1100
+      ],
+      "facing": "West",
+      "is_exterior": true,
+      "length_raw": 50.0
+    },
+    {
+      "id": "int_1",
+      "px_coords": [
+        178,
+        740,
+        1402,
+        740
+      ],
+      "facing": "North",
+      "is_exterior": false,
+      "length_raw": 68.0
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "int_1",
+      "bbox_px": [
+        700,
+        733,
+        736,
+        748
+      ],
+      "center_px": [
+        718.0,
+        740
+      ]
+    }
+  ],
+  "windows": [],
+  "labels": [],
+  "dimensions": [
+    {
+      "id": "dim1",
+      "text": "70'-0\"",
+      "value_raw": 70.0,
+      "unit": "ft",
+      "center_px": [
+        790.0,
+        1220.0
+      ]
+    }
+  ]
+}

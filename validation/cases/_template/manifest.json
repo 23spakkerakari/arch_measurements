@@ -1,0 +1,11 @@
+{
+  "id": "template",
+  "description": "Copy this folder to create a new validation case.",
+  "pdf": "plan.pdf",
+  "scale": "1in=16ft",
+  "dpi": 300,
+  "page": 0,
+  "doorway_close_ft": 2.5,
+  "roi": null,
+  "image_size_px": [0, 0]
+}

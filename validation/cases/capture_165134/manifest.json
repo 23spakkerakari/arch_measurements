@@ -1,0 +1,14 @@
+{
+  "id": "capture_165134",
+  "description": "Web-app capture replay (room-split validation plan). No human ground truth yet; tracked via structural metrics and baseline snapshot.",
+  "image": "../../../Arqen/debug_runs/20260609-165134/image.png",
+  "scale": "3/8\"=1ft",
+  "dpi": 144,
+  "roi": {
+    "x0_pct": 0.013986235761711601,
+    "y0_pct": 0.0220420385704928,
+    "x1_pct": 0.8603598768220104,
+    "y1_pct": 0.9720689280746809
+  },
+  "doorway_close_ft": 2.5
+}

@@ -1,0 +1,10 @@
+{
+  "id": "mcginnies_pdf",
+  "description": "McGinnies Hall abatement plan (Arqen/test.pdf), full sheet at 150 DPI. Matches the historical Arqen/out.json run. No human ground truth yet.",
+  "pdf_path": "../../../Arqen/test.pdf",
+  "page": 0,
+  "scale": "1in=16ft",
+  "dpi": 150,
+  "roi": null,
+  "doorway_close_ft": 2.5
+}

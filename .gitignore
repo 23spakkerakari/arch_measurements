@@ -20,3 +20,16 @@ Thumbs.db
 # Debug / local
 .cursor/debug-*.log
 *.log
+.pytest_cache/
+
+# Pipeline debug captures (ARQEN_DEBUG_DUMP) — large and regenerable.
+# Whitelist only the captures referenced by validation/cases/capture_*.
+Arqen/debug_runs/*
+!Arqen/debug_runs/20260609-153430/
+Arqen/debug_runs/20260609-153430/*
+!Arqen/debug_runs/20260609-153430/image.png
+!Arqen/debug_runs/20260609-153430/request.json
+!Arqen/debug_runs/20260609-165134/
+Arqen/debug_runs/20260609-165134/*
+!Arqen/debug_runs/20260609-165134/image.png
+!Arqen/debug_runs/20260609-165134/request.json

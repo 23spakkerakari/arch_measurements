@@ -1,0 +1,11 @@
+{
+  "id": "template",
+  "scale": "1in=16ft",
+  "image_size_px": [2400, 1600],
+  "rooms": [],
+  "walls": [],
+  "doors": [],
+  "windows": [],
+  "labels": [],
+  "dimensions": []
+}

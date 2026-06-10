@@ -1,0 +1,380 @@
+{
+  "case_id": "demo_minimal",
+  "summary": {
+    "macro": {
+      "precision": 0.6667,
+      "recall": 0.6667,
+      "f1": 0.6667
+    },
+    "micro": {
+      "precision": 0.7143,
+      "recall": 0.625,
+      "f1": 0.6667,
+      "true_positives": 5,
+      "false_positives": 2,
+      "false_negatives": 3
+    },
+    "mean_iou": 0.9198
+  },
+  "categories": {
+    "rooms": {
+      "category": "rooms",
+      "counts": {
+        "true_positives": 1,
+        "false_positives": 1,
+        "false_negatives": 1
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "mean_iou": 0.9555,
+      "matches": [
+        {
+          "ground_truth_id": "R1",
+          "predicted_id": "R1",
+          "score": 0.9555,
+          "ground_truth": {
+            "id": "R1",
+            "label": "LIVING",
+            "area_raw": 400.0,
+            "bbox_px": [
+              100.0,
+              100.0,
+              600.0,
+              500.0
+            ]
+          },
+          "predicted": {
+            "id": "R1",
+            "label": "LIVING",
+            "area_raw": 395.0,
+            "bbox_px": [
+              105.0,
+              105.0,
+              595.0,
+              495.0
+            ]
+          }
+        }
+      ],
+      "missing_objects": [
+        {
+          "id": "R2",
+          "label": "KITCHEN",
+          "area_raw": 200.0,
+          "bbox_px": [
+            620.0,
+            100.0,
+            900.0,
+            500.0
+          ]
+        }
+      ],
+      "false_positives": [
+        {
+          "id": "R3",
+          "area_raw": 180.0,
+          "bbox_px": [
+            1200.0,
+            100.0,
+            1500.0,
+            400.0
+          ]
+        }
+      ]
+    },
+    "walls": {
+      "category": "walls",
+      "counts": {
+        "true_positives": 1,
+        "false_positives": 1,
+        "false_negatives": 1
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "mean_iou": 0.995,
+      "matches": [
+        {
+          "ground_truth_id": "w1",
+          "predicted_id": "w1",
+          "score": 0.995,
+          "ground_truth": {
+            "id": "w1",
+            "px_coords": [
+              100.0,
+              100.0,
+              900.0,
+              100.0
+            ],
+            "facing": "North",
+            "length_raw": 80.0,
+            "is_exterior": true
+          },
+          "predicted": {
+            "id": "w1",
+            "px_coords": [
+              102.0,
+              98.0,
+              898.0,
+              102.0
+            ],
+            "facing": "North",
+            "length_raw": 79.5,
+            "is_exterior": true
+          }
+        }
+      ],
+      "missing_objects": [
+        {
+          "id": "w2",
+          "px_coords": [
+            100.0,
+            100.0,
+            100.0,
+            500.0
+          ],
+          "facing": "West",
+          "length_raw": 40.0,
+          "is_exterior": true
+        }
+      ],
+      "false_positives": [
+        {
+          "id": "w9",
+          "px_coords": [
+            1200.0,
+            100.0,
+            1500.0,
+            100.0
+          ],
+          "facing": "North",
+          "length_raw": 30.0,
+          "is_exterior": true
+        }
+      ]
+    },
+    "doors": {
+      "category": "doors",
+      "counts": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 0.6667,
+      "matches": [
+        {
+          "ground_truth_id": "d1",
+          "predicted_id": "d1",
+          "score": 0.6667,
+          "ground_truth": {
+            "id": "d1",
+            "host_wall_id": "w1",
+            "bbox_px": [
+              580.0,
+              90.0,
+              640.0,
+              110.0
+            ],
+            "center_px": [
+              610.0,
+              100.0
+            ]
+          },
+          "predicted": {
+            "id": "d1",
+            "host_wall_id": null,
+            "bbox_px": [
+              585.0,
+              92.0,
+              635.0,
+              108.0
+            ],
+            "center_px": [
+              610.0,
+              100.0
+            ]
+          }
+        }
+      ],
+      "missing_objects": [],
+      "false_positives": []
+    },
+    "windows": {
+      "category": "windows",
+      "counts": {
+        "true_positives": 0,
+        "false_positives": 0,
+        "false_negatives": 1
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "mean_iou": null,
+      "matches": [],
+      "missing_objects": [
+        {
+          "id": "win1",
+          "host_wall_id": "w2",
+          "bbox_px": [
+            90.0,
+            200.0,
+            110.0,
+            280.0
+          ],
+          "center_px": [
+            100.0,
+            240.0
+          ]
+        }
+      ],
+      "false_positives": []
+    },
+    "labels": {
+      "category": "labels",
+      "counts": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 1.0,
+      "matches": [
+        {
+          "ground_truth_id": "lbl1",
+          "predicted_id": "lbl1",
+          "score": 1.0,
+          "ground_truth": {
+            "id": "lbl1",
+            "text": "LIVING",
+            "room_id": "R1",
+            "bbox_px": [
+              250.0,
+              250.0,
+              350.0,
+              280.0
+            ]
+          },
+          "predicted": {
+            "id": "lbl1",
+            "text": "LIVING",
+            "room_id": "R1",
+            "bbox_px": [
+              255.0,
+              255.0,
+              345.0,
+              275.0
+            ]
+          }
+        }
+      ],
+      "missing_objects": [],
+      "false_positives": []
+    },
+    "dimensions": {
+      "category": "dimensions",
+      "counts": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 0.982,
+      "matches": [
+        {
+          "ground_truth_id": "dim1",
+          "predicted_id": "dim1",
+          "score": 0.982,
+          "ground_truth": {
+            "id": "dim1",
+            "text": "20'-0\"",
+            "value_raw": 20.0,
+            "unit": "ft",
+            "center_px": [
+              500.0,
+              80.0
+            ]
+          },
+          "predicted": {
+            "id": "dim1",
+            "value_raw": 20.2,
+            "center_px": [
+              505.0,
+              82.0
+            ]
+          }
+        }
+      ],
+      "missing_objects": [],
+      "false_positives": []
+    }
+  },
+  "closure": {
+    "tolerance_px": 12.0,
+    "wall_network": {
+      "wall_count": 2,
+      "endpoint_count": 4,
+      "closed_endpoints": 0,
+      "dangling_endpoints": 4,
+      "closure_rate": 0.0,
+      "dangling_endpoint_rate": 1.0,
+      "dangling": [
+        {
+          "wall_id": "w1",
+          "endpoint_px": [
+            102.0,
+            98.0
+          ]
+        },
+        {
+          "wall_id": "w1",
+          "endpoint_px": [
+            898.0,
+            102.0
+          ]
+        },
+        {
+          "wall_id": "w9",
+          "endpoint_px": [
+            1200.0,
+            100.0
+          ]
+        },
+        {
+          "wall_id": "w9",
+          "endpoint_px": [
+            1500.0,
+            100.0
+          ]
+        }
+      ]
+    },
+    "room_boundary": {
+      "room_count": 2,
+      "closed_rooms": 0,
+      "closure_rate": 0.0,
+      "mean_boundary_coverage": 0.2575,
+      "closed_threshold": 0.95,
+      "per_room": [
+        {
+          "room_id": "R1",
+          "boundary_coverage": 0.29,
+          "closed": false
+        },
+        {
+          "room_id": "R2",
+          "boundary_coverage": 0.225,
+          "closed": false
+        }
+      ]
+    },
+    "interior_coverage": null
+  }
+}

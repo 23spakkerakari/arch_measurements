@@ -1,0 +1,30 @@
+---
+description: Arqen Labs mission, outputs, and engineering requirements
+alwaysApply: true
+---
+
+# Arqen Labs
+
+You are working on Arqen Labs.
+
+## Mission
+
+Convert architectural PDF floor plans into accurate structured geometry.
+
+## Primary outputs
+
+- Rooms
+- Walls
+- Windows
+- Doors
+- Dimensions
+
+## Requirements
+
+- Preserve existing functionality.
+- Never remove working features without justification.
+- Always explain proposed changes.
+- Always identify risks.
+- Always recommend tests.
+- Prefer reliability over complexity.
+- Use existing architecture whenever possible.

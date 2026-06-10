@@ -1,0 +1,161 @@
+{
+  "id": "synth_two_room",
+  "scale": "1/8in=1ft",
+  "image_size_px": [
+    2200,
+    1500
+  ],
+  "rooms": [
+    {
+      "id": "R1",
+      "bbox_px": [
+        218,
+        238,
+        796,
+        922
+      ],
+      "area_raw": 1220.2
+    },
+    {
+      "id": "R2",
+      "bbox_px": [
+        805,
+        238,
+        1262,
+        922
+      ],
+      "area_raw": 964.8
+    }
+  ],
+  "walls": [
+    {
+      "id": "ext_n",
+      "px_coords": [
+        200,
+        229.0,
+        1280,
+        229.0
+      ],
+      "facing": "North",
+      "is_exterior": true,
+      "length_raw": 60.0
+    },
+    {
+      "id": "ext_s",
+      "px_coords": [
+        200,
+        931.0,
+        1280,
+        931.0
+      ],
+      "facing": "South",
+      "is_exterior": true,
+      "length_raw": 60.0
+    },
+    {
+      "id": "ext_w",
+      "px_coords": [
+        209.0,
+        220,
+        209.0,
+        940
+      ],
+      "facing": "West",
+      "is_exterior": true,
+      "length_raw": 40.0
+    },
+    {
+      "id": "ext_e",
+      "px_coords": [
+        1271.0,
+        220,
+        1271.0,
+        940
+      ],
+      "facing": "East",
+      "is_exterior": true,
+      "length_raw": 40.0
+    },
+    {
+      "id": "int_1",
+      "px_coords": [
+        800,
+        238,
+        800,
+        922
+      ],
+      "facing": "West",
+      "is_exterior": false,
+      "length_raw": 38.0
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "int_1",
+      "bbox_px": [
+        793,
+        600,
+        808,
+        636
+      ],
+      "center_px": [
+        800,
+        618.0
+      ]
+    }
+  ],
+  "windows": [
+    {
+      "id": "win1",
+      "host_wall_id": "ext_n",
+      "bbox_px": [
+        380,
+        220,
+        452,
+        238
+      ],
+      "center_px": [
+        416.0,
+        229.0
+      ]
+    },
+    {
+      "id": "win2",
+      "host_wall_id": "ext_n",
+      "bbox_px": [
+        1000,
+        220,
+        1072,
+        238
+      ],
+      "center_px": [
+        1036.0,
+        229.0
+      ]
+    }
+  ],
+  "labels": [],
+  "dimensions": [
+    {
+      "id": "dim1",
+      "text": "60'-0\"",
+      "value_raw": 60.0,
+      "unit": "ft",
+      "center_px": [
+        740.0,
+        1040.0
+      ]
+    },
+    {
+      "id": "dim2",
+      "text": "40'-0\"",
+      "value_raw": 40.0,
+      "unit": "ft",
+      "center_px": [
+        150.0,
+        580.0
+      ]
+    }
+  ]
+}

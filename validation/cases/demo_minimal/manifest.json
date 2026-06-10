@@ -1,0 +1,8 @@
+{
+  "id": "demo_minimal",
+  "description": "Synthetic case for verifying the validation scorer (no PDF required).",
+  "static_prediction": true,
+  "scale": "1in=16ft",
+  "dpi": 300,
+  "image_size_px": [2000, 1500]
+}

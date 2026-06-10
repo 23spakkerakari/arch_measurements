@@ -1,0 +1,184 @@
+# Improvement Proposals — Ranked
+
+Grounded in the measured baseline (`docs/baseline_metrics.md`, captured
+2026-06-10) and the `Arqen/ARCHITECTURE.md` §7 roadmap. Every proposal cites
+the baseline evidence it targets and the metric that must move.
+
+**Scoring:** Gain = expected accuracy improvement on tracked metrics.
+Effort = engineering size. Risk = chance of regressing currently-passing
+cases (all changes are gated by `validation/compare_to_baseline.py`).
+
+## Ranking
+
+| # | Proposal | Expected gain | Effort | Regression risk | Gated by |
+|---|----------|---------------|--------|-----------------|----------|
+| 1 | Phantom room-cell suppression | High — rooms P 0.50 → ~1.0 on synth; fewer bogus rooms everywhere | Low | Low | rooms P/R, room counts |
+| 2 | Wall endpoint corner-snapping | High — wall-network closure 0.54–0.58 → 0.85+ on real plans; cleaner topology for everything downstream | Medium | Medium | closure rate, walls F1 |
+| 3 | Scale/DPI sanity guards | High (reliability) — prevents silently wrong *all* measurements on bad inputs | Low | Low | px_per_ft, error statuses |
+| 4 | Dedup audit trail + safer fallbacks | Medium — protects the 7-pass cleanup from deleting real walls (synth_two_room wall FP=7 shows duplicates still leak) | Low | Low | walls P, cleanup stats |
+| 5 | Interior coverage recovery (corridors/small rooms) | Medium — interior coverage 0.60–0.72 → 0.85+ | Medium | Medium-high | interior coverage, rooms R |
+| 6 | Footprint confidence + parameterized morphology | Medium — protects the single highest-leverage failure point (stage [4] has no fallback) | Medium | Medium | error rate, area, polygon |
+| 7 | Door detection (geometric) | Unlocks doors 0% → ~60–80% recall | High | Medium | doors P/R/F1 |
+| 8 | Window detection (geometric) | Unlocks windows 0% → ~60–80% recall | High | Medium | windows P/R/F1 |
+| 9 | Dimension extraction (line geometry + existing LLM OCR) | Unlocks dimensions 0% → ~70% recall; enables scale cross-check | High | Low (additive) | dimensions P/R/F1 |
+| 10 | ML hybrid wall graph | Very high (handles curved/diagonal/style variance) | Very high | High | full suite |
+
+Measurement-side (not production code, no gate needed): **M1** annotate ground
+truth for `capture_*` and `mcginnies_pdf` cases; **M2** add aggregate-overlap
+wall scoring to complement strict 1:1 matching (fragmentation currently reads
+as FP — walls P 0.22 on synth_two_room); **M3** fix the feet-inches parser
+quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parses to 19.5).
+
+---
+
+## 1. Phantom room-cell suppression
+
+- **Baseline evidence:** `synth_two_room` detects 4 rooms where 2 exist
+  (precision 0.50). Window sill ink and partition endpoint-extension strokes
+  carve spurious cells out of the interior mask.
+- **Change:** in `room_wall_split.build_room_label_map`, reject cells that are
+  implausible rooms: aspect ratio > ~12, area barely above `min_room_area_px`
+  while hugging the wall band, or cells whose bbox sits inside the wall
+  thickness corridor. Optionally merge sliver cells into the neighbor sharing
+  the longest boundary.
+- **Expected impact:** rooms precision → ~1.0 on synthetic; room counts on
+  real plans drop to plausible values; interior coverage roughly unchanged.
+- **Risk + mitigation:** legitimate narrow rooms (corridors) could be dropped
+  — tune thresholds against `capture_165134` room count and add a corridor
+  fixture to the synth renderer first.
+- **Tests:** extend `tests/unit/test_room_split.py` with a sill-artifact mask;
+  assert `synth_two_room` room_count == 2 after change.
+
+## 2. Wall endpoint corner-snapping
+
+- **Baseline evidence:** wall-network closure 0.543 / 0.557 / 0.576 on real
+  plans (32 / 31 / 89 dangling endpoints) — endpoints stop short of the wall
+  they visually meet.
+- **Change:** post-cleanup pass: for each endpoint within
+  `max(12, 1.5*px_per_unit)` of another wall's body or endpoint, extend/trim
+  to the exact intersection. Pure geometry on the final wall list (no mask
+  work), so it slots in after `cleanup_wall_list`.
+- **Expected impact:** closure → 0.85+; small walls-F1 gain (snapped segments
+  overlap GT runs better); enables future room-from-wall-graph work.
+- **Risk + mitigation:** over-snapping could fuse walls across doorways;
+  cap extension length at ~2 ft and never bridge two *collinear* endpoints
+  (that's a doorway, not a corner).
+- **Tests:** unit tests for snap-to-corner/T-junction/no-bridge cases; closure
+  floors in `test_synth_plans.py` rise from 0.7 to 0.9.
+
+## 3. Scale/DPI sanity guards
+
+- **Baseline evidence:** none of the baseline cases fail — but §6 of
+  ARCHITECTURE.md ranks silent mis-scale as a top failure, and every pixel
+  tolerance in the pipeline derives from `px_per_unit`. A wrong DPI yields
+  confidently wrong output with no error.
+- **Change:** validate `px_per_unit` against image size (a building should
+  span a plausible 10–500 ft); cross-check footprint bbox in feet; return a
+  structured warning/error instead of silent garbage.
+- **Expected impact:** prevents the worst real-world failure mode (entire
+  output wrong by a constant factor). No change on healthy inputs.
+- **Risk:** rejecting valid unusual inputs — make it a warning field first.
+- **Tests:** unit tests for the validator; integration asserts warning absent
+  on all baseline cases.
+
+## 4. Dedup audit trail + safer fallbacks
+
+- **Baseline evidence:** `cleanup_wall_list` runs 7 destructive passes;
+  synth_two_room still emits duplicate strokes (wall FP=7) while past bugs
+  (per code comments) deleted real walls. Drops are currently summarized only
+  as per-pass counts.
+- **Change:** record per-wall drop reasons (`dropped_by: "dimension_like"`,
+  …) behind a debug flag, and add a conservation check: if a pass removes
+  > N% of total wall length, skip it and flag.
+- **Expected impact:** no direct accuracy change; converts future dedup
+  regressions from silent to visible, protects walls recall.
+- **Risk:** minimal (observability + guard rails).
+- **Tests:** unit test that the guard skips a pathological pass; baseline
+  unchanged.
+
+## 5. Interior coverage recovery
+
+- **Baseline evidence:** interior coverage 0.640 / 0.603 / 0.717 on real
+  plans — up to 40% of the footprint belongs to no room. Causes: fixed
+  `min_room_ft2=25` (kills corridors/closets), aggressive wall-band erosion
+  (`wall_thickness_px * 2`), global `doorway_close_ft`.
+- **Change:** lower the area floor for high-aspect cells (corridors), scale
+  erosion with actual stroke gap instead of assumed thickness, and reassign
+  orphan interior pixels to the adjacent room cell.
+- **Expected impact:** interior coverage → 0.85+; rooms recall up on real
+  plans (more real rooms pass the filter).
+- **Risk + mitigation:** more cells = more phantom-room exposure — land
+  proposal #1 first; gate on room-count tolerances.
+- **Tests:** corridor fixture in the synth renderer with exact GT; coverage
+  floor test.
+
+## 6. Footprint confidence + parameterized morphology
+
+- **Baseline evidence:** all baseline cases find a footprint, but stage [4]
+  is single-path: when `find_footprint` picks wrong (title block, partial
+  building), everything downstream is silently wrong. The hard-coded
+  exclusion fractions (top 12%, bottom 18%, …) only fit one sheet layout.
+- **Change:** score top-k footprint candidates (area x compactness x
+  ink-density), expose a confidence value in the output, and retry with
+  relaxed morphology when confidence is low.
+- **Expected impact:** fewer catastrophic failures on unseen sheet layouts;
+  measurable once more real cases are annotated (M1).
+- **Risk + mitigation:** candidate ranking could flip on existing cases —
+  baseline compare pins footprint area to +/-5%.
+- **Tests:** unit tests with decoy blobs; confidence present in output schema.
+
+## 7–8. Door and window detection
+
+- **Baseline evidence:** doors/windows recall 0.00 — categories the product
+  promises (project_context.md targets >90%) with no detector behind them.
+- **Change (doors):** detect doorway gaps along walls (the room-split walk
+  already finds room-transition points); classify gap + swing-arc ink
+  (Hough circles / arc fit) as a door; emit `doors[]` with `host_wall_id`.
+- **Change (windows):** within exterior wall bands, detect the
+  sill-line signature (thin single/triple stroke between wall faces, the
+  current `_find_wall_pairs` already keeps this ink) and emit `windows[]`.
+- **Expected impact:** doors/windows 0% → 60–80% recall on synthetic +
+  annotated cases; closes the biggest gap vs product targets.
+- **Risk + mitigation:** purely additive output fields; walls/rooms paths
+  untouched — gate ensures no drift; synth renderer already draws windows and
+  door gaps with exact GT.
+- **Tests:** synth cases already carry door/window GT (currently asserting
+  TP==0 — flip these to recall floors when detection lands).
+
+## 9. Dimension extraction
+
+- **Baseline evidence:** dimensions recall 0.00; dimension strings are
+  deliberately discarded as annotation ink (`_find_wall_pairs`,
+  `drop_dimension_like_walls`).
+- **Change:** capture (don't just discard) dimension-line candidates
+  (single-stroke lines with end ticks parallel to a nearby wall), crop the
+  text region, and reuse the web app's existing LLM OCR for the value; emit
+  `dimensions[]`. Use parsed values to cross-validate `px_per_unit` (synergy
+  with #3).
+- **Expected impact:** dimensions 0% → ~70% recall; independent scale check.
+- **Risk:** additive; OCR dependency stays out of the core CV path (service
+  layer composes the two).
+- **Tests:** synth dimension strings carry exact GT (60', 40', 70').
+
+## 10. ML hybrid wall graph
+
+As ARCHITECTURE.md Phase 3: CNN/transformer wall segmentation fused with the
+geometric pipeline. Highest ceiling (curved walls, style variance — §5
+unsupported list), but weeks of effort, training data needs, and a wholesale
+behavior change. Do **after** the geometric path is measured, hardened, and
+the annotated real-plan set (M1) exists to evaluate it honestly.
+
+---
+
+## Per-change protocol (required for every code change)
+
+1. **Why:** cite the baseline metric / failure the change addresses.
+2. **Expected impact:** which metrics should move, in which direction, and
+   which must stay flat.
+3. **Implement** with new/updated unit tests for the touched stage.
+4. **Run:** `python -m pytest -m unit && python -m pytest -m integration`.
+5. **Gate:** `python validation/compare_to_baseline.py` — zero regressions
+   beyond tolerance, or a written justification plus
+   `python validation/capture_baseline.py` to accept the new baseline (commit
+   the updated `baseline.json` and note the change in
+   `docs/baseline_metrics.md`).

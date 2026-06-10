@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arqenlabs.dev/schemas/ground_truth.schema.json",
+  "title": "Arqen Ground Truth",
+  "type": "object",
+  "required": ["rooms", "walls", "doors", "windows", "labels", "dimensions"],
+  "properties": {
+    "id": { "type": "string" },
+    "scale": { "type": "string" },
+    "image_size_px": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "rooms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/room" }
+    },
+    "walls": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/wall" }
+    },
+    "doors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/opening" }
+    },
+    "windows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/opening" }
+    },
+    "labels": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/label" }
+    },
+    "dimensions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dimension" }
+    }
+  },
+  "$defs": {
+    "bbox_px": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "point_px": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "polygon_px": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/point_px" },
+      "minItems": 3
+    },
+    "room": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "area_raw": { "type": "number" },
+        "bbox_px": { "$ref": "#/$defs/bbox_px" },
+        "polygon_px": { "$ref": "#/$defs/polygon_px" },
+        "centroid_px": { "$ref": "#/$defs/point_px" }
+      },
+      "anyOf": [
+        { "required": ["bbox_px"] },
+        { "required": ["polygon_px"] }
+      ]
+    },
+    "wall": {
+      "type": "object",
+      "required": ["id", "px_coords"],
+      "properties": {
+        "id": { "type": "string" },
+        "px_coords": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "facing": { "type": "string" },
+        "length_raw": { "type": "number" },
+        "is_exterior": { "type": "boolean" },
+        "room_id": { "type": ["string", "null"] }
+      }
+    },
+    "opening": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "host_wall_id": { "type": "string" },
+        "bbox_px": { "$ref": "#/$defs/bbox_px" },
+        "center_px": { "$ref": "#/$defs/point_px" }
+      },
+      "anyOf": [
+        { "required": ["bbox_px"] },
+        { "required": ["center_px"] }
+      ]
+    },
+    "label": {
+      "type": "object",
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "room_id": { "type": "string" },
+        "bbox_px": { "$ref": "#/$defs/bbox_px" },
+        "center_px": { "$ref": "#/$defs/point_px" }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "value_raw": { "type": "number" },
+        "unit": { "type": "string" },
+        "bbox_px": { "$ref": "#/$defs/bbox_px" },
+        "center_px": { "$ref": "#/$defs/point_px" }
+      },
+      "anyOf": [
+        { "required": ["value_raw"] },
+        { "required": ["text"] }
+      ]
+    }
+  }
+}

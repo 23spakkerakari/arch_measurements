@@ -1,0 +1,285 @@
+{
+  "created_utc": "2026-06-10T04:07:52Z",
+  "env": {
+    "python": "3.14.2",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "opencv": "4.11.0",
+    "numpy": "2.4.0",
+    "pymupdf": "PyMuPDF 1.27.2.2: Python bindings for the MuPDF 1.27.2 library.\nPython 3.14 running on win32 (64-bit).\n"
+  },
+  "cases": {
+    "capture_153430": {
+      "structural": {
+        "error": null,
+        "wall_count": 35,
+        "exterior_wall_count": 15,
+        "interior_wall_count": 20,
+        "room_count": 8,
+        "total_area_raw": 2797.0,
+        "px_per_ft": 54.0,
+        "polygon_vertices": 23,
+        "wall_network_closure_rate": 0.5429,
+        "dangling_endpoints": 32,
+        "interior_coverage": 0.6401,
+        "runtime_s": 2.6
+      },
+      "scores": null,
+      "closure": null
+    },
+    "capture_165134": {
+      "structural": {
+        "error": null,
+        "wall_count": 35,
+        "exterior_wall_count": 14,
+        "interior_wall_count": 21,
+        "room_count": 8,
+        "total_area_raw": 2623.2,
+        "px_per_ft": 54.0,
+        "polygon_vertices": 19,
+        "wall_network_closure_rate": 0.5571,
+        "dangling_endpoints": 31,
+        "interior_coverage": 0.6032,
+        "runtime_s": 3.22
+      },
+      "scores": null,
+      "closure": null
+    },
+    "demo_minimal": {
+      "structural": {
+        "error": null,
+        "wall_count": 2,
+        "exterior_wall_count": 2,
+        "interior_wall_count": 0,
+        "room_count": 2,
+        "total_area_raw": null,
+        "px_per_ft": null,
+        "polygon_vertices": null,
+        "wall_network_closure_rate": 0.0,
+        "dangling_endpoints": 4,
+        "interior_coverage": null,
+        "runtime_s": null
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "true_positives": 1,
+          "false_positives": 1,
+          "false_negatives": 1
+        },
+        "walls": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "true_positives": 1,
+          "false_positives": 1,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 1,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "labels": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 1,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "dimensions": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 1,
+          "false_positives": 0,
+          "false_negatives": 0
+        }
+      },
+      "closure": {
+        "tolerance_px": 12.0,
+        "wall_network_closure_rate": 0.0,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.2575,
+        "interior_coverage": null
+      }
+    },
+    "mcginnies_pdf": {
+      "structural": {
+        "error": null,
+        "wall_count": 105,
+        "exterior_wall_count": 54,
+        "interior_wall_count": 51,
+        "room_count": 40,
+        "total_area_raw": 8702.1,
+        "px_per_ft": 9.38,
+        "polygon_vertices": 80,
+        "wall_network_closure_rate": 0.5762,
+        "dangling_endpoints": 89,
+        "interior_coverage": 0.7172,
+        "runtime_s": 7.56
+      },
+      "scores": null,
+      "closure": null
+    },
+    "synth_l_shape": {
+      "structural": {
+        "error": null,
+        "wall_count": 11,
+        "exterior_wall_count": 11,
+        "interior_wall_count": 0,
+        "room_count": 2,
+        "total_area_raw": 2301.9,
+        "px_per_ft": 18.0,
+        "polygon_vertices": 12,
+        "wall_network_closure_rate": 0.7727,
+        "dangling_endpoints": 5,
+        "interior_coverage": 0.7678,
+        "runtime_s": 0.9
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "true_positives": 1,
+          "false_positives": 1,
+          "false_negatives": 1
+        },
+        "walls": {
+          "precision": 0.5455,
+          "recall": 0.8571,
+          "f1": 0.6667,
+          "true_positives": 6,
+          "false_positives": 5,
+          "false_negatives": 1
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "windows": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "labels": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "dimensions": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        }
+      },
+      "closure": {
+        "tolerance_px": 36.0,
+        "wall_network_closure_rate": 0.7727,
+        "room_boundary_closure_rate": 0.0,
+        "mean_boundary_coverage": 0.8575,
+        "interior_coverage": 0.7678
+      }
+    },
+    "synth_two_room": {
+      "structural": {
+        "error": null,
+        "wall_count": 9,
+        "exterior_wall_count": 6,
+        "interior_wall_count": 3,
+        "room_count": 4,
+        "total_area_raw": 2970.7,
+        "px_per_ft": 18.0,
+        "polygon_vertices": 8,
+        "wall_network_closure_rate": 0.8333,
+        "dangling_endpoints": 3,
+        "interior_coverage": 0.8511,
+        "runtime_s": 0.95
+      },
+      "scores": {
+        "rooms": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6667,
+          "true_positives": 2,
+          "false_positives": 2,
+          "false_negatives": 0
+        },
+        "walls": {
+          "precision": 0.2222,
+          "recall": 0.4,
+          "f1": 0.2857,
+          "true_positives": 2,
+          "false_positives": 7,
+          "false_negatives": 3
+        },
+        "doors": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 1
+        },
+        "windows": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        },
+        "labels": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 0
+        },
+        "dimensions": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 2
+        }
+      },
+      "closure": {
+        "tolerance_px": 36.0,
+        "wall_network_closure_rate": 0.8333,
+        "room_boundary_closure_rate": 0.5,
+        "mean_boundary_coverage": 0.88,
+        "interior_coverage": 0.8511
+      }
+    }
+  }
+}

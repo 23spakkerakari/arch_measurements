@@ -1,0 +1,14 @@
+{
+  "id": "capture_153430",
+  "description": "Web-app capture replay (TRDI plan). No human ground truth yet; tracked via structural metrics and baseline snapshot.",
+  "image": "../../../Arqen/debug_runs/20260609-153430/image.png",
+  "scale": "3/8\"=1ft",
+  "dpi": 144,
+  "roi": {
+    "x0_pct": 0.13894870939367285,
+    "y0_pct": 0.03300051563305677,
+    "x1_pct": 0.8157865469582537,
+    "y1_pct": 0.9490148283566932
+  },
+  "doorway_close_ft": 2.5
+}

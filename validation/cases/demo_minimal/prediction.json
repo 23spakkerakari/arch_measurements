@@ -1,0 +1,56 @@
+{
+  "id": "demo_minimal",
+  "detected_scale": "1in=16ft",
+  "image_size_px": [2000, 1500],
+  "rooms": [
+    {
+      "id": "R1",
+      "label": "LIVING",
+      "bbox_px": [105, 105, 595, 495],
+      "area_raw": 395.0
+    },
+    {
+      "id": "R3",
+      "bbox_px": [1200, 100, 1500, 400],
+      "area_raw": 180.0
+    }
+  ],
+  "walls": [
+    {
+      "id": "w1",
+      "px_coords": [102, 98, 898, 102],
+      "facing": "North",
+      "length_raw": 79.5,
+      "is_exterior": true
+    },
+    {
+      "id": "w9",
+      "px_coords": [1200, 100, 1500, 100],
+      "facing": "North",
+      "length_raw": 30.0,
+      "is_exterior": true
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "bbox_px": [585, 92, 635, 108]
+    }
+  ],
+  "windows": [],
+  "labels": [
+    {
+      "id": "lbl1",
+      "text": "LIVING",
+      "room_id": "R1",
+      "bbox_px": [255, 255, 345, 275]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "dim1",
+      "value_raw": 20.2,
+      "center_px": [505, 82]
+    }
+  ]
+}

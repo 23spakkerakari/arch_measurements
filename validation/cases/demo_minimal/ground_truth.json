@@ -1,0 +1,66 @@
+{
+  "id": "demo_minimal",
+  "scale": "1in=16ft",
+  "image_size_px": [2000, 1500],
+  "rooms": [
+    {
+      "id": "R1",
+      "label": "LIVING",
+      "bbox_px": [100, 100, 600, 500],
+      "area_raw": 400.0
+    },
+    {
+      "id": "R2",
+      "label": "KITCHEN",
+      "bbox_px": [620, 100, 900, 500],
+      "area_raw": 200.0
+    }
+  ],
+  "walls": [
+    {
+      "id": "w1",
+      "px_coords": [100, 100, 900, 100],
+      "facing": "North",
+      "length_raw": 80.0,
+      "is_exterior": true
+    },
+    {
+      "id": "w2",
+      "px_coords": [100, 100, 100, 500],
+      "facing": "West",
+      "length_raw": 40.0,
+      "is_exterior": true
+    }
+  ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w1",
+      "bbox_px": [580, 90, 640, 110]
+    }
+  ],
+  "windows": [
+    {
+      "id": "win1",
+      "host_wall_id": "w2",
+      "bbox_px": [90, 200, 110, 280]
+    }
+  ],
+  "labels": [
+    {
+      "id": "lbl1",
+      "text": "LIVING",
+      "room_id": "R1",
+      "bbox_px": [250, 250, 350, 280]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "dim1",
+      "text": "20'-0\"",
+      "value_raw": 20.0,
+      "unit": "ft",
+      "center_px": [500, 80]
+    }
+  ]
+}

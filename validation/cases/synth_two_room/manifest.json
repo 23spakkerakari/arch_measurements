@@ -1,0 +1,14 @@
+{
+  "id": "synth_two_room",
+  "description": "Synthetic rendered plan with exact ground truth.",
+  "image": "image.png",
+  "scale": "1/8in=1ft",
+  "dpi": 144,
+  "roi": null,
+  "doorway_close_ft": 2.5,
+  "image_size_px": [
+    2200,
+    1500
+  ],
+  "generated_by": "validation/generate_synth_cases.py"
+}

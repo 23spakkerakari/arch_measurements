@@ -1,0 +1,9 @@
+# Cloudflare Workers Builds runs: npx wrangler deploy
+# Static UI lives under Arqen/claude_demo/arch-takeoff (see .assetsignore there).
+name = "archmeasurements"
+compatibility_date = "2024-06-10"
+
+[assets]
+directory = "Arqen/claude_demo/arch-takeoff"
+html_handling = "auto-trailing-slash"
+not_found_handling = "single-page-application"

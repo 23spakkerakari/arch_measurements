@@ -58,6 +58,22 @@ class TestCollinearGap:
         assert len(doors) == 1
         assert doors[0]["center_px"][1] == pytest.approx(200, abs=2)
 
+    def test_merged_subsegments_still_find_gap(self):
+        # Three sub-segments on one axis; middle touches neighbors (gap 0)
+        # but the outer pair still has a doorway between them.
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 200, 100, 300)
+        _draw_pair(mask, True, 200, 300, 500)
+        _draw_pair(mask, True, 200, 540, 700)
+        walls = [
+            _wall("w1", [100, 200, 300, 200]),
+            _wall("w2", [300, 200, 500, 200]),
+            _wall("w3", [540, 200, 700, 200]),
+        ]
+        doors = detect_doors(walls, mask, None, PPU)
+        assert len(doors) == 1
+        assert doors[0]["width_raw"] == pytest.approx(40 / PPU, abs=0.15)
+
     def test_zero_gap_subsegment_boundary_skipped(self):
         # Exterior per-room sub-segments share an endpoint: gap 0 is no door.
         mask = np.zeros(SHAPE, dtype=np.uint8)

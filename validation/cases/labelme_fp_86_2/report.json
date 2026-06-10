@@ -184,12 +184,12 @@
           "id": "w6",
           "px_coords": [
             297.0,
-            102.0,
+            101.0,
             297.0,
             303.0
           ],
           "facing": "West",
-          "length_raw": 4.9,
+          "length_raw": 4.93,
           "is_exterior": false
         },
         {
@@ -219,9 +219,9 @@
       ],
       "coverage": {
         "tolerance_px": 82.0,
-        "precision": 0.1884,
+        "precision": 0.1888,
         "recall": 0.2168,
-        "f1": 0.2016
+        "f1": 0.2018
       }
     },
     "doors": {
@@ -406,7 +406,7 @@
           "wall_id": "w6",
           "endpoint_px": [
             297.0,
-            102.0
+            101.0
           ]
         },
         {

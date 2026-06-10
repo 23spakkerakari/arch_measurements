@@ -398,14 +398,14 @@
       "id": "w1.s2",
       "name": "West Wall 1 part 2 \u2192 (no room)",
       "facing": "West",
-      "length": "4.09 ft",
-      "length_raw": 4.09,
+      "length": "3.57 ft",
+      "length_raw": 3.57,
       "angle_deg": 180.0,
       "px_coords": [
         1089,
         887,
         1089,
-        1153
+        1119
       ],
       "room_id": null,
       "parent_wall_id": "w1",
@@ -965,23 +965,23 @@
       "is_exterior": true
     },
     {
-      "id": "w32",
-      "name": "North Wall 32",
+      "id": "w34",
+      "name": "North Wall 34",
       "facing": "North",
       "length": "36.25 ft",
       "length_raw": 36.25,
       "angle_deg": 90.0,
       "px_coords": [
         1089,
-        1153,
+        1119,
         3445,
-        1153
+        1119
       ],
       "is_exterior": false
     },
     {
-      "id": "w33",
-      "name": "North Wall 33",
+      "id": "w38",
+      "name": "North Wall 38",
       "facing": "North",
       "length": "12.29 ft",
       "length_raw": 12.29,
@@ -995,8 +995,8 @@
       "is_exterior": false
     },
     {
-      "id": "w34",
-      "name": "North Wall 34",
+      "id": "w40",
+      "name": "North Wall 40",
       "facing": "North",
       "length": "16.80 ft",
       "length_raw": 16.8,
@@ -1010,8 +1010,8 @@
       "is_exterior": false
     },
     {
-      "id": "w36",
-      "name": "North Wall 36",
+      "id": "w43",
+      "name": "North Wall 43",
       "facing": "North",
       "length": "12.05 ft",
       "length_raw": 12.05,
@@ -1025,8 +1025,8 @@
       "is_exterior": false
     },
     {
-      "id": "w37",
-      "name": "North Wall 37",
+      "id": "w45",
+      "name": "North Wall 45",
       "facing": "North",
       "length": "16.86 ft",
       "length_raw": 16.86,
@@ -1040,8 +1040,8 @@
       "is_exterior": false
     },
     {
-      "id": "w40",
-      "name": "North Wall 40",
+      "id": "w50",
+      "name": "North Wall 50",
       "facing": "North",
       "length": "16.92 ft",
       "length_raw": 16.92,
@@ -1055,8 +1055,8 @@
       "is_exterior": false
     },
     {
-      "id": "w41",
-      "name": "South Wall 41",
+      "id": "w52",
+      "name": "South Wall 52",
       "facing": "South",
       "length": "28.52 ft",
       "length_raw": 28.52,
@@ -1070,8 +1070,8 @@
       "is_exterior": false
     },
     {
-      "id": "w42",
-      "name": "South Wall 42",
+      "id": "w53",
+      "name": "South Wall 53",
       "facing": "South",
       "length": "16.92 ft",
       "length_raw": 16.92,
@@ -1085,8 +1085,8 @@
       "is_exterior": false
     },
     {
-      "id": "w43",
-      "name": "South Wall 43",
+      "id": "w54",
+      "name": "South Wall 54",
       "facing": "South",
       "length": "40.77 ft",
       "length_raw": 40.77,
@@ -1100,8 +1100,8 @@
       "is_exterior": false
     },
     {
-      "id": "w45",
-      "name": "South Wall 45",
+      "id": "w56",
+      "name": "South Wall 56",
       "facing": "South",
       "length": "46.97 ft",
       "length_raw": 46.97,
@@ -1115,38 +1115,38 @@
       "is_exterior": false
     },
     {
-      "id": "w47",
-      "name": "West Wall 47",
+      "id": "w59",
+      "name": "West Wall 59",
       "facing": "West",
-      "length": "49.78 ft",
-      "length_raw": 49.78,
+      "length": "50.31 ft",
+      "length_raw": 50.31,
       "angle_deg": 180.0,
       "px_coords": [
         1528,
-        1153,
+        1119,
         1528,
         4389
       ],
       "is_exterior": false
     },
     {
-      "id": "w50",
-      "name": "East Wall 50",
+      "id": "w62",
+      "name": "East Wall 62",
       "facing": "East",
       "length": "14.14 ft",
       "length_raw": 14.14,
       "angle_deg": 180.0,
       "px_coords": [
-        2297,
+        2250,
         782,
-        2297,
+        2250,
         1701
       ],
       "is_exterior": false
     },
     {
-      "id": "w51",
-      "name": "East Wall 51",
+      "id": "w64",
+      "name": "East Wall 64",
       "facing": "East",
       "length": "8.05 ft",
       "length_raw": 8.05,
@@ -1160,8 +1160,8 @@
       "is_exterior": false
     },
     {
-      "id": "w52",
-      "name": "East Wall 52",
+      "id": "w65",
+      "name": "East Wall 65",
       "facing": "East",
       "length": "16.38 ft",
       "length_raw": 16.38,
@@ -1175,23 +1175,23 @@
       "is_exterior": false
     },
     {
-      "id": "w53",
-      "name": "East Wall 53",
+      "id": "w66",
+      "name": "East Wall 66",
       "facing": "East",
-      "length": "8.08 ft",
-      "length_raw": 8.08,
+      "length": "8.09 ft",
+      "length_raw": 8.09,
       "angle_deg": 180.0,
       "px_coords": [
         2626,
-        2617,
+        2616,
         2626,
         3142
       ],
       "is_exterior": false
     },
     {
-      "id": "w54",
-      "name": "East Wall 54",
+      "id": "w67",
+      "name": "East Wall 67",
       "facing": "East",
       "length": "7.75 ft",
       "length_raw": 7.75,
@@ -1205,23 +1205,23 @@
       "is_exterior": false
     },
     {
-      "id": "w55",
-      "name": "East Wall 55",
+      "id": "w68",
+      "name": "East Wall 68",
       "facing": "East",
-      "length": "7.95 ft",
-      "length_raw": 7.95,
+      "length": "8.15 ft",
+      "length_raw": 8.15,
       "angle_deg": 180.0,
       "px_coords": [
         2626,
-        4144,
+        4131,
         2626,
         4661
       ],
       "is_exterior": false
     },
     {
-      "id": "w57",
-      "name": "East Wall 57",
+      "id": "w70",
+      "name": "East Wall 70",
       "facing": "East",
       "length": "13.77 ft",
       "length_raw": 13.77,
@@ -1238,7 +1238,7 @@
   "doors": [
     {
       "id": "d1",
-      "host_wall_id": "w53",
+      "host_wall_id": "w66",
       "bbox_px": [
         2577,
         3142,
@@ -1253,6 +1253,24 @@
       "width_raw": 3.62,
       "is_exterior": false,
       "evidence": "gap"
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "w68",
+      "bbox_px": [
+        2577,
+        3881,
+        2675,
+        4131
+      ],
+      "center_px": [
+        2626.0,
+        4006.0
+      ],
+      "width": "3.85 ft",
+      "width_raw": 3.85,
+      "is_exterior": false,
+      "evidence": "gap"
     }
   ],
   "mask_roi_offset": [
@@ -1260,7 +1278,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 65,
     "px_per_ft": 65.0,
     "footprint_span_ft": [
@@ -1268,19 +1286,9 @@
       106.57
     ],
     "total_area_raw": 4023.98,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 65 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 65,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 4.76
+  "runtime_s": 4.74
 }

@@ -110,7 +110,7 @@
       "category": "walls",
       "counts": {
         "true_positives": 0,
-        "false_positives": 32,
+        "false_positives": 31,
         "false_negatives": 1
       },
       "precision": 0.0,
@@ -373,7 +373,7 @@
           "is_exterior": false
         },
         {
-          "id": "w30",
+          "id": "w31",
           "px_coords": [
             292.0,
             1581.0,
@@ -385,7 +385,7 @@
           "is_exterior": false
         },
         {
-          "id": "w31",
+          "id": "w33",
           "px_coords": [
             260.0,
             1759.0,
@@ -397,7 +397,7 @@
           "is_exterior": false
         },
         {
-          "id": "w32",
+          "id": "w34",
           "px_coords": [
             292.0,
             1851.0,
@@ -409,7 +409,7 @@
           "is_exterior": false
         },
         {
-          "id": "w38",
+          "id": "w40",
           "px_coords": [
             371.0,
             2784.0,
@@ -421,7 +421,7 @@
           "is_exterior": false
         },
         {
-          "id": "w39",
+          "id": "w41",
           "px_coords": [
             888.0,
             2784.0,
@@ -433,19 +433,7 @@
           "is_exterior": false
         },
         {
-          "id": "w40",
-          "px_coords": [
-            79.0,
-            2828.0,
-            818.0,
-            2828.0
-          ],
-          "facing": "South",
-          "length_raw": 21.74,
-          "is_exterior": false
-        },
-        {
-          "id": "w41",
+          "id": "w43",
           "px_coords": [
             888.0,
             2828.0,
@@ -457,7 +445,7 @@
           "is_exterior": false
         },
         {
-          "id": "w42",
+          "id": "w44",
           "px_coords": [
             79.0,
             2868.0,
@@ -469,7 +457,7 @@
           "is_exterior": false
         },
         {
-          "id": "w43",
+          "id": "w45",
           "px_coords": [
             888.0,
             2868.0,
@@ -481,7 +469,7 @@
           "is_exterior": false
         },
         {
-          "id": "w45",
+          "id": "w47",
           "px_coords": [
             371.0,
             516.0,
@@ -493,7 +481,7 @@
           "is_exterior": false
         },
         {
-          "id": "w48",
+          "id": "w50",
           "px_coords": [
             371.0,
             2180.0,
@@ -505,7 +493,7 @@
           "is_exterior": false
         },
         {
-          "id": "w56",
+          "id": "w59",
           "px_coords": [
             1409.0,
             1759.0,
@@ -519,16 +507,16 @@
       ],
       "coverage": {
         "tolerance_px": 68.0,
-        "precision": 0.1202,
+        "precision": 0.1227,
         "recall": 0.7812,
-        "f1": 0.2083
+        "f1": 0.212
       }
     },
     "doors": {
       "category": "doors",
       "counts": {
         "true_positives": 0,
-        "false_positives": 1,
+        "false_positives": 2,
         "false_negatives": 2
       },
       "precision": 0.0,
@@ -569,7 +557,21 @@
       "false_positives": [
         {
           "id": "d1",
-          "host_wall_id": "w39",
+          "host_wall_id": "w22",
+          "bbox_px": [
+            293.0,
+            618.0,
+            371.0,
+            670.0
+          ],
+          "center_px": [
+            332.0,
+            644.0
+          ]
+        },
+        {
+          "id": "d2",
+          "host_wall_id": "w41",
           "bbox_px": [
             818.0,
             2758.0,
@@ -787,12 +789,12 @@
   "closure": {
     "tolerance_px": 68.0,
     "wall_network": {
-      "wall_count": 32,
-      "endpoint_count": 64,
-      "closed_endpoints": 41,
-      "dangling_endpoints": 23,
-      "closure_rate": 0.6406,
-      "dangling_endpoint_rate": 0.3594,
+      "wall_count": 31,
+      "endpoint_count": 62,
+      "closed_endpoints": 38,
+      "dangling_endpoints": 24,
+      "closure_rate": 0.6129,
+      "dangling_endpoint_rate": 0.3871,
       "dangling": [
         {
           "wall_id": "w1.s1",
@@ -900,56 +902,63 @@
           ]
         },
         {
-          "wall_id": "w30",
+          "wall_id": "w31",
           "endpoint_px": [
             292.0,
-            1581.0
-          ]
-        },
-        {
-          "wall_id": "w30",
-          "endpoint_px": [
-            813.0,
             1581.0
           ]
         },
         {
           "wall_id": "w31",
           "endpoint_px": [
+            813.0,
+            1581.0
+          ]
+        },
+        {
+          "wall_id": "w33",
+          "endpoint_px": [
             260.0,
             1759.0
           ]
         },
         {
-          "wall_id": "w32",
+          "wall_id": "w34",
           "endpoint_px": [
             292.0,
             1851.0
           ]
         },
         {
-          "wall_id": "w32",
+          "wall_id": "w34",
           "endpoint_px": [
             890.0,
             1851.0
           ]
         },
         {
-          "wall_id": "w45",
+          "wall_id": "w44",
+          "endpoint_px": [
+            79.0,
+            2868.0
+          ]
+        },
+        {
+          "wall_id": "w47",
           "endpoint_px": [
             371.0,
             516.0
           ]
         },
         {
-          "wall_id": "w45",
+          "wall_id": "w47",
           "endpoint_px": [
             371.0,
             1147.0
           ]
         },
         {
-          "wall_id": "w48",
+          "wall_id": "w50",
           "endpoint_px": [
             371.0,
             2180.0

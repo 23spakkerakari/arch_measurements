@@ -2357,6 +2357,7 @@ def analyze_page(
     doorway_close_ft: float = 2.5,
     room_debug_dir: Optional[str] = None,
     crop_mode: bool = False,
+    px_per_unit_override: Optional[float] = None,
 ) -> dict:
     full_w = image.shape[1]
     full_h = image.shape[0]
@@ -2366,13 +2367,14 @@ def analyze_page(
 
     # Parse scale first so px_per_unit is available for scale-adaptive parameters.
     cal = parse_scale(scale_str, dpi, output_unit="ft")
-    px_per_unit = cal["px_per_unit"]
+    px_per_unit = float(px_per_unit_override) if px_per_unit_override else cal["px_per_unit"]
     unit_label = cal["unit_label"]
     is_metric = unit_label == "m"
     area_unit = f"{unit_label}²"
 
     calibration_issues = []
-    calibration_issues.extend(validate_dpi(dpi))
+    if not crop_mode:
+        calibration_issues.extend(validate_dpi(dpi))
     calibration_issues.extend(validate_px_per_unit(px_per_unit, unit_label))
     for issue in calibration_issues:
         print(f"  {issue_to_log_line(issue)}", file=sys.stderr)
@@ -2391,6 +2393,25 @@ def analyze_page(
     t0 = time.time()
     component_mask = find_footprint(binary, use_exclusion=not user_roi)
     print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    if crop_mode and component_mask is not None:
+        img_area = image.shape[0] * image.shape[1]
+        fp_frac = cv2.countNonZero(component_mask) / max(img_area, 1)
+        if fp_frac < 0.25:
+            # Tight LabelMe crops often touch all edges; morphology can pick a
+            # small interior island. Fall back to the wall-ink envelope.
+            k = max(15, int(2.5 * px_per_unit))
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
+            dil = cv2.dilate(wall_pair_mask, kernel, iterations=2)
+            alt = flood_fill_interior(dil)
+            alt_frac = cv2.countNonZero(alt) / max(img_area, 1)
+            if 0.25 <= alt_frac <= 0.98:
+                print(
+                    f"  [pipeline] crop footprint fallback: {fp_frac:.2f} → {alt_frac:.2f} "
+                    f"of image (wall-ink envelope)",
+                    file=sys.stderr,
+                )
+                component_mask = alt
 
     if component_mask is None:
         return {"error": "No building footprint found"}
@@ -2484,7 +2505,7 @@ def analyze_page(
     near_tol = max(15, int(0.5 * px_per_unit))
     pair_gap_range = wall_pair_gap_range(px_per_unit)
     if crop_mode:
-        hough_min_px = max(36, int(3 * px_per_unit))
+        hough_min_px = max(36, int(2.5 * px_per_unit))
     else:
         hough_min_px = max(60, int(6 * px_per_unit))
     hough_dedup_tol = dedup_axis_tol_px(px_per_unit)
@@ -2650,6 +2671,7 @@ def analyze_page(
         walls, wall_pair_mask, ink_mask_from_image(image),
         px_per_unit, unit_label,
         axis_tol_px=dedup_axis_tol_px(px_per_unit),
+        crop_mode=crop_mode,
     )
     print(f"  [pipeline] door detect: {time.time()-t0:.1f}s ({len(doors)} doors)",
           file=sys.stderr)
@@ -2704,6 +2726,8 @@ def analyze_page(
         total_area_raw=total_area_real,
         unit_label=unit_label,
     )
+    if crop_mode:
+        calibration["crop_mode"] = True
 
     # Cache wall_pair_mask so detect_wall_at_point can reload it instantly
     # without re-running the expensive _extract_wall_lines pass.

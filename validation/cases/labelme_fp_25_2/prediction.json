@@ -544,8 +544,8 @@
       "is_exterior": false
     },
     {
-      "id": "w30",
-      "name": "North Wall 30",
+      "id": "w31",
+      "name": "North Wall 31",
       "facing": "North",
       "length": "15.32 ft",
       "length_raw": 15.32,
@@ -559,8 +559,8 @@
       "is_exterior": false
     },
     {
-      "id": "w31",
-      "name": "South Wall 31",
+      "id": "w33",
+      "name": "South Wall 33",
       "facing": "South",
       "length": "33.79 ft",
       "length_raw": 33.79,
@@ -574,8 +574,8 @@
       "is_exterior": false
     },
     {
-      "id": "w32",
-      "name": "South Wall 32",
+      "id": "w34",
+      "name": "South Wall 34",
       "facing": "South",
       "length": "17.59 ft",
       "length_raw": 17.59,
@@ -589,8 +589,8 @@
       "is_exterior": false
     },
     {
-      "id": "w38",
-      "name": "North Wall 38",
+      "id": "w40",
+      "name": "North Wall 40",
       "facing": "North",
       "length": "13.15 ft",
       "length_raw": 13.15,
@@ -604,8 +604,8 @@
       "is_exterior": false
     },
     {
-      "id": "w39",
-      "name": "South Wall 39",
+      "id": "w41",
+      "name": "South Wall 41",
       "facing": "South",
       "length": "15.32 ft",
       "length_raw": 15.32,
@@ -619,23 +619,8 @@
       "is_exterior": false
     },
     {
-      "id": "w40",
-      "name": "South Wall 40",
-      "facing": "South",
-      "length": "21.74 ft",
-      "length_raw": 21.74,
-      "angle_deg": 90.0,
-      "px_coords": [
-        79,
-        2828,
-        818,
-        2828
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w41",
-      "name": "South Wall 41",
+      "id": "w43",
+      "name": "South Wall 43",
       "facing": "South",
       "length": "15.32 ft",
       "length_raw": 15.32,
@@ -649,8 +634,8 @@
       "is_exterior": false
     },
     {
-      "id": "w42",
-      "name": "South Wall 42",
+      "id": "w44",
+      "name": "South Wall 44",
       "facing": "South",
       "length": "21.76 ft",
       "length_raw": 21.76,
@@ -664,8 +649,8 @@
       "is_exterior": false
     },
     {
-      "id": "w43",
-      "name": "South Wall 43",
+      "id": "w45",
+      "name": "South Wall 45",
       "facing": "South",
       "length": "15.32 ft",
       "length_raw": 15.32,
@@ -679,8 +664,8 @@
       "is_exterior": false
     },
     {
-      "id": "w45",
-      "name": "East Wall 45",
+      "id": "w47",
+      "name": "East Wall 47",
       "facing": "East",
       "length": "18.56 ft",
       "length_raw": 18.56,
@@ -694,8 +679,8 @@
       "is_exterior": false
     },
     {
-      "id": "w48",
-      "name": "East Wall 48",
+      "id": "w50",
+      "name": "East Wall 50",
       "facing": "East",
       "length": "19.06 ft",
       "length_raw": 19.06,
@@ -709,8 +694,8 @@
       "is_exterior": false
     },
     {
-      "id": "w56",
-      "name": "East Wall 56",
+      "id": "w59",
+      "name": "East Wall 59",
       "facing": "East",
       "length": "30.15 ft",
       "length_raw": 30.15,
@@ -727,7 +712,25 @@
   "doors": [
     {
       "id": "d1",
-      "host_wall_id": "w39",
+      "host_wall_id": "w22",
+      "bbox_px": [
+        293,
+        618,
+        371,
+        670
+      ],
+      "center_px": [
+        332.0,
+        644.0
+      ],
+      "width": "2.29 ft",
+      "width_raw": 2.29,
+      "is_exterior": false,
+      "evidence": "gap"
+    },
+    {
+      "id": "d2",
+      "host_wall_id": "w41",
       "bbox_px": [
         818,
         2758,
@@ -749,7 +752,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 34,
     "px_per_ft": 34.0,
     "footprint_span_ft": [
@@ -757,19 +760,9 @@
       75.03
     ],
     "total_area_raw": 1472.22,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 34 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 34,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 0.82
+  "runtime_s": 0.86
 }

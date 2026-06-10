@@ -378,11 +378,11 @@
       "id": "w17",
       "name": "North Wall 17",
       "facing": "North",
-      "length": "14.65 ft",
-      "length_raw": 14.65,
+      "length": "13.66 ft",
+      "length_raw": 13.66,
       "angle_deg": 90.0,
       "px_coords": [
-        510,
+        583,
         852,
         1594,
         852
@@ -435,8 +435,8 @@
       "is_exterior": false
     },
     {
-      "id": "w34",
-      "name": "East Wall 34",
+      "id": "w35",
+      "name": "East Wall 35",
       "facing": "East",
       "length": "30.26 ft",
       "length_raw": 30.26,
@@ -465,7 +465,8 @@
     ],
     "total_area_raw": 3978.05,
     "issues": [],
-    "suggested_dpi": null
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 7.15
+  "runtime_s": 6.97
 }

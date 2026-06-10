@@ -242,7 +242,7 @@
           "is_exterior": true
         },
         {
-          "id": "w6",
+          "id": "w8",
           "px_coords": [
             262.0,
             758.0,
@@ -254,7 +254,7 @@
           "is_exterior": false
         },
         {
-          "id": "w7",
+          "id": "w9",
           "px_coords": [
             262.0,
             1789.0,
@@ -266,7 +266,7 @@
           "is_exterior": false
         },
         {
-          "id": "w8",
+          "id": "w10",
           "px_coords": [
             262.0,
             237.0,
@@ -499,7 +499,7 @@
           ]
         },
         {
-          "wall_id": "w6",
+          "wall_id": "w8",
           "endpoint_px": [
             915.0,
             758.0

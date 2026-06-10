@@ -185,12 +185,12 @@
       "id": "w6",
       "name": "West Wall 6",
       "facing": "West",
-      "length": "4.90 ft",
-      "length_raw": 4.9,
+      "length": "4.93 ft",
+      "length_raw": 4.93,
       "angle_deg": 180.0,
       "px_coords": [
         297,
-        102,
+        101,
         297,
         303
       ],
@@ -241,7 +241,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 41,
     "px_per_ft": 41.0,
     "footprint_span_ft": [
@@ -249,19 +249,9 @@
       18.07
     ],
     "total_area_raw": 175.53,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 41 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 41,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 0.19
+  "runtime_s": 0.2
 }

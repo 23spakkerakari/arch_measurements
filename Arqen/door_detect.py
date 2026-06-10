@@ -28,6 +28,9 @@ import numpy as np
 # Standard door widths are 2–4 ft; allow trim/jamb slack on both sides.
 DOOR_MIN_FT = 1.5
 DOOR_MAX_FT = 5.0
+# Cropped real plans: walls often stop short of the frame after snap/sub-segment.
+DOOR_MIN_FT_CROP = 1.25
+DOOR_MAX_FT_CROP = 5.5
 # Fraction of gap columns allowed to contain wall-pair ink before the gap is
 # considered a dedup/cleanup split rather than a real opening.
 OPEN_GAP_MAX_INK_FRAC = 0.15
@@ -86,6 +89,7 @@ def _gap_is_open(
     horiz: bool,
     rect: tuple[int, int, int, int],
     inset_px: int = 2,
+    max_ink_frac: float = OPEN_GAP_MAX_INK_FRAC,
 ) -> bool:
     """True when the gap band contains essentially no wall-pair ink.
 
@@ -105,7 +109,7 @@ def _gap_is_open(
     n = profile.size
     if n == 0:
         return False
-    return float(profile.sum()) / n <= OPEN_GAP_MAX_INK_FRAC
+    return float(profile.sum()) / n <= max_ink_frac
 
 
 def _gap_has_sill(
@@ -130,6 +134,40 @@ def _gap_has_sill(
     return bool(cover.size) and float(cover.max()) >= SILL_COVER_FRAC
 
 
+def _merged_interval_gaps(
+    cluster: list[tuple[float, float, float, dict]],
+    min_gap_px: float,
+    max_gap_px: float,
+    touch_tol_px: int = 3,
+) -> list[tuple[float, float, float, dict, dict]]:
+    """Gaps between merged collinear spans (handles fragmented sub-segments)."""
+    if len(cluster) < 2:
+        return []
+    intervals = sorted(
+        ((e[1], e[2], e[3]) for e in cluster),
+        key=lambda t: (t[0], t[1]),
+    )
+    merged: list[tuple[float, float, dict]] = []
+    for lo, hi, wall in intervals:
+        if merged and lo <= merged[-1][1] + touch_tol_px:
+            prev_lo, prev_hi, prev_wall = merged[-1]
+            if (hi - lo) >= (prev_hi - prev_lo):
+                host = wall
+            else:
+                host = prev_wall
+            merged[-1] = (prev_lo, max(prev_hi, hi), host)
+        else:
+            merged.append((lo, hi, wall))
+
+    axis = sum(e[0] for e in cluster) / len(cluster)
+    gaps: list[tuple[float, float, float, dict, dict]] = []
+    for (a_lo, a_hi, wall_a), (b_lo, b_hi, wall_b) in zip(merged, merged[1:]):
+        gap_px = b_lo - a_hi
+        if min_gap_px <= gap_px <= max_gap_px:
+            gaps.append((axis, a_hi, b_lo, wall_a, wall_b))
+    return gaps
+
+
 def detect_doors(
     walls: list[dict],
     wall_pair_mask: np.ndarray,
@@ -137,6 +175,7 @@ def detect_doors(
     px_per_unit: float,
     unit_label: str = "ft",
     axis_tol_px: Optional[int] = None,
+    crop_mode: bool = False,
 ) -> list[dict]:
     """Detect doorway gaps between collinear axis-aligned walls.
 
@@ -152,10 +191,16 @@ def detect_doors(
     """
     if axis_tol_px is None:
         axis_tol_px = max(12, int(0.6 * px_per_unit))
+    # Wider axis clustering for doors — fragmented sub-segments can sit on
+    # slightly different centerlines after room split / snap.
+    door_axis_tol = max(axis_tol_px, int(1.0 * px_per_unit))
 
     to_ft = 1.0 if unit_label == "ft" else 3.2808
-    min_gap_px = DOOR_MIN_FT / to_ft * px_per_unit
-    max_gap_px = DOOR_MAX_FT / to_ft * px_per_unit
+    min_ft = DOOR_MIN_FT_CROP if crop_mode else DOOR_MIN_FT
+    max_ft = DOOR_MAX_FT_CROP if crop_mode else DOOR_MAX_FT
+    min_gap_px = min_ft / to_ft * px_per_unit
+    max_gap_px = max_ft / to_ft * px_per_unit
+    open_gap_max = 0.25 if crop_mode else OPEN_GAP_MAX_INK_FRAC
     # Wall-pair strokes sit up to ~0.75 units off the centerline (see
     # wall_pair_gap_range); the band must cover both faces.
     band_half = max(4, int(math.ceil(0.75 * px_per_unit)))
@@ -185,7 +230,7 @@ def detect_doors(
         entries.sort(key=lambda e: e[0])
         clusters: list[list[tuple[float, float, float, dict]]] = []
         for e in entries:
-            if clusters and abs(e[0] - clusters[-1][0][0]) <= axis_tol_px:
+            if clusters and abs(e[0] - clusters[-1][0][0]) <= door_axis_tol:
                 clusters[-1].append(e)
             else:
                 clusters.append([e])
@@ -194,20 +239,22 @@ def detect_doors(
             if len(cluster) < 2:
                 continue
             cluster.sort(key=lambda e: e[1])
-            for a, b in zip(cluster, cluster[1:]):
-                gap_px = b[1] - a[2]
-                if not (min_gap_px <= gap_px <= max_gap_px):
-                    continue
-                axis = (a[0] + b[0]) / 2.0
-                rect = _gap_rect(horiz, axis, a[2], b[1], band_half)
-                if not _gap_is_open(wall_pair_mask, horiz, rect):
+            for axis, span_lo, span_hi, wall_a, wall_b in _merged_interval_gaps(
+                cluster, min_gap_px, max_gap_px,
+            ):
+                rect = _gap_rect(horiz, axis, span_lo, span_hi, band_half)
+                if not _gap_is_open(
+                    wall_pair_mask, horiz, rect,
+                    max_ink_frac=open_gap_max,
+                ):
                     continue
                 if _gap_has_sill(ink_mask, horiz, rect):
                     continue
 
-                wall_a, wall_b = a[3], b[3]
-                len_a = abs(a[2] - a[1])
-                len_b = abs(b[2] - b[1])
+                gap_px = span_hi - span_lo
+                ca, cb = wall_a.get("px_coords", []), wall_b.get("px_coords", [])
+                len_a = math.hypot(ca[2] - ca[0], ca[3] - ca[1]) if len(ca) >= 4 else 0
+                len_b = math.hypot(cb[2] - cb[0], cb[3] - cb[1]) if len(cb) >= 4 else 0
                 host = wall_a if len_a >= len_b else wall_b
                 width_units = gap_px / px_per_unit
                 cx = (rect[0] + rect[2]) / 2.0

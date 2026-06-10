@@ -303,8 +303,8 @@
       "is_exterior": true
     },
     {
-      "id": "w6",
-      "name": "North Wall 6",
+      "id": "w8",
+      "name": "North Wall 8",
       "facing": "North",
       "length": "13.33 ft",
       "length_raw": 13.33,
@@ -318,8 +318,8 @@
       "is_exterior": false
     },
     {
-      "id": "w7",
-      "name": "South Wall 7",
+      "id": "w9",
+      "name": "South Wall 9",
       "facing": "South",
       "length": "10.51 ft",
       "length_raw": 10.51,
@@ -333,8 +333,8 @@
       "is_exterior": false
     },
     {
-      "id": "w8",
-      "name": "West Wall 8",
+      "id": "w10",
+      "name": "West Wall 10",
       "facing": "West",
       "length": "38.33 ft",
       "length_raw": 38.33,
@@ -354,7 +354,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 49,
     "px_per_ft": 49.0,
     "footprint_span_ft": [
@@ -362,19 +362,9 @@
       39.57
     ],
     "total_area_raw": 505.77,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 49 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 49,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 0.28
+  "runtime_s": 0.3
 }

@@ -474,8 +474,8 @@
       "is_exterior": false
     },
     {
-      "id": "w14",
-      "name": "North Wall 14",
+      "id": "w15",
+      "name": "North Wall 15",
       "facing": "North",
       "length": "7.58 ft",
       "length_raw": 7.58,
@@ -489,8 +489,8 @@
       "is_exterior": false
     },
     {
-      "id": "w16",
-      "name": "North Wall 16",
+      "id": "w18",
+      "name": "North Wall 18",
       "facing": "North",
       "length": "26.97 ft",
       "length_raw": 26.97,
@@ -504,8 +504,8 @@
       "is_exterior": false
     },
     {
-      "id": "w19",
-      "name": "West Wall 19",
+      "id": "w22",
+      "name": "West Wall 22",
       "facing": "West",
       "length": "22.12 ft",
       "length_raw": 22.12,
@@ -519,8 +519,8 @@
       "is_exterior": false
     },
     {
-      "id": "w20",
-      "name": "East Wall 20",
+      "id": "w23",
+      "name": "East Wall 23",
       "facing": "East",
       "length": "11.72 ft",
       "length_raw": 11.72,
@@ -540,7 +540,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 67,
     "px_per_ft": 67.0,
     "footprint_span_ft": [
@@ -548,19 +548,9 @@
       51.67
     ],
     "total_area_raw": 1546.29,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 67 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 67,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 1.63
+  "runtime_s": 1.57
 }

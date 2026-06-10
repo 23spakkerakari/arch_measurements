@@ -303,7 +303,7 @@
     0
   ],
   "calibration": {
-    "status": "warning",
+    "status": "ok",
     "dpi": 33,
     "px_per_ft": 33.0,
     "footprint_span_ft": [
@@ -311,19 +311,9 @@
       15.85
     ],
     "total_area_raw": 429.71,
-    "issues": [
-      {
-        "code": "dpi_out_of_range",
-        "severity": "warning",
-        "message": "DPI 33 is outside typical range (72\u2013600); verify rasterization DPI",
-        "details": {
-          "dpi": 33,
-          "min": 72,
-          "max": 600
-        }
-      }
-    ],
-    "suggested_dpi": null
+    "issues": [],
+    "suggested_dpi": null,
+    "crop_mode": true
   },
-  "runtime_s": 0.15
+  "runtime_s": 0.16
 }

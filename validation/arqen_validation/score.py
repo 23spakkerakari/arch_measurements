@@ -77,7 +77,11 @@ def score_prediction(
     # the swing arc while predictions are gap-tight, so IoU alone under-scores.
     px_per_ft = prediction.get("px_per_ft")
     try:
-        opening_tol_px = max(40.0, 3.0 * float(px_per_ft)) if px_per_ft else 40.0
+        # 4 ft on crops — LabelMe door boxes include ~3 ft swing arcs and
+        # gap-tight predictions land off-center when flanking walls are fragmented.
+        cal = prediction.get("calibration") or {}
+        tol_ft = 4.0 if cal.get("crop_mode") else 3.0
+        opening_tol_px = max(40.0, tol_ft * float(px_per_ft)) if px_per_ft else 40.0
     except (TypeError, ValueError):
         opening_tol_px = 40.0
 

@@ -18,7 +18,7 @@ Triage: `python validation/triage_labelme_cases.py`
 
 **Median wall span-coverage recall: 0.55** (target met).
 
-Doors overall: 2/308 matched (recall 0.01) — still wall-recall-bound; precision dropped on recalibrated cases where gap width thresholds shifted. Next: per-case scale verification on worst door cases.
+Doors overall: 6/308 matched (recall 0.02) — improved via merged-span gap detect + crop gap band; fp_60 accounts for most TPs. Still wall-recall-bound on most cases.
 
 ## Bucket summary (from triage)
 

@@ -337,13 +337,13 @@
         {
           "id": "w17",
           "px_coords": [
-            510.0,
+            583.0,
             852.0,
             1594.0,
             852.0
           ],
           "facing": "North",
-          "length_raw": 14.65,
+          "length_raw": 13.66,
           "is_exterior": false
         },
         {
@@ -371,7 +371,7 @@
           "is_exterior": false
         },
         {
-          "id": "w34",
+          "id": "w35",
           "px_coords": [
             8748.0,
             784.0,
@@ -385,9 +385,9 @@
       ],
       "coverage": {
         "tolerance_px": 148.0,
-        "precision": 0.1985,
+        "precision": 0.1988,
         "recall": 0.2601,
-        "f1": 0.2251
+        "f1": 0.2254
       }
     },
     "doors": {

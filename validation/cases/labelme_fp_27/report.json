@@ -455,7 +455,7 @@
           "room_id": "R2"
         },
         {
-          "id": "w14",
+          "id": "w16",
           "px_coords": [
             2938.0,
             2207.0,
@@ -467,7 +467,7 @@
           "is_exterior": false
         },
         {
-          "id": "w17",
+          "id": "w19",
           "px_coords": [
             214.0,
             1482.0,
@@ -479,7 +479,7 @@
           "is_exterior": false
         },
         {
-          "id": "w31",
+          "id": "w33",
           "px_coords": [
             3204.0,
             1482.0,
@@ -1735,14 +1735,14 @@
           ]
         },
         {
-          "wall_id": "w14",
+          "wall_id": "w16",
           "endpoint_px": [
             2938.0,
             2207.0
           ]
         },
         {
-          "wall_id": "w14",
+          "wall_id": "w16",
           "endpoint_px": [
             4121.0,
             2207.0

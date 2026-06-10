@@ -1794,6 +1794,99 @@ def cleanup_wall_list(
     return walls, stats
 
 
+def snap_wall_endpoints(
+    walls: list[dict],
+    px_per_unit: float,
+    unit_label: str,
+) -> tuple[list[dict], int]:
+    """Close dangling wall endpoints onto nearby perpendicular walls.
+
+    Wall segments are extracted independently (polygon splits, Hough runs),
+    so endpoints routinely stop a few pixels short of the wall they visually
+    meet — the dominant cause of the low wall-network closure rate. For each
+    endpoint of an axis-aligned wall, find the nearest perpendicular wall
+    whose axis lies within snap_tol and whose span covers the endpoint (with
+    snap_tol slack, which also covers L-corners), then move the endpoint onto
+    that axis — extending short stops and trimming overshoots alike.
+
+    Only perpendicular targets are considered: two collinear endpoints facing
+    each other across a gap are a doorway and must never be bridged. Movement
+    is bounded by snap_tol (~2 ft — sub-segment trims leave corner gaps up to
+    ~1.6 ft) and skipped when it would degenerate the segment. Diagonal walls
+    are left untouched.
+
+    Returns the updated wall list and the number of endpoints moved.
+    """
+    snap_tol = max(12, int(round(2.0 * px_per_unit)))
+    min_len = max(4, int(round(0.25 * px_per_unit)))
+
+    def _orient(coords: list) -> Optional[bool]:
+        x1, y1, x2, y2 = coords
+        dx, dy = abs(x2 - x1), abs(y2 - y1)
+        if dy <= max(2, 0.05 * dx):
+            return True          # horizontal
+        if dx <= max(2, 0.05 * dy):
+            return False         # vertical
+        return None              # diagonal: leave untouched
+
+    # Snapshot targets so results don't depend on processing order. Moving an
+    # endpoint slides it along its own wall's axis, so target axes are stable
+    # by construction; spans are taken from the snapshot.
+    targets = []  # (is_horiz, axis, span_lo, span_hi)
+    for w in walls:
+        x1, y1, x2, y2 = w["px_coords"]
+        horiz = _orient(w["px_coords"])
+        if horiz is None:
+            targets.append(None)
+        elif horiz:
+            targets.append((True, (y1 + y2) // 2, min(x1, x2), max(x1, x2)))
+        else:
+            targets.append((False, (x1 + x2) // 2, min(y1, y2), max(y1, y2)))
+
+    moved = 0
+    for wi, w in enumerate(walls):
+        horiz = _orient(w["px_coords"])
+        if horiz is None:
+            continue
+        coords = list(w["px_coords"])
+        for end in (0, 1):
+            ex, ey = coords[2 * end], coords[2 * end + 1]
+            ox, oy = coords[2 * (1 - end)], coords[2 * (1 - end) + 1]
+            along, other_along = (ex, ox) if horiz else (ey, oy)
+            perp = ey if horiz else ex
+
+            best = None
+            for ti, tgt in enumerate(targets):
+                if ti == wi or tgt is None or tgt[0] == horiz:
+                    continue
+                _, axis, lo, hi = tgt
+                d = abs(axis - along)
+                if d > snap_tol or d == 0:
+                    continue
+                if not (lo - snap_tol <= perp <= hi + snap_tol):
+                    continue
+                if best is None or d < best[1]:
+                    best = (axis, d)
+            if best is None:
+                continue
+            new_along = best[0]
+            # Keep direction and a non-degenerate length.
+            if (other_along - new_along) * (other_along - along) <= 0:
+                continue
+            if abs(other_along - new_along) < min_len:
+                continue
+            coords[2 * end] = new_along if horiz else ex
+            coords[2 * end + 1] = ey if horiz else new_along
+            moved += 1
+        if coords != list(w["px_coords"]):
+            x1, y1, x2, y2 = coords
+            real_len = pixel_length(x1, y1, x2, y2) / px_per_unit
+            w["px_coords"] = [int(x1), int(y1), int(x2), int(y2)]
+            w["length"] = f"{real_len:.2f} {unit_label}"
+            w["length_raw"] = round(real_len, 2)
+    return walls, moved
+
+
 def _has_parallel_partner(
     wall_mask: np.ndarray,
     seg: tuple,
@@ -2280,6 +2373,11 @@ def analyze_page(
         walls = exterior_kept + interior_kept
         if len(walls) < 8:
             walls = sorted(walls_before_len, key=lambda w: -w["length_raw"])[:20]
+
+    walls, snapped_ends = snap_wall_endpoints(walls, px_per_unit, unit_label)
+    if snapped_ends:
+        print(f"  [pipeline] endpoint snap: closed {snapped_ends} endpoint(s)",
+              file=sys.stderr)
 
     if roi_offset != (0, 0):
         ox, oy = roi_offset

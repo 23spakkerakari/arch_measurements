@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Callable
 
+from .closure import point_to_segment_distance
 from .geometry import (
     bbox_iou,
     normalize_text,
@@ -138,6 +140,77 @@ def wall_score(gt: dict, pred: dict) -> float:
     if not gt_coords or not pred_coords:
         return 0.0
     return segment_overlap_iou(gt_coords, pred_coords)
+
+
+def _segments_of(walls: list[dict]) -> list[tuple[float, float, float, float]]:
+    segs = []
+    for w in walls or []:
+        c = w.get("px_coords")
+        if c and len(c) >= 4:
+            segs.append(tuple(float(v) for v in c[:4]))
+    return segs
+
+
+def _covered_fraction(
+    seg: tuple[float, float, float, float],
+    others: list[tuple[float, float, float, float]],
+    tol_px: float,
+    samples: int = 64,
+) -> float:
+    """Fraction of seg's length lying within tol_px of any other segment."""
+    x1, y1, x2, y2 = seg
+    dx, dy = x2 - x1, y2 - y1
+    if not others:
+        return 0.0
+    covered = 0
+    for k in range(samples):
+        t = (k + 0.5) / samples
+        px, py = x1 + t * dx, y1 + t * dy
+        if any(point_to_segment_distance(px, py, o) <= tol_px for o in others):
+            covered += 1
+    return covered / samples
+
+
+def wall_coverage_metrics(
+    gt_walls: list[dict],
+    pred_walls: list[dict],
+    tol_px: float,
+) -> dict:
+    """Length-weighted span coverage between GT and predicted wall sets.
+
+    Complements the strict 1:1 greedy match, which under-counts when the
+    pipeline legitimately emits per-room sub-segments of one GT wall (or one
+    merged run covering several GT walls). Recall = fraction of total GT wall
+    length within tol_px of any predicted wall; precision = fraction of total
+    predicted length within tol_px of any GT wall.
+    """
+    gt_segs = _segments_of(gt_walls)
+    pred_segs = _segments_of(pred_walls)
+
+    def _aggregate(subject: list, others: list) -> float | None:
+        total = covered = 0.0
+        for seg in subject:
+            length = math.hypot(seg[2] - seg[0], seg[3] - seg[1])
+            if length <= 0:
+                continue
+            total += length
+            covered += length * _covered_fraction(seg, others, tol_px)
+        return (covered / total) if total else None
+
+    recall = _aggregate(gt_segs, pred_segs)
+    precision = _aggregate(pred_segs, gt_segs)
+    if precision is None and recall is None:
+        precision = recall = 1.0  # nothing expected, nothing predicted
+    else:
+        precision = 1.0 if precision is None else precision
+        recall = 1.0 if recall is None else recall
+    f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
+    return {
+        "tolerance_px": round(float(tol_px), 2),
+        "precision": round(precision, 4),
+        "recall": round(recall, 4),
+        "f1": round(f1, 4),
+    }
 
 
 def opening_score(gt: dict, pred: dict, center_tol_px: float = 40.0) -> float:

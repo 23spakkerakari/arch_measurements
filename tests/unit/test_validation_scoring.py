@@ -18,7 +18,7 @@ from arqen_validation.geometry import (
     segment_overlap_iou,
     value_within_tolerance,
 )
-from arqen_validation.matchers import greedy_match, wall_score
+from arqen_validation.matchers import greedy_match, wall_coverage_metrics, wall_score
 from arqen_validation.metrics import build_report
 from arqen_validation.normalize import normalize_document
 from arqen_validation.score import score_prediction
@@ -83,6 +83,44 @@ class TestMatchers:
         report = build_report("case", results)
         assert report["case_id"] == "case"
         assert "macro" in report["summary"] and "micro" in report["summary"]
+
+
+class TestWallCoverage:
+    def test_sub_segmentation_scores_full(self):
+        # One GT wall covered by two abutting sub-segments: 1:1 matching
+        # counts a FP; coverage must read ~1.0 both ways.
+        gt = [{"id": "g", "px_coords": [0, 0, 200, 0]}]
+        pred = [{"id": "p1", "px_coords": [0, 1, 90, 1]},
+                {"id": "p2", "px_coords": [90, 1, 200, 1]}]
+        cov = wall_coverage_metrics(gt, pred, tol_px=12)
+        assert cov["recall"] >= 0.95
+        assert cov["precision"] >= 0.95
+        assert cov["f1"] >= 0.95
+
+    def test_missing_wall_lowers_recall(self):
+        gt = [{"id": "g1", "px_coords": [0, 0, 100, 0]},
+              {"id": "g2", "px_coords": [0, 500, 100, 500]}]
+        pred = [{"id": "p1", "px_coords": [0, 0, 100, 0]}]
+        cov = wall_coverage_metrics(gt, pred, tol_px=12)
+        assert cov["recall"] == pytest.approx(0.5, abs=0.05)
+        assert cov["precision"] >= 0.95
+
+    def test_spurious_wall_lowers_precision(self):
+        gt = [{"id": "g1", "px_coords": [0, 0, 100, 0]}]
+        pred = [{"id": "p1", "px_coords": [0, 0, 100, 0]},
+                {"id": "p2", "px_coords": [0, 500, 100, 500]}]
+        cov = wall_coverage_metrics(gt, pred, tol_px=12)
+        assert cov["precision"] == pytest.approx(0.5, abs=0.05)
+        assert cov["recall"] >= 0.95
+
+    def test_empty_both_is_perfect(self):
+        cov = wall_coverage_metrics([], [], tol_px=12)
+        assert cov["precision"] == 1.0 and cov["recall"] == 1.0
+
+    def test_no_predictions_zero_recall(self):
+        gt = [{"id": "g1", "px_coords": [0, 0, 100, 0]}]
+        cov = wall_coverage_metrics(gt, [], tol_px=12)
+        assert cov["recall"] == 0.0
 
 
 class TestNormalize:

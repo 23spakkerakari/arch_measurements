@@ -87,14 +87,14 @@
       "id": "w1.s1",
       "name": "West Wall 1 part 1 \u2192 (no room)",
       "facing": "West",
-      "length": "40.06 ft",
-      "length_raw": 40.06,
+      "length": "39.00 ft",
+      "length_raw": 39.0,
       "angle_deg": 180.0,
       "px_coords": [
         189,
-        221,
+        229,
         189,
-        942
+        931
       ],
       "room_id": null,
       "parent_wall_id": "w1",
@@ -106,13 +106,13 @@
       "id": "w2.s1",
       "name": "South Wall 2 part 1 \u2192 (no room)",
       "facing": "South",
-      "length": "60.06 ft",
-      "length_raw": 60.06,
+      "length": "59.00 ft",
+      "length_raw": 59.0,
       "angle_deg": 90.0,
       "px_coords": [
-        181,
+        189,
         931,
-        1262,
+        1251,
         931
       ],
       "room_id": null,
@@ -125,14 +125,14 @@
       "id": "w3.s1",
       "name": "East Wall 3 part 1 \u2192 R2",
       "facing": "East",
-      "length": "40.06 ft",
-      "length_raw": 40.06,
+      "length": "39.00 ft",
+      "length_raw": 39.0,
       "angle_deg": 0.0,
       "px_coords": [
         1251,
-        942,
+        931,
         1251,
-        221
+        229
       ],
       "room_id": "R2",
       "parent_wall_id": "w3",
@@ -148,9 +148,9 @@
       "length_raw": 26.17,
       "angle_deg": 270.0,
       "px_coords": [
-        1262,
+        1251,
         229,
-        791,
+        780,
         229
       ],
       "room_id": "R2",
@@ -163,13 +163,13 @@
       "id": "w4.s2",
       "name": "North Wall 4 part 2 \u2192 R1",
       "facing": "North",
-      "length": "34.17 ft",
-      "length_raw": 34.17,
+      "length": "32.83 ft",
+      "length_raw": 32.83,
       "angle_deg": 270.0,
       "px_coords": [
-        791,
+        780,
         229,
-        176,
+        189,
         229
       ],
       "room_id": "R1",
@@ -182,12 +182,12 @@
       "id": "w5",
       "name": "East Wall 5",
       "facing": "East",
-      "length": "20.72 ft",
-      "length_raw": 20.72,
+      "length": "20.33 ft",
+      "length_raw": 20.33,
       "angle_deg": 180.0,
       "px_coords": [
         780,
-        222,
+        229,
         780,
         595
       ],
@@ -197,14 +197,14 @@
       "id": "w6",
       "name": "East Wall 6",
       "facing": "East",
-      "length": "15.17 ft",
-      "length_raw": 15.17,
+      "length": "16.17 ft",
+      "length_raw": 16.17,
       "angle_deg": 180.0,
       "px_coords": [
         780,
         640,
         780,
-        913
+        931
       ],
       "is_exterior": false
     }
@@ -225,5 +225,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 1.09
+  "runtime_s": 1.24
 }

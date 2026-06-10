@@ -34,7 +34,7 @@ from arqen_validation.score import score_prediction  # noqa: E402
 
 
 def _score_summary(report: dict) -> dict:
-    return {
+    summary = {
         category: {
             "precision": data["precision"],
             "recall": data["recall"],
@@ -45,6 +45,14 @@ def _score_summary(report: dict) -> dict:
         }
         for category, data in report["categories"].items()
     }
+    coverage = report["categories"].get("walls", {}).get("coverage")
+    if coverage:
+        summary["walls_coverage"] = {
+            "precision": coverage["precision"],
+            "recall": coverage["recall"],
+            "f1": coverage["f1"],
+        }
+    return summary
 
 
 def _closure_summary(report: dict) -> dict | None:

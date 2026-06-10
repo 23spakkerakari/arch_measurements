@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-10T14:49:13Z",
+  "created_utc": "2026-06-10T15:17:42Z",
   "env": {
     "python": "3.14.2",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -21,7 +21,7 @@
         "wall_network_closure_rate": 0.6154,
         "dangling_endpoints": 30,
         "interior_coverage": 0.6045,
-        "runtime_s": 3.05
+        "runtime_s": 3.21
       },
       "scores": null,
       "closure": null
@@ -36,10 +36,10 @@
         "total_area_raw": 2623.2,
         "px_per_ft": 54.0,
         "polygon_vertices": 19,
-        "wall_network_closure_rate": 0.6571,
-        "dangling_endpoints": 24,
+        "wall_network_closure_rate": 0.6429,
+        "dangling_endpoints": 25,
         "interior_coverage": 0.6186,
-        "runtime_s": 4.22
+        "runtime_s": 4.42
       },
       "scores": null,
       "closure": null
@@ -107,6 +107,11 @@
           "true_positives": 1,
           "false_positives": 0,
           "false_negatives": 0
+        },
+        "walls_coverage": {
+          "precision": 0.7263,
+          "recall": 0.6771,
+          "f1": 0.7008
         }
       },
       "closure": {
@@ -127,10 +132,10 @@
         "total_area_raw": 8702.1,
         "px_per_ft": 9.38,
         "polygon_vertices": 80,
-        "wall_network_closure_rate": 0.7579,
-        "dangling_endpoints": 61,
+        "wall_network_closure_rate": 0.7778,
+        "dangling_endpoints": 56,
         "interior_coverage": 0.6535,
-        "runtime_s": 11.04
+        "runtime_s": 12.06
       },
       "scores": null,
       "closure": null
@@ -148,7 +153,7 @@
         "wall_network_closure_rate": 0.9,
         "dangling_endpoints": 2,
         "interior_coverage": 0.7129,
-        "runtime_s": 1.14
+        "runtime_s": 1.22
       },
       "scores": {
         "rooms": {
@@ -198,6 +203,11 @@
           "true_positives": 0,
           "false_positives": 0,
           "false_negatives": 1
+        },
+        "walls_coverage": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         }
       },
       "closure": {
@@ -221,7 +231,7 @@
         "wall_network_closure_rate": 0.8571,
         "dangling_endpoints": 2,
         "interior_coverage": 0.722,
-        "runtime_s": 1.18
+        "runtime_s": 1.24
       },
       "scores": {
         "rooms": {
@@ -233,12 +243,12 @@
           "false_negatives": 0
         },
         "walls": {
-          "precision": 0.5714,
-          "recall": 0.8,
-          "f1": 0.6667,
-          "true_positives": 4,
-          "false_positives": 3,
-          "false_negatives": 1
+          "precision": 0.4286,
+          "recall": 0.6,
+          "f1": 0.5,
+          "true_positives": 3,
+          "false_positives": 4,
+          "false_negatives": 2
         },
         "doors": {
           "precision": 0.0,
@@ -271,6 +281,11 @@
           "true_positives": 0,
           "false_positives": 0,
           "false_negatives": 2
+        },
+        "walls_coverage": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
         }
       },
       "closure": {

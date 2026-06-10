@@ -152,7 +152,13 @@
           "length_raw": 30.0,
           "is_exterior": true
         }
-      ]
+      ],
+      "coverage": {
+        "tolerance_px": 12.0,
+        "precision": 0.7263,
+        "recall": 0.6771,
+        "f1": 0.7008
+      }
     },
     "doors": {
       "category": "doors",

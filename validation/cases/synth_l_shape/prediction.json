@@ -79,14 +79,14 @@
       "id": "w1.s1",
       "name": "West Wall 1 part 1 \u2192 R1",
       "facing": "West",
-      "length": "31.83 ft",
-      "length_raw": 31.83,
+      "length": "30.61 ft",
+      "length_raw": 30.61,
       "angle_deg": 180.0,
       "px_coords": [
         169,
-        221,
+        229,
         169,
-        794
+        780
       ],
       "room_id": "R1",
       "parent_wall_id": "w1",
@@ -98,14 +98,14 @@
       "id": "w1.s2",
       "name": "West Wall 1 part 2 \u2192 R2",
       "facing": "West",
-      "length": "18.33 ft",
-      "length_raw": 18.33,
+      "length": "18.39 ft",
+      "length_raw": 18.39,
       "angle_deg": 180.0,
       "px_coords": [
         169,
-        794,
+        780,
         169,
-        1124
+        1111
       ],
       "room_id": "R2",
       "parent_wall_id": "w1",
@@ -117,13 +117,13 @@
       "id": "w2.s1",
       "name": "South Wall 2 part 1 \u2192 (no room)",
       "facing": "South",
-      "length": "60.06 ft",
-      "length_raw": 60.06,
+      "length": "59.00 ft",
+      "length_raw": 59.0,
       "angle_deg": 90.0,
       "px_coords": [
-        161,
+        169,
         1111,
-        1242,
+        1231,
         1111
       ],
       "room_id": null,
@@ -136,14 +136,14 @@
       "id": "w3.s1",
       "name": "East Wall 3 part 1 \u2192 R2",
       "facing": "East",
-      "length": "19.83 ft",
-      "length_raw": 19.83,
+      "length": "18.39 ft",
+      "length_raw": 18.39,
       "angle_deg": 0.0,
       "px_coords": [
         1231,
-        1124,
+        1111,
         1231,
-        767
+        780
       ],
       "room_id": "R2",
       "parent_wall_id": "w3",
@@ -155,14 +155,14 @@
       "id": "w3.s2",
       "name": "East Wall 3 part 2 \u2192 R1",
       "facing": "East",
-      "length": "10.50 ft",
-      "length_raw": 10.5,
+      "length": "10.61 ft",
+      "length_raw": 10.61,
       "angle_deg": 0.0,
       "px_coords": [
         1231,
-        767,
+        780,
         1231,
-        578
+        589
       ],
       "room_id": "R1",
       "parent_wall_id": "w3",
@@ -174,13 +174,13 @@
       "id": "w4.s1",
       "name": "North Wall 4 part 1 \u2192 R1",
       "facing": "North",
-      "length": "24.06 ft",
-      "length_raw": 24.06,
+      "length": "25.00 ft",
+      "length_raw": 25.0,
       "angle_deg": 270.0,
       "px_coords": [
-        1242,
+        1231,
         589,
-        809,
+        781,
         589
       ],
       "room_id": "R1",
@@ -193,14 +193,14 @@
       "id": "w5.s1",
       "name": "East Wall 5 part 1 \u2192 R1",
       "facing": "East",
-      "length": "19.39 ft",
-      "length_raw": 19.39,
+      "length": "20.00 ft",
+      "length_raw": 20.0,
       "angle_deg": 0.0,
       "px_coords": [
         781,
-        567,
+        589,
         781,
-        218
+        229
       ],
       "room_id": "R1",
       "parent_wall_id": "w5",
@@ -212,13 +212,13 @@
       "id": "w6.s1",
       "name": "North Wall 6 part 1 \u2192 R1",
       "facing": "North",
-      "length": "35.22 ft",
-      "length_raw": 35.22,
+      "length": "34.00 ft",
+      "length_raw": 34.0,
       "angle_deg": 270.0,
       "px_coords": [
-        792,
+        781,
         229,
-        158,
+        169,
         229
       ],
       "room_id": "R1",
@@ -231,11 +231,11 @@
       "id": "w7",
       "name": "South Wall 7",
       "facing": "South",
-      "length": "29.61 ft",
-      "length_raw": 29.61,
+      "length": "29.22 ft",
+      "length_raw": 29.22,
       "angle_deg": 90.0,
       "px_coords": [
-        162,
+        169,
         780,
         695,
         780
@@ -246,13 +246,13 @@
       "id": "w8",
       "name": "South Wall 8",
       "facing": "South",
-      "length": "27.67 ft",
-      "length_raw": 27.67,
+      "length": "27.28 ft",
+      "length_raw": 27.28,
       "angle_deg": 90.0,
       "px_coords": [
         740,
         780,
-        1238,
+        1231,
         780
       ],
       "is_exterior": false
@@ -274,5 +274,5 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 1.03
+  "runtime_s": 1.22
 }

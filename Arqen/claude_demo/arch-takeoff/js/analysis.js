@@ -763,6 +763,12 @@ function recalculateWallLength(wallId) {
 
 // ── Room management ──────────────────────────────────────
 
+function _roomsSortedByName(rooms = appState.rooms) {
+  return [...rooms].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true })
+  );
+}
+
 function findRoomForWall(wallId) {
   return appState.rooms.find(r => r.wallIds.includes(wallId)) || null;
 }
@@ -823,7 +829,7 @@ function _showLassoBar() {
     <span class="lab-count">${count} wall${count !== 1 ? 's' : ''} selected</span>
     <span class="lab-label">Assign to:</span>
     <div class="lab-rooms">`;
-  appState.rooms.forEach(room => {
+  _roomsSortedByName().forEach(room => {
     html += `<button class="lab-room-chip"
       style="color:${room.color};border-color:${room.color};background:color-mix(in srgb,${room.color} 12%,transparent)"
       onclick="_assignSelectedWallsToRoom('${room.id}')">${room.name}</button>`;
@@ -858,7 +864,7 @@ function _buildRoomPickerListHtml(wallId, onAssignCallback) {
       <span class="rpp-dot"></span><span>Add a room…</span>
     </div>`;
   } else {
-    appState.rooms.forEach(room => {
+    _roomsSortedByName().forEach(room => {
       const isCurrent = currentRoom && currentRoom.id === room.id;
       listHtml += `<div class="rpp-option${isCurrent ? ' rpp-selected' : ''}"
         style="color:${room.color}"
@@ -1113,7 +1119,7 @@ function renderRoomsPanel() {
   const panel = document.getElementById('rooms-panel');
   if (!panel) return;
 
-  const rooms = appState.rooms;
+  const rooms = _roomsSortedByName();
   panel.classList.toggle('hidden', rooms.length === 0);
   if (rooms.length === 0) return;
 
@@ -1275,7 +1281,7 @@ function _renderWallList(allWalls) {
 
   const unassigned = walls.filter(w => !assignedIds.has(w.id));
   if (unassigned.length > 0) groups.push({ type: 'unassigned', walls: unassigned });
-  appState.rooms.forEach(room => {
+  _roomsSortedByName().forEach(room => {
     const roomWalls = room.wallIds.map(id => walls.find(w => w.id === id)).filter(Boolean);
     if (roomWalls.length > 0) groups.push({ type: 'room', room, walls: roomWalls });
   });

@@ -6,13 +6,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .closure import compute_closure
+from .closure import compute_closure, derive_tolerance_px
 from .matchers import (
     dimension_score,
     greedy_match,
     label_score,
     opening_score,
     room_score,
+    wall_coverage_metrics,
     wall_score,
 )
 from .metrics import build_report
@@ -107,6 +108,14 @@ def score_prediction(
     report = build_report(case, results)
     report["closure"] = compute_closure(
         gt, pred, prediction_raw=prediction, tol_px=closure_tolerance_px,
+    )
+    # Length-weighted coverage complements the strict 1:1 wall match, which
+    # under-counts legitimate per-room sub-segmentation (see M2 in
+    # docs/improvement_proposals.md).
+    report["categories"]["walls"]["coverage"] = wall_coverage_metrics(
+        gt.get("walls", []),
+        pred.get("walls", []),
+        tol_px=closure_tolerance_px or derive_tolerance_px(prediction),
     )
     return report
 

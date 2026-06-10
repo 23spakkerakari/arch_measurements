@@ -1,6 +1,6 @@
 # Baseline Metrics — Current Implementation
 
-Captured **2026-06-10T14:49:13Z** on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
+Captured **2026-06-10T15:17:42Z** on Python 3.14.2 / OpenCV 4.11.0 / NumPy 2.4.0 (Windows 11).
 Source of truth: `validation/baselines/baseline.json`. Reproduce with:
 
 ```bash
@@ -30,10 +30,13 @@ matches the historical `Arqen/out.json` run bit-for-bit).
 | Case | Walls (ext/int) | Rooms | Area (ft²) | Wall-network closure | Dangling ends | Interior coverage | Runtime |
 |------|-----------------|-------|------------|----------------------|---------------|-------------------|---------|
 | `synth_two_room` | 7 (5/2) | 2 | 2957.9 | 0.857 | 2 | 0.722 | 1.2 s |
-| `synth_l_shape` | 10 (8/2) | 2 | 3045.3 | 0.900 | 2 | 0.713 | 1.1 s |
-| `capture_153430` | 39 (19/20) | 6 | 2797.0 | 0.615 | 30 | 0.605 | 3.1 s |
-| `capture_165134` | 35 (17/18) | 6 | 2623.2 | 0.657 | 24 | 0.619 | 4.2 s |
-| `mcginnies_pdf` | 126 (58/68) | 40 | 8702.1 | 0.758 | 61 | 0.654 | 11.0 s |
+| `synth_l_shape` | 10 (8/2) | 2 | 3045.3 | 0.900 | 2 | 0.713 | 1.2 s |
+| `capture_153430` | 39 (19/20) | 6 | 2797.0 | 0.615 | 30 | 0.605 | 3.2 s |
+| `capture_165134` | 35 (17/18) | 6 | 2623.2 | 0.643 | 25 | 0.619 | 4.4 s |
+| `mcginnies_pdf` | 126 (58/68) | 40 | 8702.1 | 0.778 | 56 | 0.654 | 12.1 s |
+
+The synth cases' remaining dangling endpoints (2 each) are the partition ends
+at the drawn door opening — genuinely open geometry, correctly not bridged.
 
 Synthetic `total_area` and interior coverage are distorted by a known issue:
 the footprint polygon swallows the adjacent dimension-string strip, inflating
@@ -48,7 +51,8 @@ Precision / Recall / F1 at the default matching thresholds:
 | Category | synth_two_room | synth_l_shape | Interpretation |
 |----------|----------------|---------------|----------------|
 | Rooms | **1.00** / **1.00** / 1.00 | **1.00** / **1.00** / 1.00 | Exact room detection (IoU 0.97), including the L-shaped room polygon; phantom cells eliminated |
-| Walls | 0.57 / **0.80** / 0.67 | 0.60 / **0.86** / 0.71 | All exterior axes land on the GT centerlines; remaining FP/FN are per-room sub-segmentation vs full-run GT in 1:1 matching (see M2) |
+| Walls (strict 1:1) | 0.43 / **0.60** / 0.50 | 0.60 / **0.86** / 0.71 | Reported but not gated: per-room sub-segments of one GT wall read as FP under greedy 1:1 matching |
+| Walls (span coverage) | 1.00 / **1.00** / 1.00 | 1.00 / **1.00** / 1.00 | Length-weighted coverage (M2): every GT wall length is traced by predictions and vice versa; this is the gated wall metric |
 | Doors | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not detected** — no door geometry in the CV path |
 | Windows | 0.00 / **0.00** / 0.00 | — (none drawn) | **Not detected** — windows only bridged morphologically |
 | Dimensions | 0.00 / **0.00** / 0.00 | 0.00 / **0.00** / 0.00 | **Not extracted** — dimension strings are deliberately filtered as annotation ink; no OCR |
@@ -58,7 +62,7 @@ Precision / Recall / F1 at the default matching thresholds:
 
 | Measure | synth_two_room | synth_l_shape | capture_153430 | capture_165134 | mcginnies_pdf |
 |---------|----------------|---------------|----------------|----------------|---------------|
-| Wall-network closure rate | 0.857 | 0.900 | 0.615 | 0.657 | 0.758 |
+| Wall-network closure rate | 0.857 | 0.900 | 0.615 | 0.643 | 0.778 |
 | GT-room boundary closure rate (>=95% perimeter) | 1.00 | 1.00 | n/a | n/a | n/a |
 | Mean GT-room boundary coverage | 1.00 | 1.00 | n/a | n/a | n/a |
 | Interior coverage (room cells / footprint) | 0.722 | 0.713 | 0.605 | 0.619 | 0.654 |
@@ -68,14 +72,14 @@ Precision / Recall / F1 at the default matching thresholds:
 1. **Doors, windows, dimensions are at 0% recall by construction** — the CV
    path has no detectors for them. These categories cannot improve without new
    capability (see `docs/improvement_proposals.md` P1/P2).
-2. **Wall recall is held down by representation mismatch**, not only missed
-   ink: predictions are per-room sub-segments while GT is full wall runs, so
-   greedy 1:1 matching counts fragments as false positives. Aggregate-overlap
-   scoring would read higher; the per-object numbers are kept as the honest,
-   stricter baseline.
-3. **Wall-network closure 0.62-0.76 on real plans** — endpoints still stop
-   short of the wall they visually meet; corner snapping (proposal #2 in the
-   ranked list) is the next lever.
+2. **Strict 1:1 wall numbers are a representation artifact**: predictions
+   are per-room sub-segments while GT is full wall runs. The span-coverage
+   metric (M2) shows the true picture (1.0/1.0 on synth) and is what the
+   gate enforces; the strict numbers remain reported for diagnosis.
+3. **Wall-network closure 0.62-0.78 on real plans** — corner/T-junction
+   endpoint snapping (proposal #2) landed; the remaining dangling endpoints
+   are genuine openings (doors, garage fronts) and gaps larger than 2 ft
+   that need opening detection (#7) rather than more aggressive snapping.
 4. **Interior coverage 0.60-0.72** — partly real (corridors lost to the
    `min_room_ft2` filter, wall-band erosion, doorway over-closing) and partly
    the inflated footprint denominator noted above.

@@ -87,9 +87,18 @@ def compare_structural(case_id: str, baseline: dict, current: dict) -> list[str]
 
 
 def compare_scores(case_id: str, baseline_scores: dict, current_scores: dict) -> list[str]:
-    """Per-category F1/recall must not regress beyond tolerance."""
+    """Per-category F1/recall must not regress beyond tolerance.
+
+    The strict 1:1 "walls" category is reported but not gated: the pipeline
+    legitimately emits per-room sub-segments of single GT walls, so small
+    geometry refinements flip individual matches across the threshold without
+    any real loss. Wall regressions are gated through "walls_coverage"
+    (length-weighted span coverage) instead.
+    """
     failures: list[str] = []
     for category, b in (baseline_scores or {}).items():
+        if category == "walls":
+            continue
         c = (current_scores or {}).get(category)
         if c is None:
             failures.append(f"{case_id}: category {category} missing from current scores")

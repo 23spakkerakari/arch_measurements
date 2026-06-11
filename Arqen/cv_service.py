@@ -35,10 +35,37 @@ DEBUG_DUMP = os.environ.get("ARQEN_DEBUG_DUMP", "") == "1"
 MAX_ANALYSIS_PX = int(os.environ.get("MAX_ANALYSIS_PX", "2400"))
 
 
-def _cap_image_for_memory(image: np.ndarray, dpi: int) -> tuple[np.ndarray, int]:
-    """Downscale very large rasters so room-split fits in Render free-tier RAM."""
+def _roi_crop_size(roi, w: int, h: int) -> tuple[int, int]:
+    """Pixel size of the ROI crop analyze_page will process (full image if no ROI)."""
+    if not isinstance(roi, dict):
+        return w, h
+    try:
+        x0 = min(max(float(roi.get("x0_pct", 0.0)), 0.0), 1.0)
+        y0 = min(max(float(roi.get("y0_pct", 0.0)), 0.0), 1.0)
+        x1 = min(max(float(roi.get("x1_pct", 1.0)), 0.0), 1.0)
+        y1 = min(max(float(roi.get("y1_pct", 1.0)), 0.0), 1.0)
+    except (TypeError, ValueError):
+        return w, h
+    crop_w = max(1, int(round((x1 - x0) * w)))
+    crop_h = max(1, int(round((y1 - y0) * h)))
+    return crop_w, crop_h
+
+
+def _cap_image_for_memory(
+    image: np.ndarray, dpi: int, roi=None,
+) -> tuple[np.ndarray, int]:
+    """Downscale very large rasters so room-split fits in Render free-tier RAM.
+
+    The cap is sized against the ROI crop, not the full sheet: analyze_page
+    crops to the user ROI before the memory-heavy stages, so a plan drawing
+    occupying e.g. 60 % of a 4900 px sheet should keep ~MAX_ANALYSIS_PX of
+    real resolution instead of being downscaled for title-block area that is
+    cropped away anyway. Wall strokes survive at the higher working
+    resolution, which directly improves wall recall.
+    """
     h, w = image.shape[:2]
-    longest = max(h, w)
+    crop_w, crop_h = _roi_crop_size(roi, w, h)
+    longest = max(crop_h, crop_w)
     if longest <= MAX_ANALYSIS_PX:
         return image, dpi
 
@@ -133,7 +160,7 @@ def cv_analyze():
     if DEBUG_DUMP:
         _dump_request(image, scale, dpi, roi)
 
-    image, dpi = _cap_image_for_memory(image, dpi)
+    image, dpi = _cap_image_for_memory(image, dpi, roi=roi)
 
     result = analyze_page(
         image, scale, dpi, roi=roi, doorway_close_ft=doorway_close_ft,

@@ -84,3 +84,33 @@ class TestCapImageForMemory:
         assert out.shape[1] == 1000
         assert out.shape[0] == 500
         assert dpi == 50
+
+    def test_roi_crop_within_cap_keeps_full_resolution(self, monkeypatch):
+        # Sheet is over the cap, but the ROI crop (what analyze_page actually
+        # processes) is under it — resolution must be preserved so wall
+        # strokes are not thinned for title-block area that gets cropped away.
+        monkeypatch.setattr(cv_service, "MAX_ANALYSIS_PX", 1000)
+        img = np.zeros((2000, 4000, 3), np.uint8)
+        roi = {"x0_pct": 0.1, "y0_pct": 0.1, "x1_pct": 0.3, "y1_pct": 0.4}
+        out, dpi = cv_service._cap_image_for_memory(img, 200, roi=roi)
+        assert out.shape == (2000, 4000, 3)
+        assert dpi == 200
+
+    def test_roi_crop_over_cap_downscaled_relative_to_crop(self, monkeypatch):
+        monkeypatch.setattr(cv_service, "MAX_ANALYSIS_PX", 1000)
+        img = np.zeros((2000, 4000, 3), np.uint8)
+        # Crop is 2000x1000 -> scale 0.5 (vs 0.25 for the full sheet).
+        roi = {"x0_pct": 0.25, "y0_pct": 0.25, "x1_pct": 0.75, "y1_pct": 0.75}
+        out, dpi = cv_service._cap_image_for_memory(img, 200, roi=roi)
+        assert out.shape[1] == 2000
+        assert out.shape[0] == 1000
+        assert dpi == 100
+
+    def test_malformed_roi_falls_back_to_full_sheet(self, monkeypatch):
+        monkeypatch.setattr(cv_service, "MAX_ANALYSIS_PX", 1000)
+        img = np.zeros((2000, 4000, 3), np.uint8)
+        out, dpi = cv_service._cap_image_for_memory(
+            img, 200, roi={"x0_pct": "bogus"},
+        )
+        assert max(out.shape[:2]) == 1000
+        assert dpi == 50

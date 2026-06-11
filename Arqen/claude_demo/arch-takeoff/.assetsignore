@@ -2,6 +2,7 @@
 functions/
 server/
 scripts/
+worker.js
 node_modules/
 package.json
 package-lock.json

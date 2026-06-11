@@ -382,6 +382,24 @@ function cvResultToAnalysis(cv) {
   };
 }
 
+async function parseJsonResponse(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const snippet = text.replace(/\s+/g, ' ').slice(0, 120);
+    if (text.trimStart().startsWith('<')) {
+      throw new Error(
+        'CV API returned HTML instead of JSON (status ' + res.status + '). '
+        + 'The /api/cv-analyze proxy may be misconfigured, or the Render CV service '
+        + 'timed out or restarted mid-request. Check Cloudflare env vars '
+        + '(CV_SERVICE_URL, CV_SERVICE_SECRET) and Render logs.',
+      );
+    }
+    throw new Error('CV API returned invalid JSON (status ' + res.status + '): ' + snippet);
+  }
+}
+
 async function runCvAnalyze(imageDataUrl, scaleStr, dpi, roi) {
   const body = { imageBase64: imageDataUrl, scale: scaleStr, dpi };
   if (roi && roi.x0_pct != null) body.roi = roi;
@@ -390,7 +408,7 @@ async function runCvAnalyze(imageDataUrl, scaleStr, dpi, roi) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
+  const data = await parseJsonResponse(res);
   if (!res.ok) throw new Error(data.error || `CV API error ${res.status}`);
   return cvResultToAnalysis(data);
 }

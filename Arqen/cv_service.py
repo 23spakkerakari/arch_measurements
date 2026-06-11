@@ -8,6 +8,9 @@ Environment variables:
   PORT            — TCP port to bind (Render sets this automatically)
   SERVICE_SECRET  — Optional shared secret; if set, requests must include
                     X-Service-Secret header with the same value.
+  MAX_ANALYSIS_PX — Longest image side sent to OpenCV (default 2400). Larger
+                    uploads are downscaled in-place; DPI is scaled so geometry
+                    stays calibrated. Lower this if Render free tier OOMs.
 """
 
 import base64
@@ -29,6 +32,27 @@ SECRET = os.environ.get("SERVICE_SECRET", "")
 # debug_runs/<timestamp>/ (image.png + request.json) for offline replay
 # with debug_pipeline.py.
 DEBUG_DUMP = os.environ.get("ARQEN_DEBUG_DUMP", "") == "1"
+MAX_ANALYSIS_PX = int(os.environ.get("MAX_ANALYSIS_PX", "2400"))
+
+
+def _cap_image_for_memory(image: np.ndarray, dpi: int) -> tuple[np.ndarray, int]:
+    """Downscale very large rasters so room-split fits in Render free-tier RAM."""
+    h, w = image.shape[:2]
+    longest = max(h, w)
+    if longest <= MAX_ANALYSIS_PX:
+        return image, dpi
+
+    scale = MAX_ANALYSIS_PX / longest
+    new_w = max(1, int(round(w * scale)))
+    new_h = max(1, int(round(h * scale)))
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    new_dpi = max(1, int(round(dpi * scale)))
+    print(
+        f"  [cv_service] downscaled {w}x{h} -> {new_w}x{new_h}, "
+        f"dpi {dpi} -> {new_dpi} (MAX_ANALYSIS_PX={MAX_ANALYSIS_PX})",
+        flush=True,
+    )
+    return resized, new_dpi
 
 
 def _dump_request(image: np.ndarray, scale: str, dpi: int, roi) -> None:
@@ -108,6 +132,8 @@ def cv_analyze():
 
     if DEBUG_DUMP:
         _dump_request(image, scale, dpi, roi)
+
+    image, dpi = _cap_image_for_memory(image, dpi)
 
     result = analyze_page(
         image, scale, dpi, roi=roi, doorway_close_ft=doorway_close_ft,

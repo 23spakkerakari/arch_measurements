@@ -67,3 +67,20 @@ class TestDecodeImage:
 
     def test_decode_garbage_returns_none(self):
         assert cv_service._decode_image("!!!") is None
+
+
+class TestCapImageForMemory:
+    def test_small_image_unchanged(self):
+        img = np.zeros((800, 600, 3), np.uint8)
+        out, dpi = cv_service._cap_image_for_memory(img, 150)
+        assert out.shape == (800, 600, 3)
+        assert dpi == 150
+
+    def test_large_image_downscaled_and_dpi_adjusted(self, monkeypatch):
+        monkeypatch.setattr(cv_service, "MAX_ANALYSIS_PX", 1000)
+        img = np.zeros((2000, 4000, 3), np.uint8)
+        out, dpi = cv_service._cap_image_for_memory(img, 200)
+        assert max(out.shape[:2]) == 1000
+        assert out.shape[1] == 1000
+        assert out.shape[0] == 500
+        assert dpi == 50

@@ -33,7 +33,20 @@ export async function onRequestPost({ request, env }) {
       headers,
       body: JSON.stringify(body),
     });
-    const data = await upstream.json();
+    const text = await upstream.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      const isHtml = text.trimStart().startsWith('<');
+      const hint = isHtml
+        ? 'Render returned an HTML error page (service cold-start, timeout, or OOM restart).'
+        : 'Render returned a non-JSON response.';
+      return Response.json(
+        { error: `${hint} Status ${upstream.status}. Check Render logs for arqen-cv.` },
+        { status: 502 },
+      );
+    }
     return Response.json(data, { status: upstream.status });
   } catch (err) {
     return Response.json(

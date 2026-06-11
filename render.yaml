@@ -10,3 +10,5 @@ services:
     envVars:
       - key: SERVICE_SECRET
         generateValue: true   # Render auto-generates; copy into Cloudflare Pages as CV_SERVICE_SECRET
+      - key: MAX_ANALYSIS_PX
+        value: "2400"         # cap raster size — prevents OOM on free tier during room split

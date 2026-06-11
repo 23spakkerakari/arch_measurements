@@ -1,5 +1,7 @@
-# Cloudflare Workers Builds runs: npx wrangler deploy
-# Static UI lives under Arqen/claude_demo/arch-takeoff (see .assetsignore there).
+# Cloudflare Workers Builds: npx wrangler versions upload
+# Promote to production traffic in the dashboard (or: wrangler versions deploy).
+# Worker name must match the dashboard project (archmeasurements).
+# Static UI: Arqen/claude_demo/arch-takeoff (see .assetsignore there).
 name = "archmeasurements"
 compatibility_date = "2024-06-10"
 main = "Arqen/claude_demo/arch-takeoff/worker.js"

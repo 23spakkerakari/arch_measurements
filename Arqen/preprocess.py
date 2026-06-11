@@ -352,8 +352,33 @@ def preprocess(
     small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
 
     t0 = time.time()
-    small = cv2.resize(wall_pair_mask_filtered, (small_w, small_h), interpolation=cv2.INTER_AREA)
-    _, small = cv2.threshold(small, 127, 255, cv2.THRESH_BINARY)
+    big = footprint_binary(wall_pair_mask_filtered, px_per_unit)
+    print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    return big, wall_pair_mask_full
+
+
+def footprint_binary(
+    mask_filtered: np.ndarray,
+    px_per_unit: float,
+    any_ink: bool = False,
+) -> np.ndarray:
+    """Downscale + morphology pass that turns the wall-pair mask into the solid
+    footprint binary used by find_footprint.
+
+    any_ink=False (default) keeps a downscaled cell only when it is mostly ink
+    (threshold 127 after INTER_AREA). At low working resolutions the pair-mask
+    strokes are only 1-2 px wide, so the averaging dilutes them below 127 and
+    entire perimeter walls vanish from the footprint binary — the footprint
+    then collapses to the thickest wall and every wall segment outside it is
+    discarded downstream. any_ink=True keeps any cell containing ink; used as
+    a retry when the strict footprint covers too little of the wall ink.
+    """
+    h, w = mask_filtered.shape
+    small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
+
+    small = cv2.resize(mask_filtered, (small_w, small_h), interpolation=cv2.INTER_AREA)
+    _, small = cv2.threshold(small, 0 if any_ink else 127, 255, cv2.THRESH_BINARY)
 
     small = cv2.dilate(
         small,
@@ -377,10 +402,7 @@ def preprocess(
     small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, kh, iterations=1)
     small = cv2.morphologyEx(small, cv2.MORPH_CLOSE, kv, iterations=1)
 
-    big = cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
-    print(f"  [preprocess] downscale morphology: {time.time()-t0:.1f}s", file=sys.stderr)
-
-    return big, wall_pair_mask_full
+    return cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
 
 def flood_fill_interior(binary: np.ndarray) -> np.ndarray:
     """
@@ -2349,6 +2371,60 @@ def _shift_px_coords(coords: list, offset: tuple[int, int]) -> list:
     return [x1 + ox, y1 + oy, x2 + ox, y2 + oy]
 
 
+def _ink_bbox_area(mask: Optional[np.ndarray]) -> int:
+    if mask is None or cv2.countNonZero(mask) == 0:
+        return 0
+    _, _, bw, bh = cv2.boundingRect(mask)
+    return bw * bh
+
+
+def _retry_footprint_if_sparse(
+    component_mask: Optional[np.ndarray],
+    binary: np.ndarray,
+    wall_pair_mask: np.ndarray,
+    px_per_unit: float,
+    user_roi: bool,
+) -> tuple[Optional[np.ndarray], np.ndarray]:
+    """Retry footprint detection with the any-ink binary when the strict one
+    misses most of the wall ink.
+
+    At low working resolutions (large sheets downscaled by MAX_ANALYSIS_PX)
+    the pair-mask strokes are 1-2 px wide and the strict 127 threshold in
+    footprint_binary erases them, so the footprint collapses to the thickest
+    wall (e.g. a fire-wall poche) and every wall outside it — typically the
+    whole warehouse/exterior perimeter — is discarded downstream. Detect that
+    by comparing the footprint's bounding box against the wall ink's bounding
+    box and rebuild the binary keeping any inked cell.
+
+    Returns (component_mask, binary), updated only when the retry found a
+    larger footprint.
+    """
+    ink_mask = wall_pair_mask
+    if not user_roi:
+        # Full-sheet mode: ignore title-block/margin ink when judging coverage
+        # and rebuilding, mirroring the margin-blanked mask preprocess used.
+        h, w = wall_pair_mask.shape
+        excl = _build_exclusion_mask(h, w)
+        ink_mask = cv2.bitwise_and(wall_pair_mask, cv2.bitwise_not(excl))
+
+    ink_area = _ink_bbox_area(ink_mask)
+    fp_area = _ink_bbox_area(component_mask)
+    if not ink_area or fp_area >= 0.5 * ink_area:
+        return component_mask, binary
+
+    retry_binary = footprint_binary(ink_mask, px_per_unit, any_ink=True)
+    retry_mask = find_footprint(retry_binary, use_exclusion=not user_roi)
+    retry_area = _ink_bbox_area(retry_mask)
+    if retry_area > fp_area:
+        print(
+            f"  [pipeline] footprint retry (thin strokes): bbox coverage "
+            f"{fp_area / ink_area:.0%} → {retry_area / ink_area:.0%} of wall ink",
+            file=sys.stderr,
+        )
+        return retry_mask, retry_binary
+    return component_mask, binary
+
+
 def analyze_page(
     image: np.ndarray,
     scale_str: str,
@@ -2393,6 +2469,10 @@ def analyze_page(
     t0 = time.time()
     component_mask = find_footprint(binary, use_exclusion=not user_roi)
     print(f"  [pipeline] find_footprint: {time.time()-t0:.1f}s", file=sys.stderr)
+
+    component_mask, binary = _retry_footprint_if_sparse(
+        component_mask, binary, wall_pair_mask, px_per_unit, user_roi,
+    )
 
     if crop_mode and component_mask is not None:
         img_area = image.shape[0] * image.shape[1]

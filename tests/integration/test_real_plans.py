@@ -49,7 +49,12 @@ def mcginnies():
     return _run_case("mcginnies_pdf")
 
 
-def _assert_sound(result, min_walls=5, min_rooms=1):
+@pytest.fixture(scope="module")
+def trdi_overall():
+    return _run_case("trdi_overall")
+
+
+def _assert_sound(result, min_walls=5, min_rooms=1, allow_calibration_warnings=False):
     assert "error" not in result, f"pipeline error: {result.get('error')}"
     assert result["px_per_ft"] > 0
     assert len(result["footprint_polygon_px"]) >= 4
@@ -72,8 +77,12 @@ def _assert_sound(result, min_walls=5, min_rooms=1):
 
     cal = result.get("calibration")
     assert cal is not None, "missing calibration block"
-    assert cal["status"] == "ok", f"unexpected calibration issues: {cal.get('issues')}"
-    assert cal["issues"] == []
+    if allow_calibration_warnings:
+        severities = {i["severity"] for i in cal.get("issues", [])}
+        assert severities <= {"warning"}, f"calibration errors: {cal.get('issues')}"
+    else:
+        assert cal["status"] == "ok", f"unexpected calibration issues: {cal.get('issues')}"
+        assert cal["issues"] == []
 
 
 class TestCapture165134:
@@ -103,6 +112,43 @@ class TestMcGinniesPdf:
     def test_calibration(self, mcginnies):
         # 1 in = 16 ft @ 150 DPI -> 9.375 px/ft
         assert mcginnies["px_per_ft"] == pytest.approx(9.38, abs=0.01)
+
+
+class TestTrdiOverall:
+    """TRDI Office & Warehouse A1.0 at production resolution (thin strokes).
+
+    Regression for the thin-stroke footprint collapse: the strict footprint
+    threshold erased the 1-2 px pair-mask strokes, the footprint shrank to the
+    fire wall, and the entire warehouse/exterior perimeter was dropped by
+    drop_segments_outside_exterior (5 walls / 227 ft² instead of the full
+    building).
+    """
+
+    def test_structurally_sound(self, trdi_overall):
+        # dpi 71 (144 capped to MAX_ANALYSIS_PX) triggers a calibration
+        # warning by design; the warning is part of what this case captures.
+        _assert_sound(
+            trdi_overall, min_walls=15, min_rooms=4,
+            allow_calibration_warnings=True,
+        )
+
+    def test_exterior_perimeter_on_all_facings(self, trdi_overall):
+        exterior = [w for w in trdi_overall["walls"] if w.get("is_exterior")]
+        facings = {w["facing"] for w in exterior}
+        assert facings == {"North", "South", "East", "West"}, (
+            f"perimeter incomplete, exterior facings: {sorted(facings)}"
+        )
+
+    def test_warehouse_included_in_footprint(self, trdi_overall):
+        # Office block alone is ~2000 ft²; with the warehouse the footprint
+        # is ~5700 ft². The footprint must also be tall enough to span the
+        # warehouse south of the fire wall (~100 ft overall vs ~40 ft office).
+        area = float(trdi_overall["total_area"].split()[0])
+        assert area > 4000, f"warehouse missing from footprint: {area} ft²"
+
+        x0, y0, x1, y1 = trdi_overall["footprint_bbox_px"]
+        height_ft = (y1 - y0) / trdi_overall["px_per_ft"]
+        assert height_ft > 80, f"footprint height only {height_ft:.0f} ft"
 
 
 class TestBaselineSnapshot:

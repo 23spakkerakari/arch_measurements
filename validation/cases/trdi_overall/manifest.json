@@ -1,0 +1,14 @@
+{
+  "id": "trdi_overall",
+  "description": "TRDI Office and Warehouse overall floor plan (A1.0, Duncan Architects). image.png is the production analysis input: page rasterized at 144 DPI then capped to MAX_ANALYSIS_PX=2400 by cv_service (effective dpi 71), which makes the wall strokes 1-2 px thin. Regression case for the thin-stroke footprint collapse that dropped the entire warehouse perimeter. plan.pdf kept for provenance.",
+  "image": "image.png",
+  "scale": "1/8\"=1ft",
+  "dpi": 71,
+  "roi": {
+    "x0_pct": 0.30,
+    "y0_pct": 0.02,
+    "x1_pct": 0.85,
+    "y1_pct": 0.97
+  },
+  "doorway_close_ft": 2.5
+}

@@ -439,6 +439,21 @@ header {
   gap: 6px;
   z-index: 5;
 }
+.view-segment {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+.view-segment .tool-btn {
+  border: none;
+  border-radius: 0;
+  border-right: 1px solid var(--border);
+}
+.view-segment .tool-btn:last-child {
+  border-right: none;
+}
 .tool-btn {
   background: rgba(255,255,255,0.9);
   border: 1px solid var(--border);

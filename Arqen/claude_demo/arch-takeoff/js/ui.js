@@ -75,6 +75,28 @@ function toggleLayer(layer, btn) {
   drawCanvas();
 }
 
+function setCanvasView(view, btn) {
+  appState.canvasView = view;
+  ['walls', 'doors', 'windows'].forEach(v => {
+    const el = document.getElementById(`btn-view-${v}`);
+    if (el) el.classList.toggle('active', v === view);
+  });
+  if (view !== 'walls') {
+    if (appState.drawWallMode) {
+      appState.drawWallMode = false;
+      appState.drawWallFirstPoint = null;
+      appState._drawCursor = null;
+      const drawBtn = document.getElementById('btn-draw-wall');
+      if (drawBtn) drawBtn.classList.remove('active');
+      const canvas = document.getElementById('overlay-canvas');
+      if (canvas) canvas.style.cursor = '';
+    }
+    appState.lassoState = null;
+  }
+  if (typeof _syncCanvasPointerEvents === 'function') _syncCanvasPointerEvents();
+  drawCanvas();
+}
+
 function toggleWallVisibility(wallId, itemEl) {
   if (appState.visibleWalls.has(wallId)) {
     appState.visibleWalls.delete(wallId);

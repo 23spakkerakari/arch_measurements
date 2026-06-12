@@ -42,6 +42,38 @@ function loadMaskImageIfNeeded(data) {
   img.src = maskSrc;
 }
 
+function drawOpeningOverlay(ctx, opening, W, H, kind) {
+  if (opening.x0_pct == null) return;
+  const x0 = opening.x0_pct * W;
+  const y0 = opening.y0_pct * H;
+  const x1 = opening.x1_pct * W;
+  const y1 = opening.y1_pct * H;
+  const isDoor = kind === 'door';
+  const stroke = isDoor ? '#ff8c42' : '#00d4ff';
+  const fill = isDoor ? 'rgba(255, 140, 66, 0.25)' : 'rgba(0, 212, 255, 0.22)';
+
+  ctx.save();
+  ctx.fillStyle = fill;
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = 2;
+  ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+
+  if (appState.layers.labels && opening.center_pct) {
+    ctx.fillStyle = stroke;
+    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const cx = opening.center_pct[0] * W;
+    const cy = opening.center_pct[1] * H;
+    const label = opening.id && opening.width
+      ? `${opening.id} · ${opening.width}`
+      : (opening.id || opening.width || '');
+    if (label) ctx.fillText(label, cx, cy);
+  }
+  ctx.restore();
+}
+
 function drawCanvas() {
   const data = appState.analysisResult;
   if (!data) return;
@@ -158,7 +190,9 @@ function drawCanvas() {
 
     const dimLines = data.dimension_lines || [];
     const walls    = data.walls || [];
+    const view     = appState.canvasView || 'walls';
 
+    if (view === 'walls') {
     // ── All detected walls (visible even without a room) ─
     walls.forEach((wall, i) => {
       if (wall.x1_pct == null) return;
@@ -177,31 +211,17 @@ function drawCanvas() {
       ctx.stroke();
       ctx.restore();
     });
+    } else if (view === 'doors') {
+    (data.doors || [])
+      .filter(d => d.is_exterior === true)
+      .forEach(d => drawOpeningOverlay(ctx, d, W, H, 'door'));
+    } else if (view === 'windows') {
+    (data.windows || [])
+      .filter(w => w.is_exterior === true)
+      .forEach(w => drawOpeningOverlay(ctx, w, W, H, 'window'));
+    }
 
-    // ── Door and window openings (CV-detected) ─────────────
-    const doors = data.doors || [];
-    doors.forEach(d => {
-      if (d.x0_pct == null) return;
-      const x0 = d.x0_pct * W, y0 = d.y0_pct * H;
-      const x1 = d.x1_pct * W, y1 = d.y1_pct * H;
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 140, 66, 0.25)';
-      ctx.strokeStyle = '#ff8c42';
-      ctx.lineWidth = 2;
-      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
-      if (d.id && d.center_pct) {
-        ctx.fillStyle = '#ff8c42';
-        ctx.font = 'bold 11px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(d.id, d.center_pct[0] * W, d.center_pct[1] * H);
-      }
-      ctx.restore();
-    });
-    // Window overlays disabled until detection quality is ready.
-    // windows.forEach(w => { ... });
-
+    if (view === 'walls') {
     // ── Room wall highlights ─────────────────────────────
     // Draw colored strokes on exterior sub-segments (and other assigned walls).
     appState.rooms.forEach(room => {
@@ -371,6 +391,7 @@ function drawCanvas() {
       ctx.fillText('Click 2nd point to finish', ax + 10, ay - 6);
       ctx.restore();
     }
+    } // end view === 'walls'
   };
 
   if (img.complete && img.naturalWidth) {
@@ -695,6 +716,10 @@ function _checkWallEndpoints(wallId, walls, canvasX, canvasY, W, H, onHit) {
   });
 }
 
+function _isWallsCanvasView() {
+  return (appState.canvasView || 'walls') === 'walls';
+}
+
 /**
  * Sync the overlay-canvas pointer-events so mouse interactions (hover + drag)
  * are captured whenever needed:
@@ -706,6 +731,10 @@ function _checkWallEndpoints(wallId, walls, canvasX, canvasY, W, H, onHit) {
 function _syncCanvasPointerEvents() {
   const canvas = document.getElementById('overlay-canvas');
   if (!canvas) return;
+  if (!_isWallsCanvasView()) {
+    canvas.style.pointerEvents = 'none';
+    return;
+  }
   // Enable pointer events whenever there are walls (canvas click highlights them),
   // or when a special mode is active.
   const hasWalls = (appState.analysisResult?.walls || []).length > 0;
@@ -746,6 +775,7 @@ function _toggleWallHighlightFromCanvas(wallId) {
  * First click sets the start point; second click creates the wall.
  */
 function toggleDrawWallMode(btn) {
+  if (!appState.drawWallMode && !_isWallsCanvasView()) return;
   appState.drawWallMode = !appState.drawWallMode;
   appState.drawWallFirstPoint = null;
   appState._drawCursor = null;
@@ -781,7 +811,7 @@ function _initAddWallClickHandler() {
 
   // ── Mousemove: update rubber-band cursor for draw mode ──
   canvas.addEventListener('mousemove', (e) => {
-    if (!appState.drawWallMode || !appState.drawWallFirstPoint) return;
+    if (!appState.drawWallMode || !appState.drawWallFirstPoint || !_isWallsCanvasView()) return;
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, H = rect.height;
     if (W === 0 || H === 0) return;
@@ -795,6 +825,7 @@ function _initAddWallClickHandler() {
   canvas.addEventListener('click', (e) => {
     // Ignore clicks that were actually the end of an endpoint drag or lasso
     if (canvas._dragConsumedClick) { canvas._dragConsumedClick = false; return; }
+    if (!_isWallsCanvasView()) return;
 
     const rect = canvas.getBoundingClientRect();
     const W = rect.width, H = rect.height;
@@ -832,6 +863,7 @@ function _initAddWallClickHandler() {
 
   // ── Endpoint drag / lasso: mousedown ─────────────────
   canvas.addEventListener('mousedown', (e) => {
+    if (!_isWallsCanvasView()) return;
     if (appState.drawWallMode) return;
     if (e.button !== 0) return;
 
@@ -933,6 +965,7 @@ function _initAddWallClickHandler() {
     }
 
     if (appState.drawWallMode) return;
+    if (!_isWallsCanvasView()) return;
 
     // Endpoint hover — grab cursor takes priority
     const epHit = _findEndpointHit(cx, cy, W, H);

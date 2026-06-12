@@ -17,6 +17,7 @@ const appState = {
   currentStep: 1,
   analysisResult: null,
   layers: { dims: true, labels: true, mask: false },
+  canvasView: 'walls',       // 'walls' | 'doors' | 'windows' — exclusive geometry view
   visibleWalls: new Set(),   // wall IDs currently pinned/visible on the canvas
   buildingRoi: null,         // user-drawn { x0_pct, y0_pct, x1_pct, y1_pct }
   drawWallMode: false,       // true when user is drawing a wall by clicking two endpoints

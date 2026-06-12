@@ -126,6 +126,11 @@
     <div class="results-layout">
       <div class="canvas-container" id="canvas-container">
         <div class="canvas-toolbar">
+          <div class="view-segment">
+            <button class="tool-btn active" id="btn-view-walls"   onclick="setCanvasView('walls',this)">WALLS</button>
+            <button class="tool-btn"        id="btn-view-doors"   onclick="setCanvasView('doors',this)">DOORS</button>
+            <button class="tool-btn"        id="btn-view-windows" onclick="setCanvasView('windows',this)">WINDOWS</button>
+          </div>
           <button class="tool-btn active" id="btn-show-dims"   onclick="toggleLayer('dims',this)">DIMS</button>
           <button class="tool-btn active" id="btn-show-labels" onclick="toggleLayer('labels',this)">LABELS</button>
           <button class="tool-btn" id="btn-show-mask" onclick="toggleLayer('mask',this)" title="Show CV wall-pair mask — highlights pixels OpenCV detected as wall pairs">CV MASK</button>

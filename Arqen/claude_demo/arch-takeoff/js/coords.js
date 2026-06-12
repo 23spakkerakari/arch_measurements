@@ -280,6 +280,26 @@ function validateWallGeometry(data) {
   };
 }
 
+/** Convert an opening bbox (doors/windows) to percent-based overlay coords. */
+function openingToOverlay(o, imgW, imgH) {
+  const [x0, y0, x1, y1] = o.bbox_px;
+  return {
+    id: o.id,
+    host_wall_id: o.host_wall_id,
+    width: o.width,
+    width_raw: o.width_raw,
+    is_exterior: o.is_exterior,
+    evidence: o.evidence,
+    x0_pct: x0 / imgW,
+    y0_pct: y0 / imgH,
+    x1_pct: x1 / imgW,
+    y1_pct: y1 / imgH,
+    center_pct: o.center_px
+      ? [o.center_px[0] / imgW, o.center_px[1] / imgH]
+      : [(x0 + x1) / 2 / imgW, (y0 + y1) / 2 / imgH],
+  };
+}
+
 /** Convert preprocess.py JSON (px_coords) to web overlay format (x1_pct, …). */
 function cvResultToAnalysis(cv) {
   if (cv.error) throw new Error(cv.error);
@@ -368,6 +388,8 @@ function cvResultToAnalysis(cv) {
     units: cv.units || 'imperial',
     walls,
     rooms,
+    doors: (cv.doors || []).map(d => openingToOverlay(d, imgW, imgH)),
+    windows: (cv.windows || []).map(w => openingToOverlay(w, imgW, imgH)),
     dimension_lines,
     footprint_bbox,
     footprint_bbox_cv: footprint_bbox,

@@ -39,6 +39,7 @@ from calibration_validate import (
     validate_total_area,
 )
 from door_detect import detect_doors, ink_mask_from_image
+from window_detect import detect_windows
 from extract_wall_segments_class import extract_wall_segments
 from room_wall_split import (
     clamp_segments_to_envelope,
@@ -2891,13 +2892,25 @@ def analyze_page(
 
     # Doors: collinear wall gaps in the same crop frame as walls/mask.
     t0 = time.time()
+    ink_mask = ink_mask_from_image(image)
     doors = detect_doors(
-        walls, wall_pair_mask, ink_mask_from_image(image),
+        walls, wall_pair_mask, ink_mask,
         px_per_unit, unit_label,
         axis_tol_px=dedup_axis_tol_px(px_per_unit),
         crop_mode=crop_mode,
     )
     print(f"  [pipeline] door detect: {time.time()-t0:.1f}s ({len(doors)} doors)",
+          file=sys.stderr)
+
+    t0 = time.time()
+    windows = detect_windows(
+        walls, wall_pair_mask, ink_mask,
+        px_per_unit, unit_label,
+        axis_tol_px=dedup_axis_tol_px(px_per_unit),
+        crop_mode=crop_mode,
+        doors=doors,
+    )
+    print(f"  [pipeline] window detect: {time.time()-t0:.1f}s ({len(windows)} windows)",
           file=sys.stderr)
 
     if roi_offset != (0, 0):
@@ -2909,6 +2922,11 @@ def analyze_page(
             d["bbox_px"] = [x0 + ox, y0 + oy, x1 + ox, y1 + oy]
             cx, cy = d["center_px"]
             d["center_px"] = [cx + ox, cy + oy]
+        for win in windows:
+            x0, y0, x1, y1 = win["bbox_px"]
+            win["bbox_px"] = [x0 + ox, y0 + oy, x1 + ox, y1 + oy]
+            cx, cy = win["center_px"]
+            win["center_px"] = [cx + ox, cy + oy]
         for r in rooms:
             cx, cy = r["centroid_px"]
             r["centroid_px"] = [cx + ox, cy + oy]
@@ -2976,6 +2994,7 @@ def analyze_page(
         "rooms": rooms,
         "walls": walls,
         "doors": doors,
+        "windows": windows,
         "mask_cache_path": mask_cache_path,
         # roi_offset is the pixel offset of the cropped image within the full image.
         # detect_wall_at_point needs this to translate full-image click coords into

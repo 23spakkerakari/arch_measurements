@@ -302,8 +302,8 @@ flowchart TD
 
 | Category | Object | Status | Evidence |
 |----------|--------|--------|----------|
-| Openings | Doors | Not detected as geometry | Only `doorway_close_ft` morphology bridging |
-| Openings | Windows | Not detected | Bridged in footprint close; Claude prompt only |
+| Openings | Doors | **Detected** | `door_detect.py` — collinear gap detection, `doors[]` in CV JSON |
+| Openings | Windows | **Detected** | `window_detect.py` — sill-line on exterior walls, `windows[]` in CV JSON |
 | Openings | Generic openings | Not modeled | README future: DeepFloorplan/RoomFormer |
 | Topology | Wall junctions / nodes | Not modeled | Segment list only, no graph |
 | Topology | Wall thickness | Implicit in pair gap, not output | — |
@@ -448,7 +448,7 @@ Ranked by frequency × severity × debug difficulty:
 | P2 | Auto `doorway_close_ft` | Medium | Medium |
 | P2 | Async job queue for large inputs | Medium | Medium |
 | P3 | ML hybrid wall graph | Very high | High |
-| P4 | Door/window objects | High | High |
+| P4 | Door/window objects | High | **Done** (geometric CV + web overlays) |
 
 ### Current maturity assessment
 

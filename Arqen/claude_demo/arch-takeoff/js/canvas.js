@@ -178,6 +178,48 @@ function drawCanvas() {
       ctx.restore();
     });
 
+    // ── Door and window openings (CV-detected) ─────────────
+    const doors = data.doors || [];
+    const windows = data.windows || [];
+    doors.forEach(d => {
+      if (d.x0_pct == null) return;
+      const x0 = d.x0_pct * W, y0 = d.y0_pct * H;
+      const x1 = d.x1_pct * W, y1 = d.y1_pct * H;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 140, 66, 0.25)';
+      ctx.strokeStyle = '#ff8c42';
+      ctx.lineWidth = 2;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+      if (d.id && d.center_pct) {
+        ctx.fillStyle = '#ff8c42';
+        ctx.font = 'bold 11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(d.id, d.center_pct[0] * W, d.center_pct[1] * H);
+      }
+      ctx.restore();
+    });
+    windows.forEach(w => {
+      if (w.x0_pct == null) return;
+      const x0 = w.x0_pct * W, y0 = w.y0_pct * H;
+      const x1 = w.x1_pct * W, y1 = w.y1_pct * H;
+      ctx.save();
+      ctx.fillStyle = 'rgba(74, 158, 255, 0.25)';
+      ctx.strokeStyle = '#4a9eff';
+      ctx.lineWidth = 2;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
+      if (w.id && w.center_pct) {
+        ctx.fillStyle = '#4a9eff';
+        ctx.font = 'bold 11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(w.id, w.center_pct[0] * W, w.center_pct[1] * H);
+      }
+      ctx.restore();
+    });
+
     // ── Room wall highlights ─────────────────────────────
     // Draw colored strokes on exterior sub-segments (and other assigned walls).
     appState.rooms.forEach(room => {

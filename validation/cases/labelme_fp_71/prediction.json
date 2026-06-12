@@ -2,7 +2,7 @@
   "detected_scale": "1in=1ft",
   "total_area": "4986.7 ft\u00b2",
   "units": "imperial",
-  "polygon_vertices": 10,
+  "polygon_vertices": 11,
   "footprint_polygon_px": [
     [
       6359,
@@ -27,6 +27,10 @@
     [
       2640,
       329
+    ],
+    [
+      2640,
+      640
     ],
     [
       2507,
@@ -1103,6 +1107,188 @@
     }
   ],
   "doors": [],
+  "windows": [
+    {
+      "id": "win1",
+      "host_wall_id": "w5.s2",
+      "bbox_px": [
+        1501,
+        611,
+        1650,
+        707
+      ],
+      "center_px": [
+        1575.5,
+        659.0
+      ],
+      "width": "2.33 ft",
+      "width_raw": 2.33,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win2",
+      "host_wall_id": "w5.s2",
+      "bbox_px": [
+        1740,
+        611,
+        1886,
+        707
+      ],
+      "center_px": [
+        1813.0,
+        659.0
+      ],
+      "width": "2.28 ft",
+      "width_raw": 2.28,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win3",
+      "host_wall_id": "w5.s1",
+      "bbox_px": [
+        2094,
+        611,
+        2454,
+        707
+      ],
+      "center_px": [
+        2274.0,
+        659.0
+      ],
+      "width": "5.62 ft",
+      "width_raw": 5.62,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win4",
+      "host_wall_id": "w4.s2",
+      "bbox_px": [
+        2769,
+        310,
+        2909,
+        406
+      ],
+      "center_px": [
+        2839.0,
+        358.0
+      ],
+      "width": "2.19 ft",
+      "width_raw": 2.19,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win5",
+      "host_wall_id": "w3.s1",
+      "bbox_px": [
+        4537,
+        73,
+        4941,
+        169
+      ],
+      "center_px": [
+        4739.0,
+        121.0
+      ],
+      "width": "6.31 ft",
+      "width_raw": 6.31,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win6",
+      "host_wall_id": "w2.s1",
+      "bbox_px": [
+        4941,
+        174,
+        5037,
+        599
+      ],
+      "center_px": [
+        4989.0,
+        386.5
+      ],
+      "width": "6.64 ft",
+      "width_raw": 6.64,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win7",
+      "host_wall_id": "w1.s3",
+      "bbox_px": [
+        5071,
+        608,
+        5218,
+        704
+      ],
+      "center_px": [
+        5144.5,
+        656.0
+      ],
+      "width": "2.30 ft",
+      "width_raw": 2.3,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win8",
+      "host_wall_id": "w1.s3",
+      "bbox_px": [
+        5248,
+        608,
+        5493,
+        704
+      ],
+      "center_px": [
+        5370.5,
+        656.0
+      ],
+      "width": "3.83 ft",
+      "width_raw": 3.83,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win9",
+      "host_wall_id": "w1.s2",
+      "bbox_px": [
+        5589,
+        608,
+        5838,
+        704
+      ],
+      "center_px": [
+        5713.5,
+        656.0
+      ],
+      "width": "3.89 ft",
+      "width_raw": 3.89,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win10",
+      "host_wall_id": "w1.s1",
+      "bbox_px": [
+        5934,
+        608,
+        6110,
+        704
+      ],
+      "center_px": [
+        6022.0,
+        656.0
+      ],
+      "width": "2.75 ft",
+      "width_raw": 2.75,
+      "is_exterior": true,
+      "evidence": "sill"
+    }
+  ],
   "mask_roi_offset": [
     0,
     0
@@ -1120,5 +1306,19 @@
     "suggested_dpi": null,
     "crop_mode": true
   },
-  "runtime_s": 4.86
+  "roi_hint_pct": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "user-roi"
+  },
+  "analysis_roi_pct": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "auto-expanded"
+  },
+  "runtime_s": 14.52
 }

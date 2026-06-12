@@ -1,67 +1,63 @@
 {
   "detected_scale": "1in=1ft",
-  "total_area": "5102.9 ft\u00b2",
+  "total_area": "5107.9 ft\u00b2",
   "units": "imperial",
-  "polygon_vertices": 21,
+  "polygon_vertices": 23,
   "footprint_polygon_px": [
     [
-      4927,
-      0
+      862,
+      74
     ],
     [
-      4851,
-      768
+      846,
+      2254
     ],
     [
-      848,
-      620
-    ],
-    [
-      844,
+      365,
       2255
     ],
     [
-      612,
-      2256
-    ],
-    [
-      612,
+      365,
       2867
     ],
     [
-      844,
+      846,
       2868
     ],
     [
-      740,
-      4243
-    ],
-    [
-      872,
+      874,
       4687
     ],
     [
-      1404,
-      4696
+      1386,
+      4688
     ],
     [
-      1404,
+      1386,
+      5223
+    ],
+    [
+      2550,
       5223
     ],
     [
       2551,
-      5223
-    ],
-    [
-      2552,
       4311
     ],
     [
-      4051,
+      4055,
       4311
     ],
     [
-      4236,
+      4092,
+      3815
+    ],
+    [
+      4215,
+      3815
+    ],
+    [
+      4216,
       3643
     ],
     [
@@ -70,23 +66,35 @@
     ],
     [
       5659,
-      3016
+      3020
+    ],
+    [
+      4960,
+      2996
     ],
     [
       4955,
-      2995
-    ],
-    [
-      4955,
-      812
+      819
     ],
     [
       5659,
-      792
+      791
+    ],
+    [
+      4956,
+      775
     ],
     [
       4951,
-      767
+      619
+    ],
+    [
+      4927,
+      771
+    ],
+    [
+      886,
+      771
     ]
   ],
   "image_size_px": [
@@ -94,8 +102,8 @@
     5224
   ],
   "footprint_bbox_px": [
-    612,
-    0,
+    365,
+    74,
     5659,
     5223
   ],
@@ -103,201 +111,233 @@
   "rooms": [
     {
       "id": "R1",
-      "area_px": 522228,
+      "area_px": 563089,
       "centroid_px": [
-        3299,
-        898
+        3191,
+        899
       ],
       "bbox_px": [
-        1868,
-        782,
-        4798,
-        990
+        1568,
+        785,
+        4879,
+        1046
       ],
-      "area": "166.5 ft\u00b2",
-      "area_raw": 166.53
+      "area": "179.6 ft\u00b2",
+      "area_raw": 179.56
     },
     {
       "id": "R2",
-      "area_px": 112422,
+      "area_px": 106503,
       "centroid_px": [
-        1187,
-        948
+        1204,
+        949
       ],
       "bbox_px": [
-        900,
-        822,
+        937,
+        814,
         1437,
-        1114
+        1136
       ],
-      "area": "35.8 ft\u00b2",
-      "area_raw": 35.85
+      "area": "34.0 ft\u00b2",
+      "area_raw": 33.96
     },
     {
       "id": "R3",
-      "area_px": 264639,
+      "area_px": 264192,
       "centroid_px": [
         4812,
-        1652
+        1651
       ],
       "bbox_px": [
         4727,
-        871,
+        875,
         4898,
-        2431
+        2429
       ],
-      "area": "84.4 ft\u00b2",
-      "area_raw": 84.39
+      "area": "84.2 ft\u00b2",
+      "area_raw": 84.24
     },
     {
       "id": "R4",
-      "area_px": 5097609,
+      "area_px": 5000628,
       "centroid_px": [
-        3233,
-        1920
+        3232,
+        1911
       ],
       "bbox_px": [
         1736,
         1010,
-        4708,
-        2837
+        4693,
+        2818
       ],
-      "area": "1625.5 ft\u00b2",
-      "area_raw": 1625.51
+      "area": "1594.6 ft\u00b2",
+      "area_raw": 1594.59
     },
     {
       "id": "R5",
-      "area_px": 148969,
+      "area_px": 190979,
       "centroid_px": [
         1624,
-        1821
+        1676
       ],
       "bbox_px": [
         1531,
-        1417,
+        1156,
         1716,
-        2237
+        2201
       ],
-      "area": "47.5 ft\u00b2",
-      "area_raw": 47.5
+      "area": "60.9 ft\u00b2",
+      "area_raw": 60.9
     },
     {
       "id": "R6",
-      "area_px": 404472,
+      "area_px": 394891,
       "centroid_px": [
-        1179,
-        1791
+        1175,
+        1782
       ],
       "bbox_px": [
-        896,
+        894,
         1427,
         1476,
         2281
       ],
-      "area": "129.0 ft\u00b2",
-      "area_raw": 128.98
+      "area": "125.9 ft\u00b2",
+      "area_raw": 125.92
     },
     {
       "id": "R7",
-      "area_px": 150442,
+      "area_px": 166581,
       "centroid_px": [
-        1148,
-        2528
+        488,
+        2563
       ],
       "bbox_px": [
-        883,
-        2336,
-        1437,
-        2765
+        365,
+        2269,
+        799,
+        2855
       ],
-      "area": "48.0 ft\u00b2",
-      "area_raw": 47.97
+      "area": "53.1 ft\u00b2",
+      "area_raw": 53.12
     },
     {
       "id": "R8",
-      "area_px": 301783,
+      "area_px": 148826,
       "centroid_px": [
-        5393,
+        1136,
+        2513
+      ],
+      "bbox_px": [
+        884,
+        2321,
+        1415,
+        2745
+      ],
+      "area": "47.5 ft\u00b2",
+      "area_raw": 47.46
+    },
+    {
+      "id": "R9",
+      "area_px": 100913,
+      "centroid_px": [
+        3238,
+        3298
+      ],
+      "bbox_px": [
+        3094,
+        3035,
+        3337,
+        3588
+      ],
+      "area": "32.2 ft\u00b2",
+      "area_raw": 32.18
+    },
+    {
+      "id": "R10",
+      "area_px": 292755,
+      "centroid_px": [
+        5394,
         3328
       ],
       "bbox_px": [
         5060,
-        3030,
+        3034,
         5660,
         3631
       ],
-      "area": "96.2 ft\u00b2",
-      "area_raw": 96.23
-    },
-    {
-      "id": "R9",
-      "area_px": 108406,
-      "centroid_px": [
-        1714,
-        3318
-      ],
-      "bbox_px": [
-        1602,
-        3042,
-        1839,
-        3580
-      ],
-      "area": "34.6 ft\u00b2",
-      "area_raw": 34.57
-    },
-    {
-      "id": "R10",
-      "area_px": 104921,
-      "centroid_px": [
-        3237,
-        3302
-      ],
-      "bbox_px": [
-        3094,
-        3036,
-        3341,
-        3588
-      ],
-      "area": "33.5 ft\u00b2",
-      "area_raw": 33.46
+      "area": "93.4 ft\u00b2",
+      "area_raw": 93.35
     },
     {
       "id": "R11",
-      "area_px": 573407,
+      "area_px": 99170,
       "centroid_px": [
-        1156,
-        3642
+        1718,
+        3280
       ],
       "bbox_px": [
-        896,
-        3061,
-        1437,
-        4241
+        1604,
+        3042,
+        1881,
+        3496
       ],
-      "area": "182.8 ft\u00b2",
-      "area_raw": 182.85
+      "area": "31.6 ft\u00b2",
+      "area_raw": 31.62
     },
     {
       "id": "R12",
-      "area_px": 248301,
+      "area_px": 560552,
       "centroid_px": [
-        1707,
-        4024
+        1159,
+        3646
       ],
       "bbox_px": [
-        1525,
-        3630,
-        1874,
-        4454
+        898,
+        3060,
+        1437,
+        4258
       ],
-      "area": "79.2 ft\u00b2",
-      "area_raw": 79.18
+      "area": "178.7 ft\u00b2",
+      "area_raw": 178.75
     },
     {
       "id": "R13",
-      "area_px": 211493,
+      "area_px": 95302,
       "centroid_px": [
-        2769,
+        2489,
+        3411
+      ],
+      "bbox_px": [
+        2265,
+        3305,
+        2765,
+        3550
+      ],
+      "area": "30.4 ft\u00b2",
+      "area_raw": 30.39
+    },
+    {
+      "id": "R14",
+      "area_px": 246187,
+      "centroid_px": [
+        1705,
+        4025
+      ],
+      "bbox_px": [
+        1527,
+        3630,
+        1868,
+        4454
+      ],
+      "area": "78.5 ft\u00b2",
+      "area_raw": 78.5
+    },
+    {
+      "id": "R15",
+      "area_px": 212414,
+      "centroid_px": [
+        2774,
         3854
       ],
       "bbox_px": [
@@ -306,60 +346,44 @@
         3086,
         4037
       ],
-      "area": "67.4 ft\u00b2",
-      "area_raw": 67.44
-    },
-    {
-      "id": "R14",
-      "area_px": 96160,
-      "centroid_px": [
-        3864,
-        3880
-      ],
-      "bbox_px": [
-        3738,
-        3673,
-        4011,
-        4065
-      ],
-      "area": "30.7 ft\u00b2",
-      "area_raw": 30.66
-    },
-    {
-      "id": "R15",
-      "area_px": 273563,
-      "centroid_px": [
-        2178,
-        3982
-      ],
-      "bbox_px": [
-        1927,
-        3701,
-        2426,
-        4281
-      ],
-      "area": "87.2 ft\u00b2",
-      "area_raw": 87.23
+      "area": "67.7 ft\u00b2",
+      "area_raw": 67.73
     },
     {
       "id": "R16",
-      "area_px": 101242,
+      "area_px": 273029,
       "centroid_px": [
-        3527,
-        4114
+        2173,
+        3967
       ],
       "bbox_px": [
-        3368,
-        3956,
-        3687,
-        4275
+        1925,
+        3675,
+        2426,
+        4281
       ],
-      "area": "32.3 ft\u00b2",
-      "area_raw": 32.28
+      "area": "87.1 ft\u00b2",
+      "area_raw": 87.06
     },
     {
       "id": "R17",
-      "area_px": 149632,
+      "area_px": 101260,
+      "centroid_px": [
+        3525,
+        4115
+      ],
+      "bbox_px": [
+        3365,
+        3956,
+        3684,
+        4275
+      ],
+      "area": "32.3 ft\u00b2",
+      "area_raw": 32.29
+    },
+    {
+      "id": "R18",
+      "area_px": 149463,
       "centroid_px": [
         2758,
         4193
@@ -371,187 +395,149 @@
         4468
       ],
       "area": "47.7 ft\u00b2",
-      "area_raw": 47.71
-    },
-    {
-      "id": "R18",
-      "area_px": 563578,
-      "centroid_px": [
-        2078,
-        4889
-      ],
-      "bbox_px": [
-        1418,
-        4352,
-        2539,
-        5224
-      ],
-      "area": "179.7 ft\u00b2",
-      "area_raw": 179.71
+      "area_raw": 47.66
     },
     {
       "id": "R19",
-      "area_px": 107677,
+      "area_px": 563374,
       "centroid_px": [
-        1713,
-        4754
+        2070,
+        4890
+      ],
+      "bbox_px": [
+        1400,
+        4407,
+        2538,
+        5224
+      ],
+      "area": "179.6 ft\u00b2",
+      "area_raw": 179.65
+    },
+    {
+      "id": "R20",
+      "area_px": 113363,
+      "centroid_px": [
+        1718,
+        4755
       ],
       "bbox_px": [
         1528,
         4530,
-        1871,
+        1881,
         4907
       ],
-      "area": "34.3 ft\u00b2",
-      "area_raw": 34.34
+      "area": "36.1 ft\u00b2",
+      "area_raw": 36.15
     }
   ],
   "walls": [
     {
       "id": "w1.s1",
-      "name": "East Wall 1 part 1 \u2192 (no room)",
-      "facing": "East",
-      "length": "0.75 ft",
-      "length_raw": 0.75,
+      "name": "West Wall 1 part 1 \u2192 R2",
+      "facing": "West",
+      "length": "4.45 ft",
+      "length_raw": 4.45,
       "angle_deg": 180.0,
       "px_coords": [
-        4932,
-        747,
-        4932,
-        789
+        866,
+        789,
+        866,
+        1038
       ],
-      "room_id": null,
+      "room_id": "R2",
       "parent_wall_id": "w1",
       "segment_index": 1,
-      "segment_count": 1,
-      "is_exterior": true
-    },
-    {
-      "id": "w2.s1",
-      "name": "North Wall 2 part 1 \u2192 R1",
-      "facing": "North",
-      "length": "54.62 ft",
-      "length_raw": 54.62,
-      "angle_deg": 270.0,
-      "px_coords": [
-        4926,
-        789,
-        1867,
-        789
-      ],
-      "room_id": "R1",
-      "parent_wall_id": "w2",
-      "segment_index": 1,
       "segment_count": 3,
       "is_exterior": true
     },
     {
-      "id": "w2.s2",
-      "name": "North Wall 2 part 2 \u2192 (no room)",
-      "facing": "North",
-      "length": "7.71 ft",
-      "length_raw": 7.71,
-      "angle_deg": 270.0,
-      "px_coords": [
-        1867,
-        789,
-        1435,
-        789
-      ],
-      "room_id": null,
-      "parent_wall_id": "w2",
-      "segment_index": 2,
-      "segment_count": 3,
-      "is_exterior": true
-    },
-    {
-      "id": "w2.s3",
-      "name": "North Wall 2 part 3 \u2192 R2",
-      "facing": "North",
-      "length": "10.16 ft",
-      "length_raw": 10.16,
-      "angle_deg": 270.0,
-      "px_coords": [
-        1435,
-        789,
-        866,
-        789
-      ],
-      "room_id": "R2",
-      "parent_wall_id": "w2",
-      "segment_index": 3,
-      "segment_count": 3,
-      "is_exterior": true
-    },
-    {
-      "id": "w3.s1",
-      "name": "West Wall 3 part 1 \u2192 R2",
+      "id": "w1.s2",
+      "name": "West Wall 1 part 2 \u2192 (no room)",
       "facing": "West",
-      "length": "4.39 ft",
-      "length_raw": 4.39,
+      "length": "6.71 ft",
+      "length_raw": 6.71,
       "angle_deg": 180.0,
       "px_coords": [
         866,
-        789,
-        866,
-        1035
-      ],
-      "room_id": "R2",
-      "parent_wall_id": "w3",
-      "segment_index": 1,
-      "segment_count": 3,
-      "is_exterior": true
-    },
-    {
-      "id": "w3.s2",
-      "name": "West Wall 3 part 2 \u2192 (no room)",
-      "facing": "West",
-      "length": "6.77 ft",
-      "length_raw": 6.77,
-      "angle_deg": 180.0,
-      "px_coords": [
-        866,
-        1035,
+        1038,
         866,
         1414
       ],
       "room_id": null,
-      "parent_wall_id": "w3",
+      "parent_wall_id": "w1",
       "segment_index": 2,
       "segment_count": 3,
       "is_exterior": true
     },
     {
-      "id": "w3.s3",
-      "name": "West Wall 3 part 3 \u2192 R6",
+      "id": "w1.s3",
+      "name": "West Wall 1 part 3 \u2192 R6",
       "facing": "West",
-      "length": "16.04 ft",
-      "length_raw": 16.04,
+      "length": "15.16 ft",
+      "length_raw": 15.16,
       "angle_deg": 180.0,
       "px_coords": [
         866,
         1414,
         866,
-        2312
+        2263
       ],
       "room_id": "R6",
-      "parent_wall_id": "w3",
+      "parent_wall_id": "w1",
       "segment_index": 3,
       "segment_count": 3,
       "is_exterior": true
     },
     {
-      "id": "w4.s1",
-      "name": "West Wall 4 part 1 \u2192 (no room)",
+      "id": "w2.s1",
+      "name": "North Wall 2 part 1 \u2192 R7",
+      "facing": "North",
+      "length": "4.91 ft",
+      "length_raw": 4.91,
+      "angle_deg": 270.0,
+      "px_coords": [
+        866,
+        2285,
+        591,
+        2285
+      ],
+      "room_id": "R7",
+      "parent_wall_id": "w2",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w3.s1",
+      "name": "West Wall 3 part 1 \u2192 R7",
       "facing": "West",
-      "length": "8.57 ft",
-      "length_raw": 8.57,
+      "length": "10.93 ft",
+      "length_raw": 10.93,
       "angle_deg": 180.0,
       "px_coords": [
-        645,
-        2312,
-        645,
-        2792
+        365,
+        2255,
+        365,
+        2867
+      ],
+      "room_id": "R7",
+      "parent_wall_id": "w3",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w4.s1",
+      "name": "South Wall 4 part 1 \u2192 (no room)",
+      "facing": "South",
+      "length": "4.88 ft",
+      "length_raw": 4.88,
+      "angle_deg": 90.0,
+      "px_coords": [
+        591,
+        2821,
+        864,
+        2821
       ],
       "room_id": null,
       "parent_wall_id": "w4",
@@ -561,34 +547,53 @@
     },
     {
       "id": "w5.s1",
-      "name": "West Wall 5 part 1 \u2192 R11",
+      "name": "West Wall 5 part 1 \u2192 R12",
       "facing": "West",
-      "length": "26.23 ft",
-      "length_raw": 26.23,
+      "length": "25.71 ft",
+      "length_raw": 25.71,
       "angle_deg": 180.0,
       "px_coords": [
         864,
-        2792,
+        2821,
         864,
         4261
       ],
-      "room_id": "R11",
+      "room_id": "R12",
       "parent_wall_id": "w5",
       "segment_index": 1,
-      "segment_count": 1,
+      "segment_count": 2,
+      "is_exterior": true
+    },
+    {
+      "id": "w5.s2",
+      "name": "West Wall 5 part 2 \u2192 (no room)",
+      "facing": "West",
+      "length": "6.70 ft",
+      "length_raw": 6.7,
+      "angle_deg": 180.0,
+      "px_coords": [
+        864,
+        4261,
+        864,
+        4636
+      ],
+      "room_id": null,
+      "parent_wall_id": "w5",
+      "segment_index": 2,
+      "segment_count": 2,
       "is_exterior": true
     },
     {
       "id": "w6.s1",
       "name": "South Wall 6 part 1 \u2192 (no room)",
       "facing": "South",
-      "length": "9.32 ft",
-      "length_raw": 9.32,
+      "length": "9.23 ft",
+      "length_raw": 9.23,
       "angle_deg": 90.0,
       "px_coords": [
-        877,
+        864,
         4636,
-        1399,
+        1381,
         4636
       ],
       "room_id": null,
@@ -599,18 +604,18 @@
     },
     {
       "id": "w7.s1",
-      "name": "West Wall 7 part 1 \u2192 R18",
+      "name": "West Wall 7 part 1 \u2192 (no room)",
       "facing": "West",
-      "length": "3.88 ft",
-      "length_raw": 3.88,
+      "length": "8.05 ft",
+      "length_raw": 8.05,
       "angle_deg": 180.0,
       "px_coords": [
-        1502,
-        4821,
-        1502,
+        1497,
+        4587,
+        1497,
         5038
       ],
-      "room_id": "R18",
+      "room_id": null,
       "parent_wall_id": "w7",
       "segment_index": 1,
       "segment_count": 1,
@@ -618,18 +623,18 @@
     },
     {
       "id": "w8.s1",
-      "name": "South Wall 8 part 1 \u2192 R18",
+      "name": "South Wall 8 part 1 \u2192 R19",
       "facing": "South",
-      "length": "20.48 ft",
-      "length_raw": 20.48,
+      "length": "20.79 ft",
+      "length_raw": 20.79,
       "angle_deg": 90.0,
       "px_coords": [
-        1404,
+        1386,
         5223,
-        2551,
+        2550,
         5223
       ],
-      "room_id": "R18",
+      "room_id": "R19",
       "parent_wall_id": "w8",
       "segment_index": 1,
       "segment_count": 1,
@@ -637,18 +642,18 @@
     },
     {
       "id": "w9.s1",
-      "name": "West Wall 9 part 1 \u2192 R18",
+      "name": "West Wall 9 part 1 \u2192 R19",
       "facing": "West",
       "length": "13.36 ft",
       "length_raw": 13.36,
       "angle_deg": 0.0,
       "px_coords": [
-        2458,
+        2457,
         5064,
-        2458,
+        2457,
         4316
       ],
-      "room_id": "R18",
+      "room_id": "R19",
       "parent_wall_id": "w9",
       "segment_index": 1,
       "segment_count": 1,
@@ -675,7 +680,7 @@
     },
     {
       "id": "w10.s2",
-      "name": "South Wall 10 part 2 \u2192 R16",
+      "name": "South Wall 10 part 2 \u2192 R17",
       "facing": "South",
       "length": "6.59 ft",
       "length_raw": 6.59,
@@ -686,7 +691,7 @@
         3710,
         4286
       ],
-      "room_id": "R16",
+      "room_id": "R17",
       "parent_wall_id": "w10",
       "segment_index": 2,
       "segment_count": 3,
@@ -696,13 +701,13 @@
       "id": "w10.s3",
       "name": "South Wall 10 part 3 \u2192 (no room)",
       "facing": "South",
-      "length": "5.91 ft",
-      "length_raw": 5.91,
+      "length": "5.54 ft",
+      "length_raw": 5.54,
       "angle_deg": 90.0,
       "px_coords": [
         3710,
         4286,
-        4041,
+        4020,
         4286
       ],
       "room_id": null,
@@ -713,64 +718,83 @@
     },
     {
       "id": "w11.s1",
-      "name": "South Wall 11 part 1 \u2192 (no room)",
+      "name": "East Wall 11 part 1 \u2192 (no room)",
+      "facing": "East",
+      "length": "8.32 ft",
+      "length_raw": 8.32,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4020,
+        4286,
+        4020,
+        3820
+      ],
+      "room_id": null,
+      "parent_wall_id": "w11",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w12.s1",
+      "name": "South Wall 12 part 1 \u2192 (no room)",
       "facing": "South",
       "length": "17.43 ft",
       "length_raw": 17.43,
       "angle_deg": 90.0,
       "px_coords": [
         4246,
-        3608,
+        3602,
         5222,
-        3608
+        3602
       ],
       "room_id": null,
-      "parent_wall_id": "w11",
+      "parent_wall_id": "w12",
       "segment_index": 1,
       "segment_count": 2,
       "is_exterior": true
     },
     {
-      "id": "w11.s2",
-      "name": "South Wall 11 part 2 \u2192 R8",
+      "id": "w12.s2",
+      "name": "South Wall 12 part 2 \u2192 R10",
       "facing": "South",
       "length": "3.79 ft",
       "length_raw": 3.79,
       "angle_deg": 90.0,
       "px_coords": [
         5222,
-        3608,
+        3602,
         5434,
-        3608
+        3602
       ],
-      "room_id": "R8",
-      "parent_wall_id": "w11",
+      "room_id": "R10",
+      "parent_wall_id": "w12",
       "segment_index": 2,
       "segment_count": 2,
       "is_exterior": true
     },
     {
-      "id": "w12.s1",
-      "name": "East Wall 12 part 1 \u2192 R8",
+      "id": "w13.s1",
+      "name": "East Wall 13 part 1 \u2192 R10",
       "facing": "East",
-      "length": "11.20 ft",
-      "length_raw": 11.2,
+      "length": "11.12 ft",
+      "length_raw": 11.12,
       "angle_deg": 0.0,
       "px_coords": [
         5659,
         3643,
         5659,
-        3016
+        3020
       ],
-      "room_id": "R8",
-      "parent_wall_id": "w12",
+      "room_id": "R10",
+      "parent_wall_id": "w13",
       "segment_index": 1,
       "segment_count": 1,
       "is_exterior": true
     },
     {
-      "id": "w13.s1",
-      "name": "North Wall 13 part 1 \u2192 R8",
+      "id": "w14.s1",
+      "name": "North Wall 14 part 1 \u2192 R10",
       "facing": "North",
       "length": "9.71 ft",
       "length_raw": 9.71,
@@ -781,53 +805,125 @@
         4926,
         3020
       ],
-      "room_id": "R8",
-      "parent_wall_id": "w13",
+      "room_id": "R10",
+      "parent_wall_id": "w14",
       "segment_index": 1,
       "segment_count": 1,
       "is_exterior": true
     },
     {
-      "id": "w14.s1",
-      "name": "East Wall 14 part 1 \u2192 (no room)",
+      "id": "w15.s1",
+      "name": "East Wall 15 part 1 \u2192 (no room)",
       "facing": "East",
-      "length": "10.55 ft",
-      "length_raw": 10.55,
+      "length": "10.59 ft",
+      "length_raw": 10.59,
       "angle_deg": 0.0,
       "px_coords": [
         4926,
         3020,
         4926,
-        2429
+        2427
       ],
       "room_id": null,
-      "parent_wall_id": "w14",
+      "parent_wall_id": "w15",
       "segment_index": 1,
       "segment_count": 2,
       "is_exterior": true
     },
     {
-      "id": "w14.s2",
-      "name": "East Wall 14 part 2 \u2192 R3",
+      "id": "w15.s2",
+      "name": "East Wall 15 part 2 \u2192 R3",
       "facing": "East",
-      "length": "29.29 ft",
-      "length_raw": 29.29,
+      "length": "29.25 ft",
+      "length_raw": 29.25,
       "angle_deg": 0.0,
       "px_coords": [
         4926,
-        2429,
+        2427,
         4926,
         789
       ],
       "room_id": "R3",
-      "parent_wall_id": "w14",
+      "parent_wall_id": "w15",
       "segment_index": 2,
       "segment_count": 2,
       "is_exterior": true
     },
     {
-      "id": "w20",
-      "name": "North Wall 20",
+      "id": "w16.s1",
+      "name": "East Wall 16 part 1 \u2192 (no room)",
+      "facing": "East",
+      "length": "0.45 ft",
+      "length_raw": 0.45,
+      "angle_deg": 0.0,
+      "px_coords": [
+        4932,
+        814,
+        4932,
+        789
+      ],
+      "room_id": null,
+      "parent_wall_id": "w16",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w17.s1",
+      "name": "North Wall 17 part 1 \u2192 R1",
+      "facing": "North",
+      "length": "62.36 ft",
+      "length_raw": 62.36,
+      "angle_deg": 270.0,
+      "px_coords": [
+        4926,
+        789,
+        1434,
+        789
+      ],
+      "room_id": "R1",
+      "parent_wall_id": "w17",
+      "segment_index": 1,
+      "segment_count": 2,
+      "is_exterior": true
+    },
+    {
+      "id": "w17.s2",
+      "name": "North Wall 17 part 2 \u2192 R2",
+      "facing": "North",
+      "length": "10.14 ft",
+      "length_raw": 10.14,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1434,
+        789,
+        866,
+        789
+      ],
+      "room_id": "R2",
+      "parent_wall_id": "w17",
+      "segment_index": 2,
+      "segment_count": 2,
+      "is_exterior": true
+    },
+    {
+      "id": "w19",
+      "name": "North Wall 19",
+      "facing": "North",
+      "length": "53.43 ft",
+      "length_raw": 53.43,
+      "angle_deg": 90.0,
+      "px_coords": [
+        1725,
+        999,
+        4717,
+        999
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w24",
+      "name": "North Wall 24",
       "facing": "North",
       "length": "16.50 ft",
       "length_raw": 16.5,
@@ -841,62 +937,32 @@
       "is_exterior": false
     },
     {
-      "id": "w21",
-      "name": "North Wall 21",
-      "facing": "North",
-      "length": "11.14 ft",
-      "length_raw": 11.14,
-      "angle_deg": 90.0,
-      "px_coords": [
-        1725,
-        1664,
-        2349,
-        1664
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w22",
-      "name": "North Wall 22",
-      "facing": "North",
-      "length": "11.02 ft",
-      "length_raw": 11.02,
-      "angle_deg": 90.0,
-      "px_coords": [
-        4100,
-        1664,
-        4717,
-        1664
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w24",
-      "name": "North Wall 24",
-      "facing": "North",
-      "length": "11.14 ft",
-      "length_raw": 11.14,
-      "angle_deg": 90.0,
-      "px_coords": [
-        1725,
-        2176,
-        2349,
-        2176
-      ],
-      "is_exterior": false
-    },
-    {
       "id": "w25",
       "name": "North Wall 25",
       "facing": "North",
-      "length": "11.02 ft",
-      "length_raw": 11.02,
+      "length": "11.14 ft",
+      "length_raw": 11.14,
       "angle_deg": 90.0,
       "px_coords": [
-        4100,
-        2176,
+        1725,
+        1664,
+        2349,
+        1664
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w26",
+      "name": "North Wall 26",
+      "facing": "North",
+      "length": "11.14 ft",
+      "length_raw": 11.14,
+      "angle_deg": 90.0,
+      "px_coords": [
+        4093,
+        1664,
         4717,
-        2176
+        1664
       ],
       "is_exterior": false
     },
@@ -904,26 +970,71 @@
       "id": "w28",
       "name": "North Wall 28",
       "facing": "North",
-      "length": "19.29 ft",
-      "length_raw": 19.29,
+      "length": "11.14 ft",
+      "length_raw": 11.14,
       "angle_deg": 90.0,
       "px_coords": [
-        645,
-        2312,
         1725,
-        2312
+        2176,
+        2349,
+        2176
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w29",
+      "name": "North Wall 29",
+      "facing": "North",
+      "length": "11.12 ft",
+      "length_raw": 11.12,
+      "angle_deg": 90.0,
+      "px_coords": [
+        4094,
+        2176,
+        4717,
+        2176
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w30",
+      "name": "North Wall 30",
+      "facing": "North",
+      "length": "15.34 ft",
+      "length_raw": 15.34,
+      "angle_deg": 90.0,
+      "px_coords": [
+        866,
+        2263,
+        1725,
+        2263
       ],
       "is_exterior": false
     },
     {
       "id": "w33",
-      "name": "South Wall 33",
-      "facing": "South",
-      "length": "15.77 ft",
-      "length_raw": 15.77,
+      "name": "North Wall 33",
+      "facing": "North",
+      "length": "16.50 ft",
+      "length_raw": 16.5,
       "angle_deg": 90.0,
       "px_coords": [
-        645,
+        595,
+        2354,
+        1519,
+        2354
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w37",
+      "name": "South Wall 37",
+      "facing": "South",
+      "length": "16.66 ft",
+      "length_raw": 16.66,
+      "angle_deg": 90.0,
+      "px_coords": [
+        595,
         2792,
         1528,
         2792
@@ -931,8 +1042,8 @@
       "is_exterior": false
     },
     {
-      "id": "w34",
-      "name": "South Wall 34",
+      "id": "w38",
+      "name": "South Wall 38",
       "facing": "South",
       "length": "53.43 ft",
       "length_raw": 53.43,
@@ -946,47 +1057,47 @@
       "is_exterior": false
     },
     {
-      "id": "w36",
-      "name": "South Wall 36",
+      "id": "w40",
+      "name": "South Wall 40",
       "facing": "South",
-      "length": "14.18 ft",
-      "length_raw": 14.18,
+      "length": "18.71 ft",
+      "length_raw": 18.71,
       "angle_deg": 90.0,
       "px_coords": [
-        864,
-        3039,
-        1658,
-        3039
+        595,
+        3047,
+        1643,
+        3047
       ],
       "is_exterior": false
     },
     {
-      "id": "w38",
-      "name": "South Wall 38",
+      "id": "w42",
+      "name": "South Wall 42",
       "facing": "South",
       "length": "14.79 ft",
       "length_raw": 14.79,
       "angle_deg": 90.0,
       "px_coords": [
         2261,
-        3039,
+        3047,
         3089,
-        3039
+        3047
       ],
       "is_exterior": false
     },
     {
-      "id": "w39",
-      "name": "South Wall 39",
+      "id": "w43",
+      "name": "South Wall 43",
       "facing": "South",
       "length": "17.36 ft",
       "length_raw": 17.36,
       "angle_deg": 90.0,
       "px_coords": [
         3333,
-        3039,
+        3047,
         4305,
-        3039
+        3047
       ],
       "is_exterior": false
     },
@@ -994,14 +1105,14 @@
       "id": "w47",
       "name": "South Wall 47",
       "facing": "South",
-      "length": "20.66 ft",
-      "length_raw": 20.66,
+      "length": "15.73 ft",
+      "length_raw": 15.73,
       "angle_deg": 90.0,
       "px_coords": [
-        3569,
-        3282,
+        3845,
+        3257,
         4726,
-        3282
+        3257
       ],
       "is_exterior": false
     },
@@ -1081,16 +1192,16 @@
       "is_exterior": false
     },
     {
-      "id": "w81",
-      "name": "West Wall 81",
+      "id": "w79",
+      "name": "West Wall 79",
       "facing": "West",
-      "length": "22.34 ft",
-      "length_raw": 22.34,
+      "length": "7.18 ft",
+      "length_raw": 7.18,
       "angle_deg": 180.0,
       "px_coords": [
-        1519,
-        1414,
-        1519,
+        1471,
+        2263,
+        1471,
         2665
       ],
       "is_exterior": false
@@ -1098,6 +1209,21 @@
     {
       "id": "w83",
       "name": "West Wall 83",
+      "facing": "West",
+      "length": "16.79 ft",
+      "length_raw": 16.79,
+      "angle_deg": 180.0,
+      "px_coords": [
+        1519,
+        1414,
+        1519,
+        2354
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w85",
+      "name": "West Wall 85",
       "facing": "West",
       "length": "19.61 ft",
       "length_raw": 19.61,
@@ -1111,53 +1237,53 @@
       "is_exterior": false
     },
     {
-      "id": "w85",
-      "name": "West Wall 85",
+      "id": "w88",
+      "name": "West Wall 88",
       "facing": "West",
-      "length": "32.98 ft",
-      "length_raw": 32.98,
+      "length": "32.95 ft",
+      "length_raw": 32.95,
       "angle_deg": 180.0,
       "px_coords": [
         1725,
-        997,
+        999,
         1725,
         2844
       ],
       "is_exterior": false
     },
     {
-      "id": "w88",
-      "name": "West Wall 88",
+      "id": "w90",
+      "name": "West Wall 90",
       "facing": "West",
-      "length": "11.52 ft",
-      "length_raw": 11.52,
+      "length": "24.71 ft",
+      "length_raw": 24.71,
       "angle_deg": 180.0,
       "px_coords": [
         1896,
-        4389,
-        1896,
-        5034
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w89",
-      "name": "West Wall 89",
-      "facing": "West",
-      "length": "9.55 ft",
-      "length_raw": 9.55,
-      "angle_deg": 180.0,
-      "px_coords": [
-        1914,
         2844,
-        1914,
-        3379
+        1896,
+        4228
       ],
       "is_exterior": false
     },
     {
       "id": "w91",
       "name": "West Wall 91",
+      "facing": "West",
+      "length": "12.00 ft",
+      "length_raw": 12.0,
+      "angle_deg": 180.0,
+      "px_coords": [
+        1896,
+        4389,
+        1896,
+        5061
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w93",
+      "name": "West Wall 93",
       "facing": "West",
       "length": "13.71 ft",
       "length_raw": 13.71,
@@ -1171,31 +1297,16 @@
       "is_exterior": false
     },
     {
-      "id": "w96",
-      "name": "West Wall 96",
-      "facing": "West",
-      "length": "19.52 ft",
-      "length_raw": 19.52,
-      "angle_deg": 180.0,
-      "px_coords": [
-        3109,
-        3193,
-        3109,
-        4286
-      ],
-      "is_exterior": false
-    },
-    {
-      "id": "w98",
-      "name": "East Wall 98",
+      "id": "w97",
+      "name": "East Wall 97",
       "facing": "East",
       "length": "19.52 ft",
       "length_raw": 19.52,
       "angle_deg": 180.0,
       "px_coords": [
-        3341,
+        3109,
         3193,
-        3341,
+        3109,
         4286
       ],
       "is_exterior": false
@@ -1204,20 +1315,35 @@
       "id": "w99",
       "name": "East Wall 99",
       "facing": "East",
-      "length": "7.82 ft",
-      "length_raw": 7.82,
+      "length": "19.52 ft",
+      "length_raw": 19.52,
       "angle_deg": 180.0,
       "px_coords": [
-        3569,
-        2844,
-        3569,
-        3282
+        3341,
+        3193,
+        3341,
+        4286
       ],
       "is_exterior": false
     },
     {
       "id": "w100",
       "name": "East Wall 100",
+      "facing": "East",
+      "length": "9.02 ft",
+      "length_raw": 9.02,
+      "angle_deg": 180.0,
+      "px_coords": [
+        3569,
+        2844,
+        3569,
+        3349
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w102",
+      "name": "East Wall 102",
       "facing": "East",
       "length": "12.04 ft",
       "length_raw": 12.04,
@@ -1231,47 +1357,47 @@
       "is_exterior": false
     },
     {
-      "id": "w106",
-      "name": "East Wall 106",
+      "id": "w107",
+      "name": "East Wall 107",
       "facing": "East",
-      "length": "9.64 ft",
-      "length_raw": 9.64,
+      "length": "10.09 ft",
+      "length_raw": 10.09,
       "angle_deg": 180.0,
       "px_coords": [
         4246,
-        3282,
+        3257,
         4246,
         3822
       ],
       "is_exterior": false
     },
     {
-      "id": "w109",
-      "name": "East Wall 109",
+      "id": "w110",
+      "name": "East Wall 110",
       "facing": "East",
-      "length": "33.02 ft",
-      "length_raw": 33.02,
+      "length": "32.95 ft",
+      "length_raw": 32.95,
       "angle_deg": 180.0,
       "px_coords": [
         4717,
-        995,
+        999,
         4717,
         2844
       ],
       "is_exterior": false
     },
     {
-      "id": "w112",
-      "name": "East Wall 112",
+      "id": "w113",
+      "name": "East Wall 113",
       "facing": "East",
-      "length": "10.50 ft",
-      "length_raw": 10.5,
+      "length": "10.39 ft",
+      "length_raw": 10.39,
       "angle_deg": 180.0,
       "px_coords": [
         5222,
         3020,
         5222,
-        3608
+        3602
       ],
       "is_exterior": false
     }
@@ -1279,39 +1405,397 @@
   "doors": [
     {
       "id": "d1",
-      "host_wall_id": "w34",
+      "host_wall_id": "w90",
       "bbox_px": [
-        1528,
-        2776,
-        1725,
-        2860
+        1854,
+        4228,
+        1938,
+        4389
       ],
       "center_px": [
-        1626.5,
-        2818.0
+        1896.0,
+        4308.5
       ],
-      "width": "3.52 ft",
-      "width_raw": 3.52,
+      "width": "2.88 ft",
+      "width_raw": 2.88,
       "is_exterior": false,
       "evidence": "gap"
     }
   ],
+  "windows": [
+    {
+      "id": "win1",
+      "host_wall_id": "w2.s1",
+      "bbox_px": [
+        673,
+        2243,
+        810,
+        2327
+      ],
+      "center_px": [
+        741.5,
+        2285.0
+      ],
+      "width": "2.45 ft",
+      "width_raw": 2.45,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win2",
+      "host_wall_id": "w4.s1",
+      "bbox_px": [
+        673,
+        2779,
+        810,
+        2863
+      ],
+      "center_px": [
+        741.5,
+        2821.0
+      ],
+      "width": "2.45 ft",
+      "width_raw": 2.45,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win3",
+      "host_wall_id": "w5.s1",
+      "bbox_px": [
+        822,
+        2863,
+        906,
+        3039
+      ],
+      "center_px": [
+        864.0,
+        2951.0
+      ],
+      "width": "3.14 ft",
+      "width_raw": 3.14,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win4",
+      "host_wall_id": "w5.s2",
+      "bbox_px": [
+        822,
+        4303,
+        906,
+        4573
+      ],
+      "center_px": [
+        864.0,
+        4438.0
+      ],
+      "width": "4.82 ft",
+      "width_raw": 4.82,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win5",
+      "host_wall_id": "w1.s1",
+      "bbox_px": [
+        824,
+        831,
+        908,
+        996
+      ],
+      "center_px": [
+        866.0,
+        913.5
+      ],
+      "width": "2.95 ft",
+      "width_raw": 2.95,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win6",
+      "host_wall_id": "w1.s2",
+      "bbox_px": [
+        824,
+        1200,
+        908,
+        1372
+      ],
+      "center_px": [
+        866.0,
+        1286.0
+      ],
+      "width": "3.07 ft",
+      "width_raw": 3.07,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win7",
+      "host_wall_id": "w6.s1",
+      "bbox_px": [
+        906,
+        4594,
+        1339,
+        4678
+      ],
+      "center_px": [
+        1122.5,
+        4636.0
+      ],
+      "width": "7.73 ft",
+      "width_raw": 7.73,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win8",
+      "host_wall_id": "w17.s1",
+      "bbox_px": [
+        1564,
+        747,
+        1775,
+        831
+      ],
+      "center_px": [
+        1669.5,
+        789.0
+      ],
+      "width": "3.77 ft",
+      "width_raw": 3.77,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win9",
+      "host_wall_id": "w9.s1",
+      "bbox_px": [
+        2415,
+        4492,
+        2499,
+        4862
+      ],
+      "center_px": [
+        2457.0,
+        4677.0
+      ],
+      "width": "6.61 ft",
+      "width_raw": 6.61,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win10",
+      "host_wall_id": "w9.s1",
+      "bbox_px": [
+        2415,
+        4886,
+        2499,
+        5022
+      ],
+      "center_px": [
+        2457.0,
+        4954.0
+      ],
+      "width": "2.43 ft",
+      "width_raw": 2.43,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win11",
+      "host_wall_id": "w10.s2",
+      "bbox_px": [
+        3383,
+        4244,
+        3668,
+        4328
+      ],
+      "center_px": [
+        3525.5,
+        4286.0
+      ],
+      "width": "5.09 ft",
+      "width_raw": 5.09,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win12",
+      "host_wall_id": "w10.s3",
+      "bbox_px": [
+        3752,
+        4244,
+        3978,
+        4328
+      ],
+      "center_px": [
+        3865.0,
+        4286.0
+      ],
+      "width": "4.04 ft",
+      "width_raw": 4.04,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win13",
+      "host_wall_id": "w11.s1",
+      "bbox_px": [
+        3978,
+        4096,
+        4062,
+        4244
+      ],
+      "center_px": [
+        4020.0,
+        4170.0
+      ],
+      "width": "2.64 ft",
+      "width_raw": 2.64,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win14",
+      "host_wall_id": "w12.s1",
+      "bbox_px": [
+        4288,
+        3560,
+        4577,
+        3644
+      ],
+      "center_px": [
+        4432.5,
+        3602.0
+      ],
+      "width": "5.16 ft",
+      "width_raw": 5.16,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win15",
+      "host_wall_id": "w12.s1",
+      "bbox_px": [
+        4727,
+        3560,
+        4914,
+        3644
+      ],
+      "center_px": [
+        4820.5,
+        3602.0
+      ],
+      "width": "3.34 ft",
+      "width_raw": 3.34,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win16",
+      "host_wall_id": "w15.s1",
+      "bbox_px": [
+        4884,
+        2469,
+        4968,
+        2837
+      ],
+      "center_px": [
+        4926.0,
+        2653.0
+      ],
+      "width": "6.57 ft",
+      "width_raw": 6.57,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win17",
+      "host_wall_id": "w15.s1",
+      "bbox_px": [
+        4884,
+        2847,
+        4968,
+        2978
+      ],
+      "center_px": [
+        4926.0,
+        2912.5
+      ],
+      "width": "2.34 ft",
+      "width_raw": 2.34,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win18",
+      "host_wall_id": "w12.s1",
+      "bbox_px": [
+        4946,
+        3560,
+        5059,
+        3644
+      ],
+      "center_px": [
+        5002.5,
+        3602.0
+      ],
+      "width": "2.02 ft",
+      "width_raw": 2.02,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win19",
+      "host_wall_id": "w14.s1",
+      "bbox_px": [
+        5114,
+        2978,
+        5348,
+        3062
+      ],
+      "center_px": [
+        5231.0,
+        3020.0
+      ],
+      "width": "4.18 ft",
+      "width_raw": 4.18,
+      "is_exterior": true,
+      "evidence": "sill"
+    }
+  ],
   "mask_roi_offset": [
-    0,
-    0
+    365,
+    74
   ],
   "calibration": {
     "status": "ok",
     "dpi": 56,
     "px_per_ft": 56.0,
     "footprint_span_ft": [
-      90.12,
-      93.27
+      94.54,
+      91.95
     ],
-    "total_area_raw": 5102.94,
+    "total_area_raw": 5107.9,
     "issues": [],
     "suggested_dpi": null,
     "crop_mode": true
   },
-  "runtime_s": 5.22
+  "roi_hint_pct": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "user-roi"
+  },
+  "analysis_roi_pct": {
+    "x0_pct": 0.06448763250883392,
+    "y0_pct": 0.014165390505359877,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "auto-expanded"
+  },
+  "runtime_s": 13.71
 }

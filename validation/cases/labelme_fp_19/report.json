@@ -2,90 +2,36 @@
   "case_id": "labelme_fp_19",
   "summary": {
     "macro": {
-      "precision": 0.3094,
-      "recall": 0.1881,
-      "f1": 0.197
+      "precision": 0.4463,
+      "recall": 0.2162,
+      "f1": 0.244
     },
     "micro": {
-      "precision": 0.1818,
-      "recall": 0.0181,
-      "f1": 0.0329,
-      "true_positives": 8,
+      "precision": 0.4098,
+      "recall": 0.0566,
+      "f1": 0.0994,
+      "true_positives": 25,
       "false_positives": 36,
-      "false_negatives": 434
+      "false_negatives": 417
     },
-    "mean_iou": 0.7878
+    "mean_iou": 0.764
   },
   "categories": {
     "rooms": {
       "category": "rooms",
       "counts": {
-        "true_positives": 2,
+        "true_positives": 1,
         "false_positives": 8,
-        "false_negatives": 73
+        "false_negatives": 74
       },
-      "precision": 0.2,
-      "recall": 0.0267,
-      "f1": 0.0471,
-      "mean_iou": 0.6305,
+      "precision": 0.1111,
+      "recall": 0.0133,
+      "f1": 0.0238,
+      "mean_iou": 0.5788,
       "matches": [
         {
-          "ground_truth_id": "R65",
-          "predicted_id": "R10",
-          "score": 0.6822,
-          "ground_truth": {
-            "id": "R65",
-            "bbox_px": [
-              1155.7500000000002,
-              2003.2500000000002,
-              1505.7500000000002,
-              2315.75
-            ],
-            "polygon_px": [
-              [
-                1240.7500000000002,
-                2094.5
-              ],
-              [
-                1238.8750000000002,
-                2003.8750000000002
-              ],
-              [
-                1505.7500000000002,
-                2003.2500000000002
-              ],
-              [
-                1504.5000000000002,
-                2313.875
-              ],
-              [
-                1155.7500000000002,
-                2315.75
-              ],
-              [
-                1157.0000000000002,
-                2094.5
-              ]
-            ]
-          },
-          "predicted": {
-            "id": "R10",
-            "area_raw": 34.29,
-            "bbox_px": [
-              1154.0,
-              1973.0,
-              1615.0,
-              2310.0
-            ],
-            "centroid_px": [
-              1352,
-              2161
-            ]
-          }
-        },
-        {
           "ground_truth_id": "R75",
-          "predicted_id": "R5",
+          "predicted_id": "R4",
           "score": 0.5788,
           "ground_truth": {
             "id": "R75",
@@ -97,7 +43,7 @@
             ]
           },
           "predicted": {
-            "id": "R5",
+            "id": "R4",
             "area_raw": 207.65,
             "bbox_px": [
               3834.0,
@@ -1076,6 +1022,41 @@
           ]
         },
         {
+          "id": "R65",
+          "bbox_px": [
+            1155.7500000000002,
+            2003.2500000000002,
+            1505.7500000000002,
+            2315.75
+          ],
+          "polygon_px": [
+            [
+              1240.7500000000002,
+              2094.5
+            ],
+            [
+              1238.8750000000002,
+              2003.8750000000002
+            ],
+            [
+              1505.7500000000002,
+              2003.2500000000002
+            ],
+            [
+              1504.5000000000002,
+              2313.875
+            ],
+            [
+              1155.7500000000002,
+              2315.75
+            ],
+            [
+              1157.0000000000002,
+              2094.5
+            ]
+          ]
+        },
+        {
           "id": "R66",
           "bbox_px": [
             1233.0,
@@ -1386,7 +1367,7 @@
         },
         {
           "id": "R2",
-          "area_raw": 245.39,
+          "area_raw": 252.04,
           "bbox_px": [
             2995.0,
             560.0,
@@ -1394,36 +1375,36 @@
             1888.0
           ],
           "centroid_px": [
-            3532,
-            1147
+            3538,
+            1139
           ]
         },
         {
           "id": "R3",
-          "area_raw": 88.06,
+          "area_raw": 32.82,
           "bbox_px": [
-            1433.0,
-            990.0,
-            1977.0,
-            1509.0
-          ],
-          "centroid_px": [
-            1710,
-            1261
-          ]
-        },
-        {
-          "id": "R4",
-          "area_raw": 32.74,
-          "bbox_px": [
-            565.0,
+            563.0,
             990.0,
             819.0,
             1320.0
           ],
           "centroid_px": [
             691,
-            1159
+            1158
+          ]
+        },
+        {
+          "id": "R5",
+          "area_raw": 86.55,
+          "bbox_px": [
+            1433.0,
+            998.0,
+            1977.0,
+            1509.0
+          ],
+          "centroid_px": [
+            1713,
+            1266
           ]
         },
         {
@@ -1488,17 +1469,17 @@
       "category": "walls",
       "counts": {
         "true_positives": 5,
-        "false_positives": 27,
+        "false_positives": 25,
         "false_negatives": 49
       },
-      "precision": 0.1562,
+      "precision": 0.1667,
       "recall": 0.0926,
-      "f1": 0.1163,
+      "f1": 0.119,
       "mean_iou": 0.8017,
       "matches": [
         {
           "ground_truth_id": "w13",
-          "predicted_id": "w53",
+          "predicted_id": "w52",
           "score": 0.9958,
           "ground_truth": {
             "id": "w13",
@@ -1510,7 +1491,7 @@
             ]
           },
           "predicted": {
-            "id": "w53",
+            "id": "w52",
             "px_coords": [
               1603.0,
               1899.0,
@@ -1524,7 +1505,7 @@
         },
         {
           "ground_truth_id": "w45",
-          "predicted_id": "w42",
+          "predicted_id": "w41",
           "score": 0.915,
           "ground_truth": {
             "id": "w45",
@@ -1536,7 +1517,7 @@
             ]
           },
           "predicted": {
-            "id": "w42",
+            "id": "w41",
             "px_coords": [
               1705.0,
               1528.0,
@@ -1550,7 +1531,7 @@
         },
         {
           "ground_truth_id": "w7",
-          "predicted_id": "w76",
+          "predicted_id": "w75",
           "score": 0.8565,
           "ground_truth": {
             "id": "w7",
@@ -1562,7 +1543,7 @@
             ]
           },
           "predicted": {
-            "id": "w76",
+            "id": "w75",
             "px_coords": [
               1931.0,
               2576.0,
@@ -1602,7 +1583,7 @@
         },
         {
           "ground_truth_id": "w4",
-          "predicted_id": "w6.s1",
+          "predicted_id": "w7.s1",
           "score": 0.5662,
           "ground_truth": {
             "id": "w4",
@@ -1614,17 +1595,17 @@
             ]
           },
           "predicted": {
-            "id": "w6.s1",
+            "id": "w7.s1",
             "px_coords": [
-              4583.0,
+              4584.0,
               1236.0,
-              4583.0,
+              4584.0,
               1861.0
             ],
             "facing": "East",
             "length_raw": 12.5,
             "is_exterior": true,
-            "room_id": "R5"
+            "room_id": "R4"
           }
         }
       ],
@@ -2099,42 +2080,29 @@
         {
           "id": "w3.s1",
           "px_coords": [
-            1229.0,
-            1717.0,
-            1229.0,
-            1975.0
+            1162.0,
+            1861.0,
+            1162.0,
+            2293.0
           ],
           "facing": "West",
-          "length_raw": 5.16,
-          "is_exterior": true
-        },
-        {
-          "id": "w3.s2",
-          "px_coords": [
-            1229.0,
-            1975.0,
-            1229.0,
-            2304.0
-          ],
-          "facing": "West",
-          "length_raw": 6.58,
-          "is_exterior": true,
-          "room_id": "R10"
-        },
-        {
-          "id": "w3.s3",
-          "px_coords": [
-            1229.0,
-            2304.0,
-            1229.0,
-            2607.0
-          ],
-          "facing": "West",
-          "length_raw": 6.06,
+          "length_raw": 8.64,
           "is_exterior": true
         },
         {
           "id": "w4.s1",
+          "px_coords": [
+            1223.0,
+            2348.0,
+            1223.0,
+            2607.0
+          ],
+          "facing": "West",
+          "length_raw": 5.18,
+          "is_exterior": true
+        },
+        {
+          "id": "w5.s1",
           "px_coords": [
             1449.0,
             2690.0,
@@ -2146,7 +2114,7 @@
           "is_exterior": true
         },
         {
-          "id": "w4.s2",
+          "id": "w5.s2",
           "px_coords": [
             2580.0,
             2690.0,
@@ -2158,7 +2126,7 @@
           "is_exterior": true
         },
         {
-          "id": "w4.s3",
+          "id": "w5.s3",
           "px_coords": [
             3660.0,
             2690.0,
@@ -2170,7 +2138,7 @@
           "is_exterior": true
         },
         {
-          "id": "w5.s1",
+          "id": "w6.s1",
           "px_coords": [
             4877.0,
             2259.0,
@@ -2182,29 +2150,17 @@
           "is_exterior": true
         },
         {
-          "id": "w6.s2",
+          "id": "w7.s2",
           "px_coords": [
-            4583.0,
-            836.0,
-            4583.0,
+            4584.0,
+            999.0,
+            4584.0,
             1236.0
           ],
           "facing": "East",
-          "length_raw": 8.0,
+          "length_raw": 4.74,
           "is_exterior": true,
-          "room_id": "R5"
-        },
-        {
-          "id": "w7.s1",
-          "px_coords": [
-            4188.0,
-            836.0,
-            4583.0,
-            836.0
-          ],
-          "facing": "North",
-          "length_raw": 7.9,
-          "is_exterior": true
+          "room_id": "R4"
         },
         {
           "id": "w8.s1",
@@ -2212,10 +2168,10 @@
             4188.0,
             438.0,
             4188.0,
-            836.0
+            801.0
           ],
           "facing": "East",
-          "length_raw": 7.96,
+          "length_raw": 7.26,
           "is_exterior": true,
           "room_id": "R2"
         },
@@ -2294,7 +2250,7 @@
           "is_exterior": false
         },
         {
-          "id": "w24",
+          "id": "w23",
           "px_coords": [
             1173.0,
             989.0,
@@ -2306,7 +2262,7 @@
           "is_exterior": false
         },
         {
-          "id": "w26",
+          "id": "w25",
           "px_coords": [
             2041.0,
             989.0,
@@ -2318,7 +2274,7 @@
           "is_exterior": false
         },
         {
-          "id": "w32",
+          "id": "w31",
           "px_coords": [
             2041.0,
             1142.0,
@@ -2330,7 +2286,7 @@
           "is_exterior": false
         },
         {
-          "id": "w52",
+          "id": "w51",
           "px_coords": [
             2963.0,
             1896.0,
@@ -2342,7 +2298,7 @@
           "is_exterior": false
         },
         {
-          "id": "w79",
+          "id": "w78",
           "px_coords": [
             3761.0,
             2626.0,
@@ -2354,7 +2310,7 @@
           "is_exterior": false
         },
         {
-          "id": "w108",
+          "id": "w107",
           "px_coords": [
             2857.0,
             475.0,
@@ -2366,7 +2322,7 @@
           "is_exterior": false
         },
         {
-          "id": "w109",
+          "id": "w108",
           "px_coords": [
             2857.0,
             1141.0,
@@ -2378,7 +2334,7 @@
           "is_exterior": false
         },
         {
-          "id": "w119",
+          "id": "w118",
           "px_coords": [
             3276.0,
             598.0,
@@ -2390,7 +2346,7 @@
           "is_exterior": false
         },
         {
-          "id": "w121",
+          "id": "w120",
           "px_coords": [
             3556.0,
             1265.0,
@@ -2404,9 +2360,9 @@
       ],
       "coverage": {
         "tolerance_px": 100.0,
-        "precision": 0.6565,
-        "recall": 0.3575,
-        "f1": 0.4629
+        "precision": 0.6527,
+        "recall": 0.3475,
+        "f1": 0.4535
       }
     },
     "doors": {
@@ -2441,7 +2397,7 @@
           },
           "predicted": {
             "id": "d2",
-            "host_wall_id": "w53",
+            "host_wall_id": "w52",
             "bbox_px": [
               2882.0,
               1860.0,
@@ -3902,7 +3858,7 @@
       "false_positives": [
         {
           "id": "d1",
-          "host_wall_id": "w109",
+          "host_wall_id": "w108",
           "bbox_px": [
             2817.0,
             990.0,
@@ -3919,15 +3875,610 @@
     "windows": {
       "category": "windows",
       "counts": {
-        "true_positives": 0,
-        "false_positives": 0,
-        "false_negatives": 99
+        "true_positives": 18,
+        "false_positives": 2,
+        "false_negatives": 81
       },
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "mean_iou": null,
-      "matches": [],
+      "precision": 0.9,
+      "recall": 0.1818,
+      "f1": 0.3025,
+      "mean_iou": 0.7445,
+      "matches": [
+        {
+          "ground_truth_id": "window_61",
+          "predicted_id": "win9",
+          "score": 0.8621,
+          "ground_truth": {
+            "id": "window_61",
+            "host_wall_id": null,
+            "bbox_px": [
+              1213.4436619718308,
+              2452.246478873239,
+              1230.345070422535,
+              2557.8802816901407
+            ],
+            "center_px": [
+              1221.894366197183,
+              2505.06338028169
+            ]
+          },
+          "predicted": {
+            "id": "win9",
+            "host_wall_id": "w4.s1",
+            "bbox_px": [
+              1185.0,
+              2386.0,
+              1261.0,
+              2569.0
+            ],
+            "center_px": [
+              1223.0,
+              2477.5
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_68",
+          "predicted_id": "win20",
+          "score": 0.8501,
+          "ground_truth": {
+            "id": "window_68",
+            "host_wall_id": null,
+            "bbox_px": [
+              4599.037914691943,
+              1091.7748815165878,
+              4617.995260663507,
+              1146.7511848341233
+            ],
+            "center_px": [
+              4608.516587677725,
+              1119.2630331753555
+            ]
+          },
+          "predicted": {
+            "id": "win20",
+            "host_wall_id": "w7.s2",
+            "bbox_px": [
+              4546.0,
+              1037.0,
+              4622.0,
+              1167.0
+            ],
+            "center_px": [
+              4584.0,
+              1102.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_97",
+          "predicted_id": "win8",
+          "score": 0.8255,
+          "ground_truth": {
+            "id": "window_97",
+            "host_wall_id": null,
+            "bbox_px": [
+              1136.2753623188405,
+              2077.9057971014495,
+              1155.488372093023,
+              2333.017441860465
+            ],
+            "center_px": [
+              1145.8818672059317,
+              2205.4616194809573
+            ]
+          },
+          "predicted": {
+            "id": "win8",
+            "host_wall_id": "w3.s1",
+            "bbox_px": [
+              1124.0,
+              2094.0,
+              1200.0,
+              2255.0
+            ],
+            "center_px": [
+              1162.0,
+              2174.5
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_24",
+          "predicted_id": "win14",
+          "score": 0.7908,
+          "ground_truth": {
+            "id": "window_24",
+            "host_wall_id": null,
+            "bbox_px": [
+              2608.746031746032,
+              583.3888888888889,
+              2693.666666666667,
+              604.8174603174602
+            ],
+            "center_px": [
+              2651.2063492063494,
+              594.1031746031746
+            ]
+          },
+          "predicted": {
+            "id": "win14",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              2572.0,
+              558.0,
+              2814.0,
+              634.0
+            ],
+            "center_px": [
+              2693.0,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_29",
+          "predicted_id": "win16",
+          "score": 0.7887,
+          "ground_truth": {
+            "id": "window_29",
+            "host_wall_id": null,
+            "bbox_px": [
+              3309.142857142857,
+              58.78571428571442,
+              3396.360902255639,
+              79.08646616541367
+            ],
+            "center_px": [
+              3352.751879699248,
+              68.93609022556404
+            ]
+          },
+          "predicted": {
+            "id": "win16",
+            "host_wall_id": "w10.s1",
+            "bbox_px": [
+              3199.0,
+              31.0,
+              3422.0,
+              107.0
+            ],
+            "center_px": [
+              3310.5,
+              69.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_5",
+          "predicted_id": "win7",
+          "score": 0.7861,
+          "ground_truth": {
+            "id": "window_5",
+            "host_wall_id": null,
+            "bbox_px": [
+              878.9886363636365,
+              1522.3409090909092,
+              963.6477272727275,
+              1545.6363636363637
+            ],
+            "center_px": [
+              921.318181818182,
+              1533.9886363636365
+            ]
+          },
+          "predicted": {
+            "id": "win7",
+            "host_wall_id": "w2.s1",
+            "bbox_px": [
+              842.0,
+              1493.0,
+              1086.0,
+              1569.0
+            ],
+            "center_px": [
+              964.0,
+              1531.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_9",
+          "predicted_id": "win4",
+          "score": 0.7406,
+          "ground_truth": {
+            "id": "window_9",
+            "host_wall_id": null,
+            "bbox_px": [
+              428.5228426395937,
+              586.505076142132,
+              509.23350253807087,
+              606.8096446700508
+            ],
+            "center_px": [
+              468.8781725888323,
+              596.6573604060914
+            ]
+          },
+          "predicted": {
+            "id": "win4",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              292.0,
+              558.0,
+              542.0,
+              634.0
+            ],
+            "center_px": [
+              417.0,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_2",
+          "predicted_id": "win3",
+          "score": 0.7319,
+          "ground_truth": {
+            "id": "window_2",
+            "host_wall_id": null,
+            "bbox_px": [
+              428.5350877192984,
+              1523.8859649122808,
+              510.5526315789475,
+              1544.061403508772
+            ],
+            "center_px": [
+              469.54385964912296,
+              1533.9736842105262
+            ]
+          },
+          "predicted": {
+            "id": "win3",
+            "host_wall_id": "w2.s1",
+            "bbox_px": [
+              290.0,
+              1493.0,
+              542.0,
+              1569.0
+            ],
+            "center_px": [
+              416.0,
+              1531.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_32",
+          "predicted_id": "win18",
+          "score": 0.7315,
+          "ground_truth": {
+            "id": "window_32",
+            "host_wall_id": null,
+            "bbox_px": [
+              3761.929078014184,
+              57.79787234042547,
+              3852.7092198581563,
+              77.65602836879427
+            ],
+            "center_px": [
+              3807.31914893617,
+              67.72695035460987
+            ]
+          },
+          "predicted": {
+            "id": "win18",
+            "host_wall_id": "w10.s1",
+            "bbox_px": [
+              3739.0,
+              31.0,
+              3983.0,
+              107.0
+            ],
+            "center_px": [
+              3861.0,
+              69.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_7",
+          "predicted_id": "win2",
+          "score": 0.7116,
+          "ground_truth": {
+            "id": "window_7",
+            "host_wall_id": null,
+            "bbox_px": [
+              242.8536585365851,
+              692.670731707317,
+              263.8292682926827,
+              779.9878048780488
+            ],
+            "center_px": [
+              253.3414634146339,
+              736.3292682926829
+            ]
+          },
+          "predicted": {
+            "id": "win2",
+            "host_wall_id": "w13.s1",
+            "bbox_px": [
+              216.0,
+              634.0,
+              292.0,
+              954.0
+            ],
+            "center_px": [
+              254.0,
+              794.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_22",
+          "predicted_id": "win13",
+          "score": 0.7047,
+          "ground_truth": {
+            "id": "window_22",
+            "host_wall_id": null,
+            "bbox_px": [
+              2324.8873239436616,
+              586.4014084507041,
+              2407.9859154929572,
+              605.4154929577464
+            ],
+            "center_px": [
+              2366.4366197183094,
+              595.9084507042253
+            ]
+          },
+          "predicted": {
+            "id": "win13",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              2288.0,
+              558.0,
+              2563.0,
+              634.0
+            ],
+            "center_px": [
+              2425.5,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_10",
+          "predicted_id": "win5",
+          "score": 0.7027,
+          "ground_truth": {
+            "id": "window_10",
+            "host_wall_id": null,
+            "bbox_px": [
+              591.0,
+              587.2777777777778,
+              674.1111111111111,
+              606.8333333333333
+            ],
+            "center_px": [
+              632.5555555555555,
+              597.0555555555555
+            ]
+          },
+          "predicted": {
+            "id": "win5",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              551.0,
+              558.0,
+              833.0,
+              634.0
+            ],
+            "center_px": [
+              692.0,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_27",
+          "predicted_id": "win15",
+          "score": 0.7004,
+          "ground_truth": {
+            "id": "window_27",
+            "host_wall_id": null,
+            "bbox_px": [
+              3021.4444444444443,
+              60.745791245791395,
+              3111.343434343434,
+              81.28451178451195
+            ],
+            "center_px": [
+              3066.393939393939,
+              71.01515151515167
+            ]
+          },
+          "predicted": {
+            "id": "win15",
+            "host_wall_id": "w10.s2",
+            "bbox_px": [
+              2890.0,
+              31.0,
+              3123.0,
+              107.0
+            ],
+            "center_px": [
+              3006.5,
+              69.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_20",
+          "predicted_id": "win12",
+          "score": 0.7003,
+          "ground_truth": {
+            "id": "window_20",
+            "host_wall_id": null,
+            "bbox_px": [
+              2034.0422535211267,
+              584.9929577464789,
+              2122.070422535211,
+              608.2323943661971
+            ],
+            "center_px": [
+              2078.0563380281687,
+              596.6126760563379
+            ]
+          },
+          "predicted": {
+            "id": "win12",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              1997.0,
+              558.0,
+              2279.0,
+              634.0
+            ],
+            "center_px": [
+              2138.0,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_3",
+          "predicted_id": "win6",
+          "score": 0.6954,
+          "ground_truth": {
+            "id": "window_3",
+            "host_wall_id": null,
+            "bbox_px": [
+              589.3831775700937,
+              1524.1728971962616,
+              673.0280373831779,
+              1545.6682242990655
+            ],
+            "center_px": [
+              631.2056074766358,
+              1534.9205607476636
+            ]
+          },
+          "predicted": {
+            "id": "win6",
+            "host_wall_id": "w2.s1",
+            "bbox_px": [
+              551.0,
+              1493.0,
+              833.0,
+              1569.0
+            ],
+            "center_px": [
+              692.0,
+              1531.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_16",
+          "predicted_id": "win10",
+          "score": 0.6949,
+          "ground_truth": {
+            "id": "window_16",
+            "host_wall_id": null,
+            "bbox_px": [
+              1456.710144927536,
+              586.1666666666665,
+              1540.2850241545893,
+              607.9057971014493
+            ],
+            "center_px": [
+              1498.4975845410627,
+              597.0362318840579
+            ]
+          },
+          "predicted": {
+            "id": "win10",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              1419.0,
+              558.0,
+              1700.0,
+              634.0
+            ],
+            "center_px": [
+              1559.5,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_18",
+          "predicted_id": "win11",
+          "score": 0.6943,
+          "ground_truth": {
+            "id": "window_18",
+            "host_wall_id": null,
+            "bbox_px": [
+              1744.919075144509,
+              586.5520231213873,
+              1829.8901734104047,
+              609.6734104046243
+            ],
+            "center_px": [
+              1787.4046242774568,
+              598.1127167630058
+            ]
+          },
+          "predicted": {
+            "id": "win11",
+            "host_wall_id": "w12.s1",
+            "bbox_px": [
+              1709.0,
+              558.0,
+              1988.0,
+              634.0
+            ],
+            "center_px": [
+              1848.5,
+              596.0
+            ]
+          }
+        },
+        {
+          "ground_truth_id": "window_31",
+          "predicted_id": "win17",
+          "score": 0.6887,
+          "ground_truth": {
+            "id": "window_31",
+            "host_wall_id": null,
+            "bbox_px": [
+              3598.846846846847,
+              58.463963963964176,
+              3686.6846846846847,
+              79.18468468468487
+            ],
+            "center_px": [
+              3642.7657657657655,
+              68.82432432432452
+            ]
+          },
+          "predicted": {
+            "id": "win17",
+            "host_wall_id": "w10.s1",
+            "bbox_px": [
+              3448.0,
+              31.0,
+              3713.0,
+              107.0
+            ],
+            "center_px": [
+              3580.5,
+              69.0
+            ]
+          }
+        }
+      ],
       "missing_objects": [
         {
           "id": "window_1",
@@ -3941,34 +4492,6 @@
           "center_px": [
             340.59649122807036,
             1533.0964912280701
-          ]
-        },
-        {
-          "id": "window_2",
-          "host_wall_id": null,
-          "bbox_px": [
-            428.5350877192984,
-            1523.8859649122808,
-            510.5526315789475,
-            1544.061403508772
-          ],
-          "center_px": [
-            469.54385964912296,
-            1533.9736842105262
-          ]
-        },
-        {
-          "id": "window_3",
-          "host_wall_id": null,
-          "bbox_px": [
-            589.3831775700937,
-            1524.1728971962616,
-            673.0280373831779,
-            1545.6682242990655
-          ],
-          "center_px": [
-            631.2056074766358,
-            1534.9205607476636
           ]
         },
         {
@@ -3986,20 +4509,6 @@
           ]
         },
         {
-          "id": "window_5",
-          "host_wall_id": null,
-          "bbox_px": [
-            878.9886363636365,
-            1522.3409090909092,
-            963.6477272727275,
-            1545.6363636363637
-          ],
-          "center_px": [
-            921.318181818182,
-            1533.9886363636365
-          ]
-        },
-        {
           "id": "window_6",
           "host_wall_id": null,
           "bbox_px": [
@@ -4014,20 +4523,6 @@
           ]
         },
         {
-          "id": "window_7",
-          "host_wall_id": null,
-          "bbox_px": [
-            242.8536585365851,
-            692.670731707317,
-            263.8292682926827,
-            779.9878048780488
-          ],
-          "center_px": [
-            253.3414634146339,
-            736.3292682926829
-          ]
-        },
-        {
           "id": "window_8",
           "host_wall_id": null,
           "bbox_px": [
@@ -4039,34 +4534,6 @@
           "center_px": [
             340.705583756345,
             596.4035532994924
-          ]
-        },
-        {
-          "id": "window_9",
-          "host_wall_id": null,
-          "bbox_px": [
-            428.5228426395937,
-            586.505076142132,
-            509.23350253807087,
-            606.8096446700508
-          ],
-          "center_px": [
-            468.8781725888323,
-            596.6573604060914
-          ]
-        },
-        {
-          "id": "window_10",
-          "host_wall_id": null,
-          "bbox_px": [
-            591.0,
-            587.2777777777778,
-            674.1111111111111,
-            606.8333333333333
-          ],
-          "center_px": [
-            632.5555555555555,
-            597.0555555555555
           ]
         },
         {
@@ -4140,20 +4607,6 @@
           ]
         },
         {
-          "id": "window_16",
-          "host_wall_id": null,
-          "bbox_px": [
-            1456.710144927536,
-            586.1666666666665,
-            1540.2850241545893,
-            607.9057971014493
-          ],
-          "center_px": [
-            1498.4975845410627,
-            597.0362318840579
-          ]
-        },
-        {
           "id": "window_17",
           "host_wall_id": null,
           "bbox_px": [
@@ -4165,20 +4618,6 @@
           "center_px": [
             1625.5507246376808,
             598.0024154589371
-          ]
-        },
-        {
-          "id": "window_18",
-          "host_wall_id": null,
-          "bbox_px": [
-            1744.919075144509,
-            586.5520231213873,
-            1829.8901734104047,
-            609.6734104046243
-          ],
-          "center_px": [
-            1787.4046242774568,
-            598.1127167630058
           ]
         },
         {
@@ -4196,20 +4635,6 @@
           ]
         },
         {
-          "id": "window_20",
-          "host_wall_id": null,
-          "bbox_px": [
-            2034.0422535211267,
-            584.9929577464789,
-            2122.070422535211,
-            608.2323943661971
-          ],
-          "center_px": [
-            2078.0563380281687,
-            596.6126760563379
-          ]
-        },
-        {
           "id": "window_21",
           "host_wall_id": null,
           "bbox_px": [
@@ -4224,20 +4649,6 @@
           ]
         },
         {
-          "id": "window_22",
-          "host_wall_id": null,
-          "bbox_px": [
-            2324.8873239436616,
-            586.4014084507041,
-            2407.9859154929572,
-            605.4154929577464
-          ],
-          "center_px": [
-            2366.4366197183094,
-            595.9084507042253
-          ]
-        },
-        {
           "id": "window_23",
           "host_wall_id": null,
           "bbox_px": [
@@ -4249,20 +4660,6 @@
           "center_px": [
             2490.4920634920636,
             593.7063492063492
-          ]
-        },
-        {
-          "id": "window_24",
-          "host_wall_id": null,
-          "bbox_px": [
-            2608.746031746032,
-            583.3888888888889,
-            2693.666666666667,
-            604.8174603174602
-          ],
-          "center_px": [
-            2651.2063492063494,
-            594.1031746031746
           ]
         },
         {
@@ -4294,20 +4691,6 @@
           ]
         },
         {
-          "id": "window_27",
-          "host_wall_id": null,
-          "bbox_px": [
-            3021.4444444444443,
-            60.745791245791395,
-            3111.343434343434,
-            81.28451178451195
-          ],
-          "center_px": [
-            3066.393939393939,
-            71.01515151515167
-          ]
-        },
-        {
           "id": "window_28",
           "host_wall_id": null,
           "bbox_px": [
@@ -4322,20 +4705,6 @@
           ]
         },
         {
-          "id": "window_29",
-          "host_wall_id": null,
-          "bbox_px": [
-            3309.142857142857,
-            58.78571428571442,
-            3396.360902255639,
-            79.08646616541367
-          ],
-          "center_px": [
-            3352.751879699248,
-            68.93609022556404
-          ]
-        },
-        {
           "id": "window_30",
           "host_wall_id": null,
           "bbox_px": [
@@ -4347,34 +4716,6 @@
           "center_px": [
             3517.990990990991,
             69.27477477477495
-          ]
-        },
-        {
-          "id": "window_31",
-          "host_wall_id": null,
-          "bbox_px": [
-            3598.846846846847,
-            58.463963963964176,
-            3686.6846846846847,
-            79.18468468468487
-          ],
-          "center_px": [
-            3642.7657657657655,
-            68.82432432432452
-          ]
-        },
-        {
-          "id": "window_32",
-          "host_wall_id": null,
-          "bbox_px": [
-            3761.929078014184,
-            57.79787234042547,
-            3852.7092198581563,
-            77.65602836879427
-          ],
-          "center_px": [
-            3807.31914893617,
-            67.72695035460987
           ]
         },
         {
@@ -4770,20 +5111,6 @@
           ]
         },
         {
-          "id": "window_61",
-          "host_wall_id": null,
-          "bbox_px": [
-            1213.4436619718308,
-            2452.246478873239,
-            1230.345070422535,
-            2557.8802816901407
-          ],
-          "center_px": [
-            1221.894366197183,
-            2505.06338028169
-          ]
-        },
-        {
           "id": "window_62",
           "host_wall_id": null,
           "bbox_px": [
@@ -4865,20 +5192,6 @@
           "center_px": [
             3874.7678571428573,
             881.7023809523808
-          ]
-        },
-        {
-          "id": "window_68",
-          "host_wall_id": null,
-          "bbox_px": [
-            4599.037914691943,
-            1091.7748815165878,
-            4617.995260663507,
-            1146.7511848341233
-          ],
-          "center_px": [
-            4608.516587677725,
-            1119.2630331753555
           ]
         },
         {
@@ -5274,20 +5587,6 @@
           ]
         },
         {
-          "id": "window_97",
-          "host_wall_id": null,
-          "bbox_px": [
-            1136.2753623188405,
-            2077.9057971014495,
-            1155.488372093023,
-            2333.017441860465
-          ],
-          "center_px": [
-            1145.8818672059317,
-            2205.4616194809573
-          ]
-        },
-        {
           "id": "window_98",
           "host_wall_id": null,
           "bbox_px": [
@@ -5316,7 +5615,36 @@
           ]
         }
       ],
-      "false_positives": []
+      "false_positives": [
+        {
+          "id": "win1",
+          "host_wall_id": "w1.s1",
+          "bbox_px": [
+            214.0,
+            1093.0,
+            290.0,
+            1493.0
+          ],
+          "center_px": [
+            252.0,
+            1293.0
+          ]
+        },
+        {
+          "id": "win19",
+          "host_wall_id": "w9.s1",
+          "bbox_px": [
+            3983.0,
+            107.0,
+            4059.0,
+            389.0
+          ],
+          "center_px": [
+            4021.0,
+            248.0
+          ]
+        }
+      ]
     },
     "labels": {
       "category": "labels",
@@ -6893,12 +7221,12 @@
   "closure": {
     "tolerance_px": 100.0,
     "wall_network": {
-      "wall_count": 32,
-      "endpoint_count": 64,
-      "closed_endpoints": 37,
-      "dangling_endpoints": 27,
-      "closure_rate": 0.5781,
-      "dangling_endpoint_rate": 0.4219,
+      "wall_count": 30,
+      "endpoint_count": 60,
+      "closed_endpoints": 31,
+      "dangling_endpoints": 29,
+      "closure_rate": 0.5167,
+      "dangling_endpoint_rate": 0.4833,
       "dangling": [
         {
           "wall_id": "w2.s1",
@@ -6910,43 +7238,50 @@
         {
           "wall_id": "w3.s1",
           "endpoint_px": [
-            1229.0,
-            1717.0
-          ]
-        },
-        {
-          "wall_id": "w3.s3",
-          "endpoint_px": [
-            1229.0,
-            2607.0
+            1162.0,
+            1861.0
           ]
         },
         {
           "wall_id": "w4.s1",
+          "endpoint_px": [
+            1223.0,
+            2607.0
+          ]
+        },
+        {
+          "wall_id": "w5.s1",
           "endpoint_px": [
             1449.0,
             2690.0
           ]
         },
         {
-          "wall_id": "w5.s1",
+          "wall_id": "w6.s1",
           "endpoint_px": [
             4877.0,
             2259.0
           ]
         },
         {
-          "wall_id": "w5.s1",
+          "wall_id": "w6.s1",
           "endpoint_px": [
             4877.0,
             2489.0
           ]
         },
         {
-          "wall_id": "w6.s1",
+          "wall_id": "w7.s1",
           "endpoint_px": [
-            4583.0,
+            4584.0,
             1861.0
+          ]
+        },
+        {
+          "wall_id": "w7.s2",
+          "endpoint_px": [
+            4584.0,
+            999.0
           ]
         },
         {
@@ -6954,6 +7289,13 @@
           "endpoint_px": [
             4188.0,
             438.0
+          ]
+        },
+        {
+          "wall_id": "w8.s1",
+          "endpoint_px": [
+            4188.0,
+            801.0
           ]
         },
         {
@@ -6978,110 +7320,96 @@
           ]
         },
         {
-          "wall_id": "w24",
+          "wall_id": "w23",
           "endpoint_px": [
             1173.0,
             989.0
           ]
         },
         {
-          "wall_id": "w24",
+          "wall_id": "w23",
           "endpoint_px": [
             1613.0,
             989.0
           ]
         },
         {
-          "wall_id": "w26",
+          "wall_id": "w25",
           "endpoint_px": [
             2041.0,
             989.0
           ]
         },
         {
-          "wall_id": "w26",
+          "wall_id": "w25",
           "endpoint_px": [
             2508.0,
             989.0
           ]
         },
         {
-          "wall_id": "w32",
+          "wall_id": "w31",
           "endpoint_px": [
             2041.0,
             1142.0
           ]
         },
         {
-          "wall_id": "w32",
+          "wall_id": "w31",
           "endpoint_px": [
             2512.0,
             1142.0
           ]
         },
         {
-          "wall_id": "w42",
+          "wall_id": "w41",
           "endpoint_px": [
             1705.0,
             1528.0
           ]
         },
         {
-          "wall_id": "w52",
+          "wall_id": "w51",
           "endpoint_px": [
             3561.0,
             1896.0
           ]
         },
         {
-          "wall_id": "w53",
+          "wall_id": "w52",
           "endpoint_px": [
             1603.0,
             1899.0
           ]
         },
         {
-          "wall_id": "w76",
+          "wall_id": "w75",
           "endpoint_px": [
             1931.0,
             2576.0
           ]
         },
         {
-          "wall_id": "w108",
+          "wall_id": "w107",
           "endpoint_px": [
             2857.0,
             990.0
           ]
         },
         {
-          "wall_id": "w109",
+          "wall_id": "w108",
           "endpoint_px": [
             2857.0,
             1141.0
-          ]
-        },
-        {
-          "wall_id": "w109",
-          "endpoint_px": [
-            2857.0,
-            1686.0
-          ]
-        },
-        {
-          "wall_id": "w119",
-          "endpoint_px": [
-            3276.0,
-            1531.0
           ]
         }
       ]
     },
     "room_boundary": {
       "room_count": 75,
-      "closed_rooms": 3,
-      "closure_rate": 0.04,
-      "mean_boundary_coverage": 0.3781,
+      "closed_rooms": 1,
+      "closure_rate": 0.0133,
+      "mean_boundary_coverage": 0.3469,
       "closed_threshold": 0.95,
       "per_room": [
         {
@@ -7156,12 +7484,12 @@
         },
         {
           "room_id": "R15",
-          "boundary_coverage": 0.435,
+          "boundary_coverage": 0.16,
           "closed": false
         },
         {
           "room_id": "R16",
-          "boundary_coverage": 0.74,
+          "boundary_coverage": 0.285,
           "closed": false
         },
         {
@@ -7366,7 +7694,7 @@
         },
         {
           "room_id": "R57",
-          "boundary_coverage": 0.725,
+          "boundary_coverage": 0.72,
           "closed": false
         },
         {
@@ -7386,18 +7714,18 @@
         },
         {
           "room_id": "R61",
-          "boundary_coverage": 0.305,
+          "boundary_coverage": 0.0,
           "closed": false
         },
         {
           "room_id": "R62",
-          "boundary_coverage": 1.0,
-          "closed": true
+          "boundary_coverage": 0.41,
+          "closed": false
         },
         {
           "room_id": "R63",
-          "boundary_coverage": 1.0,
-          "closed": true
+          "boundary_coverage": 0.37,
+          "closed": false
         },
         {
           "room_id": "R64",
@@ -7406,12 +7734,12 @@
         },
         {
           "room_id": "R65",
-          "boundary_coverage": 0.5,
+          "boundary_coverage": 0.44,
           "closed": false
         },
         {
           "room_id": "R66",
-          "boundary_coverage": 0.4229,
+          "boundary_coverage": 0.408,
           "closed": false
         },
         {
@@ -7456,15 +7784,15 @@
         },
         {
           "room_id": "R75",
-          "boundary_coverage": 0.3,
+          "boundary_coverage": 0.295,
           "closed": false
         }
       ]
     },
     "interior_coverage": {
-      "rooms_area_px": 2880727.0,
-      "footprint_area_px": 9160743.5,
-      "coverage": 0.3145
+      "rooms_area_px": 2808066.0,
+      "footprint_area_px": 9196919.5,
+      "coverage": 0.3053
     }
   }
 }

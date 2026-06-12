@@ -101,11 +101,13 @@ class TestTwoRoomAccuracy:
         # The 2 sill windows in the north wall must not be reported as doors.
         assert doors["precision"] >= 0.99
 
-    def test_windows_dimensions_not_detected_yet(self, two_room_report):
-        # The CV path does not model windows/dimensions today (#8).
-        # Update these when detection lands — they pin the known gap.
-        for cat in ("windows", "dimensions"):
-            assert two_room_report["categories"][cat]["counts"]["true_positives"] == 0
+    def test_window_recall_and_precision(self, two_room_report):
+        wins = two_room_report["categories"]["windows"]
+        assert wins["recall"] >= 0.99
+        assert wins["precision"] >= 0.99
+
+    def test_dimensions_not_detected_yet(self, two_room_report):
+        assert two_room_report["categories"]["dimensions"]["counts"]["true_positives"] == 0
 
     def test_closure_floors(self, two_room_report):
         closure = two_room_report["closure"]

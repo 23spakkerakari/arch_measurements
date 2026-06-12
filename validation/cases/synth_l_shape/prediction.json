@@ -278,6 +278,7 @@
       "evidence": "gap"
     }
   ],
+  "windows": [],
   "mask_roi_offset": [
     0,
     0
@@ -294,5 +295,7 @@
     "issues": [],
     "suggested_dpi": null
   },
-  "runtime_s": 0.54
+  "roi_hint_pct": null,
+  "analysis_roi_pct": null,
+  "runtime_s": 1.0
 }

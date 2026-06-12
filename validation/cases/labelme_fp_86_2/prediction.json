@@ -2,11 +2,15 @@
   "detected_scale": "1in=1ft",
   "total_area": "175.5 ft\u00b2",
   "units": "imperial",
-  "polygon_vertices": 28,
+  "polygon_vertices": 43,
   "footprint_polygon_px": [
     [
       0,
       185
+    ],
+    [
+      0,
+      224
     ],
     [
       121,
@@ -29,6 +33,10 @@
       669
     ],
     [
+      461,
+      741
+    ],
+    [
       492,
       741
     ],
@@ -39,6 +47,10 @@
     [
       648,
       525
+    ],
+    [
+      648,
+      506
     ],
     [
       493,
@@ -61,6 +73,18 @@
       228
     ],
     [
+      457,
+      256
+    ],
+    [
+      525,
+      257
+    ],
+    [
+      525,
+      324
+    ],
+    [
       584,
       324
     ],
@@ -81,6 +105,10 @@
       228
     ],
     [
+      1262,
+      741
+    ],
+    [
       1301,
       741
     ],
@@ -89,11 +117,35 @@
       285
     ],
     [
+      1357,
+      280
+    ],
+    [
+      1358,
+      220
+    ],
+    [
       1421,
       220
     ],
     [
       1421,
+      157
+    ],
+    [
+      774,
+      157
+    ],
+    [
+      773,
+      141
+    ],
+    [
+      714,
+      141
+    ],
+    [
+      713,
       157
     ],
     [
@@ -105,7 +157,15 @@
       0
     ],
     [
+      249,
+      0
+    ],
+    [
       248,
+      93
+    ],
+    [
+      129,
       93
     ],
     [
@@ -148,27 +208,8 @@
   ],
   "walls": [
     {
-      "id": "w4.s1",
-      "name": "North Wall 4 part 1 \u2192 (no room)",
-      "facing": "North",
-      "length": "24.17 ft",
-      "length_raw": 24.17,
-      "angle_deg": 90.0,
-      "px_coords": [
-        297,
-        207,
-        1288,
-        207
-      ],
-      "room_id": null,
-      "parent_wall_id": "w4",
-      "segment_index": 1,
-      "segment_count": 1,
-      "is_exterior": true
-    },
-    {
-      "id": "w5",
-      "name": "North Wall 5",
+      "id": "w8",
+      "name": "North Wall 8",
       "facing": "North",
       "length": "14.10 ft",
       "length_raw": 14.1,
@@ -182,8 +223,80 @@
       "is_exterior": false
     },
     {
-      "id": "w6",
-      "name": "West Wall 6",
+      "id": "w5.s1",
+      "name": "North Wall 5 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "12.54 ft",
+      "length_raw": 12.54,
+      "angle_deg": 270.0,
+      "px_coords": [
+        1293,
+        195,
+        779,
+        195
+      ],
+      "room_id": null,
+      "parent_wall_id": "w5",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w4.s1",
+      "name": "East Wall 4 part 1 \u2192 (no room)",
+      "facing": "East",
+      "length": "10.80 ft",
+      "length_raw": 10.8,
+      "angle_deg": 0.0,
+      "px_coords": [
+        1293,
+        733,
+        1293,
+        290
+      ],
+      "room_id": null,
+      "parent_wall_id": "w4",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w6.s1",
+      "name": "North Wall 6 part 1 \u2192 (no room)",
+      "facing": "North",
+      "length": "10.02 ft",
+      "length_raw": 10.02,
+      "angle_deg": 270.0,
+      "px_coords": [
+        708,
+        213,
+        297,
+        213
+      ],
+      "room_id": null,
+      "parent_wall_id": "w6",
+      "segment_index": 1,
+      "segment_count": 1,
+      "is_exterior": true
+    },
+    {
+      "id": "w7",
+      "name": "North Wall 7",
+      "facing": "North",
+      "length": "8.61 ft",
+      "length_raw": 8.61,
+      "angle_deg": 90.0,
+      "px_coords": [
+        297,
+        195,
+        650,
+        195
+      ],
+      "is_exterior": false
+    },
+    {
+      "id": "w9",
+      "name": "West Wall 9",
       "facing": "West",
       "length": "4.93 ft",
       "length_raw": 4.93,
@@ -200,14 +313,14 @@
       "id": "w1.s1",
       "name": "West Wall 1 part 1 \u2192 (no room)",
       "facing": "West",
-      "length": "0.17 ft",
-      "length_raw": 0.17,
+      "length": "0.32 ft",
+      "length_raw": 0.32,
       "angle_deg": 180.0,
       "px_coords": [
         137,
         230,
         137,
-        237
+        243
       ],
       "room_id": null,
       "parent_wall_id": "w1",
@@ -219,14 +332,14 @@
       "id": "w3.s1",
       "name": "East Wall 3 part 1 \u2192 (no room)",
       "facing": "East",
-      "length": "0.73 ft",
-      "length_raw": 0.73,
+      "length": "1.17 ft",
+      "length_raw": 1.17,
       "angle_deg": 180.0,
       "px_coords": [
-        1288,
-        207,
-        1288,
-        237
+        1293,
+        195,
+        1293,
+        243
       ],
       "room_id": null,
       "parent_wall_id": "w3",
@@ -236,6 +349,7 @@
     }
   ],
   "doors": [],
+  "windows": [],
   "mask_roi_offset": [
     0,
     0
@@ -253,5 +367,19 @@
     "suggested_dpi": null,
     "crop_mode": true
   },
-  "runtime_s": 0.2
+  "roi_hint_pct": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "user-roi"
+  },
+  "analysis_roi_pct": {
+    "x0_pct": 0.0,
+    "y0_pct": 0.0,
+    "x1_pct": 1.0,
+    "y1_pct": 1.0,
+    "method": "auto-expanded"
+  },
+  "runtime_s": 0.48
 }

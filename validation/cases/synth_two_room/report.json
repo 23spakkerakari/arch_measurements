@@ -2,19 +2,19 @@
   "case_id": "synth_two_room",
   "summary": {
     "macro": {
-      "precision": 0.5714,
-      "recall": 0.6,
-      "f1": 0.5833
+      "precision": 0.7381,
+      "recall": 0.7667,
+      "f1": 0.75
     },
     "micro": {
-      "precision": 0.6,
-      "recall": 0.5,
-      "f1": 0.5455,
-      "true_positives": 6,
+      "precision": 0.6667,
+      "recall": 0.6667,
+      "f1": 0.6667,
+      "true_positives": 8,
       "false_positives": 4,
-      "false_negatives": 6
+      "false_negatives": 4
     },
-    "mean_iou": 0.9742
+    "mean_iou": 0.9806
   },
   "categories": {
     "rooms": {
@@ -329,45 +329,83 @@
     "windows": {
       "category": "windows",
       "counts": {
-        "true_positives": 0,
+        "true_positives": 2,
         "false_positives": 0,
-        "false_negatives": 2
+        "false_negatives": 0
       },
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "mean_iou": null,
-      "matches": [],
-      "missing_objects": [
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_iou": 1.0,
+      "matches": [
         {
-          "id": "win1",
-          "host_wall_id": "ext_n",
-          "bbox_px": [
-            360.0,
-            220.0,
-            432.0,
-            238.0
-          ],
-          "center_px": [
-            396.0,
-            229.0
-          ]
+          "ground_truth_id": "win2",
+          "predicted_id": "win2",
+          "score": 1.0,
+          "ground_truth": {
+            "id": "win2",
+            "host_wall_id": "ext_n",
+            "bbox_px": [
+              980.0,
+              220.0,
+              1052.0,
+              238.0
+            ],
+            "center_px": [
+              1016.0,
+              229.0
+            ]
+          },
+          "predicted": {
+            "id": "win2",
+            "host_wall_id": "w4.s1",
+            "bbox_px": [
+              980.0,
+              215.0,
+              1052.0,
+              243.0
+            ],
+            "center_px": [
+              1016.0,
+              229.0
+            ]
+          }
         },
         {
-          "id": "win2",
-          "host_wall_id": "ext_n",
-          "bbox_px": [
-            980.0,
-            220.0,
-            1052.0,
-            238.0
-          ],
-          "center_px": [
-            1016.0,
-            229.0
-          ]
+          "ground_truth_id": "win1",
+          "predicted_id": "win1",
+          "score": 1.0,
+          "ground_truth": {
+            "id": "win1",
+            "host_wall_id": "ext_n",
+            "bbox_px": [
+              360.0,
+              220.0,
+              432.0,
+              238.0
+            ],
+            "center_px": [
+              396.0,
+              229.0
+            ]
+          },
+          "predicted": {
+            "id": "win1",
+            "host_wall_id": "w4.s2",
+            "bbox_px": [
+              360.0,
+              215.0,
+              432.0,
+              243.0
+            ],
+            "center_px": [
+              396.0,
+              229.0
+            ]
+          }
         }
       ],
+      "missing_objects": [],
       "false_positives": []
     },
     "labels": {

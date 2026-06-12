@@ -201,17 +201,19 @@ polygon_to_segments()
 
 **Purpose:** Identify plan symbols — doors, windows, fixtures — as discrete geometry objects.
 
-### Current status: **not implemented in CV path**
+### Current status: **doors and windows detected; fixtures not**
 
-| Symbol | CV behavior | Where it appears |
-|--------|-------------|------------------|
-| **Doors** | Morphological bridging only | `doorway_close_ft` in `build_room_label_map()` seals gaps in `cut_layer` |
-| **Windows** | Footprint close bridges gaps ≤12 ft | `preprocess()` adaptive `close_k_size` |
-| **Doors/windows as JSON** | Not emitted | — |
+| Symbol | CV behavior | Module |
+|--------|-------------|--------|
+| **Doors** | Collinear wall-gap detection (1.5–5 ft); sill gaps rejected | `Arqen/door_detect.py` → `doors[]` |
+| **Windows** | Exterior-wall sill-line detection (2–8 ft); in-segment + gap strategies | `Arqen/window_detect.py` → `windows[]` |
+| **Fixtures** | Not detected | — |
 
-### Indirect handling
+Both opening detectors run after `snap_wall_endpoints()` inside `analyze_page()`. Footprint and room morphology still **bridge** openings for topology — detection uses final wall segments + raw ink, not the bridged footprint contour.
 
-Openings are treated as **gaps to bridge**, not objects to detect:
+### Morphological bridging (still active for topology)
+
+Openings are bridged for footprint/room stages, then detected separately:
 
 1. `preprocess()` morphological CLOSE bridges doorway/window breaks in the footprint mask.
 2. `build_room_label_map()` uses `doorway_close_ft` (default 2.5 ft) to seal door openings in the room cut layer.
@@ -411,6 +413,30 @@ w3.s1  →  parent_wall_id: "w3", segment_index: 1, room_id: "R14"
       "segment_count": 2
     }
   ],
+  "doors": [
+    {
+      "id": "d1",
+      "host_wall_id": "w5",
+      "bbox_px": [x0, y0, x1, y1],
+      "center_px": [cx, cy],
+      "width": "2.50 ft",
+      "width_raw": 2.5,
+      "is_exterior": false,
+      "evidence": "gap"
+    }
+  ],
+  "windows": [
+    {
+      "id": "win1",
+      "host_wall_id": "w3.s1",
+      "bbox_px": [x0, y0, x1, y1],
+      "center_px": [cx, cy],
+      "width": "4.00 ft",
+      "width_raw": 4.0,
+      "is_exterior": true,
+      "evidence": "sill"
+    }
+  ],
   "mask_cache_path": "/tmp/arqen_mask_*.png",
   "mask_roi_offset": [ox, oy]
 }
@@ -492,8 +518,8 @@ Building:
 
 | Input | Gap |
 |-------|-----|
-| Glazing area per wall | Windows not detected in CV |
-| Door counts / sizes | Doors not modeled as geometry |
+| Glazing area per wall | Window widths available; glazing % not computed |
+| Door counts / sizes | `doors[]` with `width_raw` and `host_wall_id` |
 | Ceiling height | Not extracted |
 | U-values, SHGC, infiltration | Not in pipeline |
 | Occupancy / internal loads | Not in pipeline |
@@ -503,7 +529,7 @@ Building:
 ### Recommended path to HVAC integration
 
 1. **Phase 1 (now):** Export `rooms[]` + exterior `walls[]` by facing to CSV/JSON adapter.
-2. **Phase 2:** Add door/window objects (Stage 4) with widths and host-wall association.
+2. **Phase 2 (partial):** Door/window objects emitted in CV JSON; web viewer overlays in `canvas.js`.
 3. **Phase 3:** Room label → space-type lookup table (residential ASHRAE defaults).
 4. **Phase 4:** Dedicated HVAC export schema or Manual J API integration.
 
@@ -571,7 +597,7 @@ PDF / PNG / base64
 | PDF | Production | PyMuPDF + browser PDF.js |
 | Image Processing | Advanced prototype | Scale-adaptive, heavily tuned |
 | Line Detection | Advanced prototype | Orthogonal, double-stroke only |
-| Symbol Detection | Not started (CV) | Morphology bridging only |
+| Symbol Detection | Partial (doors + windows) | `door_detect.py`, `window_detect.py`; fixtures TBD |
 | Text OCR | LLM-only | No deterministic OCR |
 | Room Segmentation | Recently integrated | Manually validated |
 | Geometry Construction | Advanced prototype | No junction graph |

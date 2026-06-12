@@ -785,8 +785,7 @@ function _wallCvRoomIds(wall) {
 }
 
 function _isWallUnassigned(wall) {
-  if (findRoomsForWall(wall.id).length > 0) return false;
-  return _wallCvRoomIds(wall).length === 0;
+  return findRoomsForWall(wall.id).length === 0;
 }
 
 /**
@@ -1427,9 +1426,9 @@ function _renderWallItem(containerEl, wall, colorIdx) {
 
   if (appState.visibleWalls.has(wall.id)) item.classList.add('highlighted');
 
-  if (assignedRoom) {
+  if (assignedRooms.length > 0) {
     item.classList.add('room-assigned');
-    item.style.setProperty('--room-color', assignedRoom.color);
+    item.style.setProperty('--room-color', assignedRooms[0].color);
   }
 
   // Main click: open room picker popover

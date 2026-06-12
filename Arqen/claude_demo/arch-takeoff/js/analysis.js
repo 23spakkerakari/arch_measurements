@@ -770,8 +770,23 @@ function _roomsSortedByName(rooms = appState.rooms) {
   );
 }
 
+function findRoomsForWall(wallId) {
+  return appState.rooms.filter(r => r.wallIds.includes(wallId));
+}
+
 function findRoomForWall(wallId) {
-  return appState.rooms.find(r => r.wallIds.includes(wallId)) || null;
+  return findRoomsForWall(wallId)[0] || null;
+}
+
+function _wallCvRoomIds(wall) {
+  if (wall.room_ids && wall.room_ids.length) return wall.room_ids;
+  if (wall.room_id) return [wall.room_id];
+  return [];
+}
+
+function _isWallUnassigned(wall) {
+  if (findRoomsForWall(wall.id).length > 0) return false;
+  return _wallCvRoomIds(wall).length === 0;
 }
 
 /**
@@ -780,6 +795,9 @@ function findRoomForWall(wallId) {
  * Called by the room picker popover.
  */
 function assignWallToRoom(wallId, roomId) {
+  const wall = (appState.analysisResult?.walls || []).find(w => w.id === wallId);
+  const isExterior = wall?.is_exterior === true;
+
   if (!roomId) {
     appState.rooms.forEach(r => {
       const i = r.wallIds.indexOf(wallId);
@@ -789,11 +807,18 @@ function assignWallToRoom(wallId, roomId) {
     const targetRoom = appState.rooms.find(r => r.id === roomId);
     if (!targetRoom) return;
     const alreadyIn = targetRoom.wallIds.includes(wallId);
-    appState.rooms.forEach(r => {
-      const i = r.wallIds.indexOf(wallId);
-      if (i >= 0) r.wallIds.splice(i, 1);
-    });
-    if (!alreadyIn) targetRoom.wallIds.push(wallId);
+    if (isExterior) {
+      appState.rooms.forEach(r => {
+        const i = r.wallIds.indexOf(wallId);
+        if (i >= 0) r.wallIds.splice(i, 1);
+      });
+      if (!alreadyIn) targetRoom.wallIds.push(wallId);
+    } else if (alreadyIn) {
+      const i = targetRoom.wallIds.indexOf(wallId);
+      if (i >= 0) targetRoom.wallIds.splice(i, 1);
+    } else {
+      targetRoom.wallIds.push(wallId);
+    }
   }
   renderRoomsPanel();
   _renderWallList(appState.analysisResult?.walls || []);
@@ -806,11 +831,16 @@ function assignWallToRoom(wallId, roomId) {
 function _assignSelectedWallsToRoom(roomId) {
   const room = appState.rooms.find(r => r.id === roomId);
   if (!room) return;
+  const allWalls = appState.analysisResult?.walls || [];
   appState.selectedWalls.forEach(wallId => {
-    appState.rooms.forEach(r => {
-      const i = r.wallIds.indexOf(wallId);
-      if (i >= 0) r.wallIds.splice(i, 1);
-    });
+    const wall = allWalls.find(w => w.id === wallId);
+    const isExterior = wall?.is_exterior === true;
+    if (isExterior) {
+      appState.rooms.forEach(r => {
+        const i = r.wallIds.indexOf(wallId);
+        if (i >= 0) r.wallIds.splice(i, 1);
+      });
+    }
     if (!room.wallIds.includes(wallId)) room.wallIds.push(wallId);
   });
   clearLassoSelection();
@@ -857,7 +887,7 @@ function clearLassoSelection() {
  * Build room-list HTML for a wall (shared by sidebar picker and canvas action popover).
  */
 function _buildRoomPickerListHtml(wallId, onAssignCallback) {
-  const currentRoom = findRoomForWall(wallId);
+  const assignedRooms = findRoomsForWall(wallId);
   let listHtml = '';
 
   if (appState.rooms.length === 0) {
@@ -866,7 +896,7 @@ function _buildRoomPickerListHtml(wallId, onAssignCallback) {
     </div>`;
   } else {
     _roomsSortedByName().forEach(room => {
-      const isCurrent = currentRoom && currentRoom.id === room.id;
+      const isCurrent = assignedRooms.some(r => r.id === room.id);
       listHtml += `<div class="rpp-option${isCurrent ? ' rpp-selected' : ''}"
         style="color:${room.color}"
         onclick="assignWallToRoom('${wallId}','${room.id}');${onAssignCallback}();">
@@ -875,7 +905,7 @@ function _buildRoomPickerListHtml(wallId, onAssignCallback) {
         ${isCurrent ? '<span class="rpp-check">✓</span>' : ''}
       </div>`;
     });
-    if (currentRoom) {
+    if (assignedRooms.length > 0) {
       listHtml += `<div class="rpp-divider"></div>
       <div class="rpp-option rpp-none"
         onclick="assignWallToRoom('${wallId}',null);${onAssignCallback}();">
@@ -1071,19 +1101,38 @@ function buildRoomsFromWalls(walls, cvRooms) {
     const labelByCvId = new Map(
       cvRooms.map(r => [r.id, (r.label && String(r.label).trim()) || r.id])
     );
-    walls.forEach(wall => {
-      if (!wall.room_id) return;
-      const name = labelByCvId.get(wall.room_id) || wall.room_id;
+    cvRooms.forEach(r => {
+      const name = labelByCvId.get(r.id) || r.id;
       if (!nameToRoom.has(name)) {
         nameToRoom.set(name, {
-          id: wall.room_id,
+          id: r.id,
           name,
           wallIds: [],
           color: WALL_STROKES[nameToRoom.size % WALL_STROKES.length],
-          cvRoomId: wall.room_id,
+          cvRoomId: r.id,
+          area_raw: r.area_raw,
+          area: r.area,
         });
       }
-      nameToRoom.get(name).wallIds.push(wall.id);
+    });
+    walls.forEach(wall => {
+      const ids = _wallCvRoomIds(wall);
+      ids.forEach(rid => {
+        const name = labelByCvId.get(rid) || rid;
+        if (!nameToRoom.has(name)) {
+          nameToRoom.set(name, {
+            id: rid,
+            name,
+            wallIds: [],
+            color: WALL_STROKES[nameToRoom.size % WALL_STROKES.length],
+            cvRoomId: rid,
+          });
+        }
+        const room = nameToRoom.get(name);
+        if (!room.wallIds.includes(wall.id)) {
+          room.wallIds.push(wall.id);
+        }
+      });
     });
   } else {
     walls.forEach(wall => {
@@ -1129,10 +1178,7 @@ function renderRoomsPanel() {
   const scaleStr = result?.detected_scale || '1/4"=1ft';
   const unitLabel = scaleStr.includes(':') ? 'm' : 'ft';
 
-  const unassignedCount = (result?.walls || []).filter(w => {
-    const assigned = new Set(rooms.flatMap(r => r.wallIds));
-    return !assigned.has(w.id);
-  }).length;
+  const unassignedCount = (result?.walls || []).filter(w => _isWallUnassigned(w)).length;
 
   let html = `<div class="card-title">ROOMS</div>`;
   html += `<div class="rooms-chips">`;
@@ -1148,17 +1194,24 @@ function renderRoomsPanel() {
   html += `<button class="room-chip room-chip-add" onclick="addRoom()">+ ADD</button>`;
   html += `</div>`;
 
-  if (activeId) {
+  if (activeId && activeId !== '__unassigned__') {
     const room = rooms.find(r => r.id === activeId);
     if (room) {
       const wallCount = room.wallIds.length;
+      const areaUnit = scaleStr.includes(':') ? 'm²' : 'ft²';
+      const areaStr = room.area_raw != null
+        ? `${Number(room.area_raw).toFixed(1)} ${areaUnit}`
+        : (room.area || null);
       const totalLen  = room.wallIds.reduce((sum, wid) => {
         const w = (result?.walls || []).find(w => w.id === wid);
         return sum + (w?.length_raw || 0);
       }, 0);
+      const stats = areaStr
+        ? `${areaStr} · ${wallCount} wall${wallCount !== 1 ? 's' : ''}`
+        : `${wallCount} wall${wallCount !== 1 ? 's' : ''} · ${totalLen.toFixed(1)} ${unitLabel} perimeter`;
       html += `
         <div class="room-detail">
-          <span class="room-detail-stats">${wallCount} wall${wallCount !== 1 ? 's' : ''} &middot; ${totalLen.toFixed(1)} ${unitLabel} perimeter</span>
+          <span class="room-detail-stats">${stats}</span>
           <div class="room-detail-actions">
             <button class="btn btn-ghost btn-sm" onclick="renameRoom('${room.id}')">Rename</button>
             <button class="btn btn-ghost btn-sm room-delete-btn" onclick="deleteRoom('${room.id}')">Delete</button>
@@ -1179,8 +1232,7 @@ function setActiveRoom(roomId) {
 
 function _wallsForActiveFilter(walls) {
   if (appState.activeRoomId !== '__unassigned__') return walls;
-  const assigned = new Set(appState.rooms.flatMap(r => r.wallIds));
-  return walls.filter(w => !assigned.has(w.id));
+  return walls.filter(w => _isWallUnassigned(w));
 }
 
 function addRoom() {
@@ -1257,12 +1309,11 @@ function _renderWallList(allWalls) {
 
   const walls = _wallsForActiveFilter(allWalls);
   const wallIndexMap = new Map(allWalls.map((w, i) => [w.id, i]));
-  const assignedIds  = new Set(appState.rooms.flatMap(r => r.wallIds));
 
   // Update the card-title badge with unassigned count
   const cardTitle = listEl.closest('.card')?.querySelector('.card-title');
   if (cardTitle) {
-    const unassignedCount = allWalls.filter(w => !assignedIds.has(w.id)).length;
+    const unassignedCount = allWalls.filter(w => _isWallUnassigned(w)).length;
     const filterNote = appState.activeRoomId === '__unassigned__'
       ? ' <span class="unassigned-badge">filtered</span>'
       : '';
@@ -1280,7 +1331,7 @@ function _renderWallList(allWalls) {
     return;
   }
 
-  const unassigned = walls.filter(w => !assignedIds.has(w.id));
+  const unassigned = walls.filter(w => _isWallUnassigned(w));
   if (unassigned.length > 0) groups.push({ type: 'unassigned', walls: unassigned });
   _roomsSortedByName().forEach(room => {
     const roomWalls = room.wallIds.map(id => walls.find(w => w.id === id)).filter(Boolean);
@@ -1325,20 +1376,27 @@ function _renderWallList(allWalls) {
 }
 
 function _renderWallItem(containerEl, wall, colorIdx) {
-  const assignedRoom = findRoomForWall(wall.id);
+  const assignedRooms = findRoomsForWall(wall.id);
   const isInterior = wall.is_exterior === false;
-  const dotColor = assignedRoom
-    ? assignedRoom.color
+  const dotColor = assignedRooms.length
+    ? assignedRooms[0].color
     : (isInterior ? '#4a9eff' : '#ff8c42');
-  const roomBadge = assignedRoom
-    ? `<span class="wall-room-badge" style="color:${assignedRoom.color};border-color:${assignedRoom.color};background:color-mix(in srgb,${assignedRoom.color} 10%,transparent)">${assignedRoom.name}</span>`
-    : `<span class="wall-room-badge wall-room-badge-unassigned">No room</span>`;
+  let roomBadge;
+  if (assignedRooms.length === 0) {
+    roomBadge = `<span class="wall-room-badge wall-room-badge-unassigned">No room</span>`;
+  } else if (assignedRooms.length === 1) {
+    const r = assignedRooms[0];
+    roomBadge = `<span class="wall-room-badge" style="color:${r.color};border-color:${r.color};background:color-mix(in srgb,${r.color} 10%,transparent)">${r.name}</span>`;
+  } else {
+    const names = assignedRooms.map(r => r.name).join(' + ');
+    roomBadge = `<span class="wall-room-badge wall-room-badge-shared">${names}</span>`;
+  }
   const typeBadge = isInterior
     ? '<span class="wall-type-badge">Interior</span>'
     : (wall.is_exterior ? '<span class="wall-type-badge">Exterior</span>' : '');
 
   const item = document.createElement('div');
-  item.className = 'wall-item' + (assignedRoom ? '' : ' wall-item-unassigned');
+  item.className = 'wall-item' + (assignedRooms.length ? '' : ' wall-item-unassigned');
   item.dataset.wallId = wall.id;
   item.innerHTML = `
     <div class="wall-dot" style="background:${dotColor};opacity:0.9"></div>

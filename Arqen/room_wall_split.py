@@ -470,6 +470,76 @@ def inward_normal(x1, y1, x2, y2, footprint_contour, probe_px=8.0):
     return -nx, -ny
 
 
+def wall_normal(x1, y1, x2, y2):
+    """Unit normal perpendicular to segment (direction arbitrary)."""
+    dx, dy = x2 - x1, y2 - y1
+    length = math.hypot(dx, dy) or 1.0
+    return -dy / length, dx / length
+
+
+def probe_wall_adjacent_rooms(
+    x1, y1, x2, y2, room_labels, probe_offsets_px,
+):
+    """Return sorted room ids (R1, R2, …) bordering both sides of a wall segment."""
+    h, w = room_labels.shape
+    nx, ny = wall_normal(x1, y1, x2, y2)
+    wall_len_px = math.hypot(x2 - x1, y2 - y1)
+    if wall_len_px < 1:
+        return []
+
+    n_samples = max(5, int(round(wall_len_px / 5.0)))
+    side_labels: list[set[int]] = [set(), set()]
+    for side_idx, sign in enumerate((1, -1)):
+        for i in range(n_samples + 1):
+            t = i / n_samples
+            bx = x1 + t * (x2 - x1)
+            by = y1 + t * (y2 - y1)
+            for d in probe_offsets_px:
+                px = int(round(bx + sign * d * nx))
+                py = int(round(by + sign * d * ny))
+                if 0 <= px < w and 0 <= py < h:
+                    lbl = int(room_labels[py, px])
+                    if lbl > 0:
+                        side_labels[side_idx].add(lbl)
+                        break
+
+    all_labels = side_labels[0] | side_labels[1]
+    return [f"R{lbl}" for lbl in sorted(all_labels)]
+
+
+def probe_offsets_for_walls(px_per_unit: float) -> list[int]:
+    wall_thickness_px = max(int(round(0.5 * px_per_unit)), 6)
+    return [int(round(wall_thickness_px * f)) for f in (1.5, 2.5, 4.0, 6.0)]
+
+
+def assign_interior_walls_to_rooms(
+    interior_walls: list[dict],
+    room_labels: Optional[np.ndarray],
+    px_per_unit: float,
+) -> None:
+    """Tag interior walls with room_ids from the geometric room label map."""
+    if room_labels is None or not interior_walls:
+        return
+    probe_offsets_px = probe_offsets_for_walls(px_per_unit)
+    for w in interior_walls:
+        x1, y1, x2, y2 = w["px_coords"]
+        room_ids = probe_wall_adjacent_rooms(
+            x1, y1, x2, y2, room_labels, probe_offsets_px,
+        )
+        if len(room_ids) == 1:
+            w["room_id"] = room_ids[0]
+            w["room_ids"] = list(room_ids)
+            w["is_shared"] = False
+        elif len(room_ids) >= 2:
+            w["room_id"] = None
+            w["room_ids"] = list(room_ids)
+            w["is_shared"] = True
+        else:
+            w["room_id"] = None
+            w["room_ids"] = []
+            w["is_shared"] = False
+
+
 # ── Wall splitting ───────────────────────────────────────────────────────────
 
 def walk_wall_and_split_by_room(
@@ -624,16 +694,16 @@ def split_exterior_walls_by_room(
     interior_segments: Optional[list[tuple]] = None,
     debug_dir: Optional[str] = None,
     crop_mode: bool = False,
-) -> tuple[list[dict], list[dict]]:
+) -> tuple[list[dict], list[dict], Optional[np.ndarray]]:
     """
     Split snapped polygon exterior walls into per-room sub-segments.
 
-    Returns (rooms, exterior_sub_segment_walls).
+    Returns (rooms, exterior_sub_segment_walls, room_labels).
     """
     from preprocess import assign_segment_facings
 
     if not exterior_segments:
-        return [], []
+        return [], [], None
 
     wall_thickness_px = max(int(round(0.5 * px_per_unit)), 6)
     if crop_mode:
@@ -697,4 +767,4 @@ def split_exterior_walls_by_room(
         r["area"] = f"{area_real:.1f} {area_unit}"
         r["area_raw"] = round(area_real, 2)
 
-    return rooms, all_sub_segments
+    return rooms, all_sub_segments, room_labels

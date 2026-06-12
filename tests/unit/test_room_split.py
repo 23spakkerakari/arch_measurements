@@ -6,9 +6,11 @@ import pytest
 
 from room_wall_split import (
     _reassign_orphan_fragments,
+    assign_interior_walls_to_rooms,
     build_room_label_map,
     find_interior_segments,
     inward_normal,
+    probe_wall_adjacent_rooms,
     segment_traces_exterior,
     split_exterior_walls_by_room,
     walk_wall_and_split_by_room,
@@ -310,14 +312,14 @@ class TestSplitExteriorWallsByRoom:
         )
 
     def test_two_rooms_with_areas(self):
-        rooms, _ = self._run()
+        rooms, _, _ = self._run()
         assert len(rooms) == 2
         for r in rooms:
             assert r["area_raw"] > 25.0
             assert r["area"].endswith("ft²")
 
     def test_sub_segment_metadata(self):
-        _, subs = self._run()
+        _, subs, _ = self._run()
         assert subs
         for s in subs:
             assert s["is_exterior"] is True
@@ -327,22 +329,45 @@ class TestSplitExteriorWallsByRoom:
             assert s["facing"] in {"North", "South", "East", "West"}
 
     def test_north_wall_split_by_room(self):
-        _, subs = self._run()
+        _, subs, _ = self._run()
         north_subs = [s for s in subs if s["parent_wall_id"] == "w1"]
         room_ids = {s["room_id"] for s in north_subs if s["room_id"]}
         assert len(north_subs) == 2
         assert len(room_ids) == 2
 
     def test_sub_lengths_sum_to_parent(self):
-        _, subs = self._run()
+        _, subs, _ = self._run()
         north_subs = [s for s in subs if s["parent_wall_id"] == "w1"]
         total = sum(s["length_raw"] for s in north_subs)
         parent_len = 700 / PPU
         assert total == pytest.approx(parent_len, abs=0.5)
 
     def test_empty_input(self):
-        rooms, subs = split_exterior_walls_by_room(
+        rooms, subs, labels = split_exterior_walls_by_room(
             [], _wall_mask(), _contour(), [100, 100, 800, 500],
             (*IMAGE_SHAPE, 3), PPU, "ft",
         )
-        assert rooms == [] and subs == []
+        assert rooms == [] and subs == [] and labels is None
+
+    def test_partition_wall_borders_two_rooms(self):
+        _, _, room_labels = self._run()
+        assert room_labels is not None
+        x1, y1, x2, y2 = PARTITION_SEG
+        probe_offsets = [int(round(0.5 * PPU * f)) for f in (1.5, 2.5, 4.0, 6.0)]
+        room_ids = probe_wall_adjacent_rooms(
+            x1, y1, x2, y2, room_labels, probe_offsets,
+        )
+        assert len(room_ids) == 2
+        assert room_ids == ["R1", "R2"]
+
+    def test_assign_interior_walls_shared(self):
+        _, _, room_labels = self._run()
+        interior = [{
+            "id": "w99",
+            "px_coords": list(PARTITION_SEG),
+            "is_exterior": False,
+        }]
+        assign_interior_walls_to_rooms(interior, room_labels, PPU)
+        assert interior[0]["is_shared"] is True
+        assert set(interior[0]["room_ids"]) == {"R1", "R2"}
+        assert interior[0]["room_id"] is None

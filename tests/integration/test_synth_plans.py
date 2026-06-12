@@ -82,6 +82,16 @@ class TestTwoRoomStructure:
         room_ids = {w.get("room_id") for w in exterior if w.get("room_id")}
         assert len(room_ids) >= 2
 
+    def test_interior_walls_linked_to_adjacent_rooms(self, two_room_result):
+        interior = [w for w in two_room_result["walls"] if w.get("is_exterior") is False]
+        assert interior
+        linked = [w for w in interior if w.get("room_ids") or w.get("room_id")]
+        assert linked, "no interior wall carries room linkage"
+        shared = [w for w in linked if w.get("is_shared")]
+        assert shared, "expected at least one shared interior partition wall"
+        for w in shared:
+            assert len(w["room_ids"]) >= 2
+
     def test_no_coaxial_spanning_duplicates(self, two_room_result):
         assert_no_coaxial_spanning_duplicates(
             two_room_result["walls"], two_room_result["px_per_ft"],

@@ -315,6 +315,8 @@ function cvResultToAnalysis(cv) {
     angle_deg: w.angle_deg,
     px_coords: w.px_coords,
     room_id: w.room_id || null,
+    room_ids: w.room_ids || (w.room_id ? [w.room_id] : []),
+    is_shared: w.is_shared === true,
     parent_wall_id: w.parent_wall_id || null,
     segment_index: w.segment_index || null,
     segment_count: w.segment_count || null,

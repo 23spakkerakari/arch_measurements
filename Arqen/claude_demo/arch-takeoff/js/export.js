@@ -10,9 +10,19 @@ function exportCSV() {
   const rows = [
     ['Wall Name', 'Facing', 'Length', 'Room', 'Notes'],
     ...(data.walls || []).map(w => {
-      const room = findRoomForWall(w.id);
-      return [w.name || w.id, w.facing || '', w.length || '', room ? room.name : '', w.notes || ''];
+      const rooms = findRoomsForWall(w.id);
+      const roomNames = rooms.length
+        ? rooms.map(r => r.name).join(' + ')
+        : '';
+      return [w.name || w.id, w.facing || '', w.length || '', roomNames, w.notes || ''];
     }),
+    [],
+    ['Room Name', 'Area', 'Label'],
+    ..._roomsSortedByName().map(r => [
+      r.name,
+      r.area_raw != null ? `${Number(r.area_raw).toFixed(1)}` : (r.area || ''),
+      r.label || '',
+    ]),
     [],
     ['Total Area',         data.total_area],
     ['Scale',              data.detected_scale],

@@ -42,6 +42,7 @@ from door_detect import detect_doors, ink_mask_from_image
 from window_detect import detect_windows
 from extract_wall_segments_class import extract_wall_segments
 from room_wall_split import (
+    assign_interior_walls_to_rooms,
     clamp_segments_to_envelope,
     drop_segments_outside_exterior,
     segment_traces_exterior,
@@ -2706,7 +2707,7 @@ def analyze_page(
 
     # Split exterior walls into per-room sub-segments using a geometric room map.
     t0 = time.time()
-    rooms, exterior_walls = split_exterior_walls_by_room(
+    rooms, exterior_walls, room_labels = split_exterior_walls_by_room(
         exterior_segs,
         wall_pair_mask=wall_pair_mask,
         contour=contour,
@@ -2889,6 +2890,12 @@ def analyze_page(
     if snapped_ends:
         print(f"  [pipeline] endpoint snap: closed {snapped_ends} endpoint(s)",
               file=sys.stderr)
+
+    assign_interior_walls_to_rooms(
+        [w for w in walls if not w.get("is_exterior")],
+        room_labels,
+        px_per_unit,
+    )
 
     # Doors: collinear wall gaps in the same crop frame as walls/mask.
     t0 = time.time()

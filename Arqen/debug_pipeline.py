@@ -352,7 +352,7 @@ def run(args) -> None:
         int(xs_poly.max()), int(ys_poly.max()),
     ]
     room_debug = out_dir / "rooms"
-    rooms, ext_sub_walls = rws.split_exterior_walls_by_room(
+    rooms, ext_sub_walls, _room_labels = rws.split_exterior_walls_by_room(
         exterior_segs,
         wall_pair_mask=mask_full,
         contour=contour,

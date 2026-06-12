@@ -96,15 +96,22 @@ def _find_wall_pairs(
         return mask * keep[np.newaxis, :].astype(np.uint8)
 
 
-def _extract_wall_lines(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
+def _extract_wall_lines(
+    image: np.ndarray,
+    blank_right_frac: float = 0.78,
+    blank_bottom_frac: float = 0.91,
+    blank_left_px: int = 60,
+) -> np.ndarray:
     """Threshold → clean noise → extract H/V wall lines via double-line pairing."""
     if image.ndim == 3:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     h, w = image.shape
     image = image.copy()
-    image[:int(h * 0.12), :] = 255        # blank top notes/header zone
-    image[:, int(w * blank_right_frac):] = 255  # blank right-side title block strip
+    image[:int(h * 0.12), :] = 255                # blank top notes/header zone
+    image[int(h * blank_bottom_frac):, :] = 255   # blank bottom title-block / notes strip
+    image[:, :blank_left_px] = 255                 # blank left border/grid line
+    image[:, int(w * blank_right_frac):] = 255     # blank right-side title block strip
 
     _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
@@ -124,12 +131,16 @@ def _extract_wall_lines(image: np.ndarray, blank_right_frac: float = 0.78) -> np
     # Keep only lines that have a close parallel partner — the two faces of a wall.
     # Single-stroke annotation lines (dimensions, borders, grid) have no partner
     # and are discarded here.
-    horiz_walls = _find_wall_pairs(horiz, scan_rows=True,  min_gap_px=2, max_gap_px=60)
-    vert_walls  = _find_wall_pairs(vert,  scan_rows=False, min_gap_px=2, max_gap_px=60)
+    horiz_walls = _find_wall_pairs(horiz, scan_rows=True,  min_gap_px=1, max_gap_px=60)
+    vert_walls  = _find_wall_pairs(vert,  scan_rows=False, min_gap_px=1, max_gap_px=60)
     return cv2.bitwise_or(horiz_walls, vert_walls)
 
 
-def preprocess(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
+def preprocess(
+    image: np.ndarray,
+    blank_right_frac: float = 0.78,
+    blank_bottom_frac: float = 0.91,
+) -> np.ndarray:
     """
     Two-pass preprocessing:
       1. Extract H/V wall lines at full resolution.
@@ -137,15 +148,25 @@ def preprocess(image: np.ndarray, blank_right_frac: float = 0.78) -> np.ndarray:
          upscale the solid footprint mask back to full resolution.
     """
     t0 = time.time()
-    walls = _extract_wall_lines(image, blank_right_frac=blank_right_frac)
+    walls = _extract_wall_lines(
+        image, blank_right_frac=blank_right_frac, blank_bottom_frac=blank_bottom_frac
+    )
     print(f"  [preprocess] wall-line extraction: {time.time()-t0:.1f}s", file=sys.stderr)
 
     h, w = walls.shape
     small_h, small_w = h // DOWNSCALE, w // DOWNSCALE
 
     t0 = time.time()
-    small = cv2.resize(walls, (small_w, small_h), interpolation=cv2.INTER_AREA)
-    _, small = cv2.threshold(small, 127, 255, cv2.THRESH_BINARY)
+    # Max-pool: a block is "on" if ANY pixel in it is a wall pixel.
+    # INTER_AREA averaging fails on sparse wall masks (value stays < 127),
+    # so we reshape-and-max instead.
+    small = (
+        walls[:small_h * DOWNSCALE, :small_w * DOWNSCALE]
+        .reshape(small_h, DOWNSCALE, small_w, DOWNSCALE)
+        .max(axis=(1, 3))
+        .astype(np.uint8)
+    )
+    _, small = cv2.threshold(small, 0, 255, cv2.THRESH_BINARY)
 
     small = cv2.dilate(
         small,

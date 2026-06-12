@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git *)",
+      "Bash(git -C \"C:/Users/pradh/.vscode/Arqen\" show 6e50393:preprocess.py)",
+      "Read(//tmp/**)"
     ]
   }
 }

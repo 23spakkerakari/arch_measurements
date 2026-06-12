@@ -2,7 +2,7 @@
 # Promote to production traffic in the dashboard (or: wrangler versions deploy).
 # Worker name must match the dashboard project (archmeasurements).
 # Static UI: Arqen/claude_demo/arch-takeoff (see .assetsignore there).
-name = "archmeasurements"
+name = "arqen"
 compatibility_date = "2024-06-10"
 main = "Arqen/claude_demo/arch-takeoff/worker.js"
 

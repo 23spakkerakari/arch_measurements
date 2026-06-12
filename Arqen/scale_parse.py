@@ -119,7 +119,7 @@ def parse_scale(scale_str: str, dpi: int, output_unit: str = "ft") -> dict:
         drawing_inches = _parse_arch_length_to_inches(left)
         real_feet = _parse_real_length_to_feet(right)
 
-        px_per_drawing_inch = dpi  # raster pixels per drawing inch (caller-supplied DPI)
+        px_per_drawing_inch = dpi #kept at 300 for now, assumed to be high resolution
         px_per_foot = (drawing_inches * px_per_drawing_inch) / real_feet
 
         if output_unit == "ft":

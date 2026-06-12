@@ -45,21 +45,25 @@ def _file_to_b64(path: str) -> tuple[str, str]:
 # ── HTML template ────────────────────────────────────────────────────────────
 
 def _generate_html(data: dict, img_b64: str, img_mime: str) -> str:
-    walls       = data["walls"]
+    walls        = data["walls"]
     img_w, img_h = data["image_size_px"]
-    total_area  = data.get("total_area", "")
-    scale_str   = data.get("detected_scale", "")
-    rooms       = data.get("rooms", [])
-    walls_json  = json.dumps(walls)
-    rooms_json  = json.dumps(rooms)
-    n_walls     = len(walls)
-    has_rooms   = any("room_id" in w for w in walls)
+    total_area   = data.get("total_area", "")
+    scale_str    = data.get("detected_scale", "")
+    rooms        = data.get("rooms", [])
+    window_count = data.get("window_count", None)
+    walls_json   = json.dumps(walls)
+    rooms_json   = json.dumps(rooms)
+    n_walls      = len(walls)
+    has_rooms    = any("room_id" in w for w in walls)
+    has_windows  = any(w.get("windows") for w in walls)
 
     meta_parts = []
     if scale_str:
         meta_parts.append(f"Scale: {scale_str}")
     if total_area:
         meta_parts.append(f"Total area: {total_area}")
+    if window_count is not None:
+        meta_parts.append(f"Windows: {window_count}")
     meta_html = "  &nbsp;·&nbsp;  ".join(meta_parts)
 
     return f"""<!DOCTYPE html>
@@ -282,6 +286,7 @@ body {{
   <div id="panel-header">
     <div id="panel-title">
       Walls <span class="count">{n_walls}</span>
+      {"&nbsp;&nbsp;· Windows <span class='count'>" + str(window_count) + "</span>" if window_count is not None else ""}
     </div>
     <div id="panel-meta">{meta_html}</div>
   </div>
@@ -294,6 +299,7 @@ body {{
 const WALLS       = {walls_json};
 const ROOMS       = {rooms_json};
 const HAS_ROOMS   = {str(has_rooms).lower()};
+const HAS_WINDOWS = {str(has_windows).lower()};
 const IMG_COORD_W = {img_w};
 const IMG_COORD_H = {img_h};
 
@@ -347,36 +353,83 @@ function arrowSVG(facing, color) {{
   </svg>`;
 }}
 
-// ── Draw all walls in their room colors (only when we have rooms) ─────────
-function drawAllWalls() {{
-  if (!HAS_ROOMS) return;
-  if (!syncCanvas()) return;
-  const {{ w, h, sx, sy }} = cssSize();
-  ctx.clearRect(0, 0, w, h);
-  WALLS.forEach(wall => {{
-    const [x1, y1, x2, y2] = wall.px_coords;
+// ── Window drawing helpers ─────────────────────────────────────────────────
+const WIN_COLOR         = '#00e5ff';  // cyan — distinct from wall palette
+const WIN_COLOR_ACTIVE  = '#ffffff';
+
+function drawWindowBar(win, sx, sy, color, tickLen) {{
+  const [wx1, wy1, wx2, wy2] = win.px_coords;
+  const pwx1 = wx1 * sx, pwy1 = wy1 * sy;
+  const pwx2 = wx2 * sx, pwy2 = wy2 * sy;
+
+  // Main bar along the wall
+  ctx.beginPath();
+  ctx.moveTo(pwx1, pwy1);
+  ctx.lineTo(pwx2, pwy2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 4;
+  ctx.lineCap     = 'butt';
+  ctx.stroke();
+
+  // Perpendicular end ticks
+  const len = Math.hypot(pwx2 - pwx1, pwy2 - pwy1) || 1;
+  const ux = (pwx2 - pwx1) / len, uy = (pwy2 - pwy1) / len;
+  const nx = -uy, ny = ux;
+  [[pwx1, pwy1], [pwx2, pwy2]].forEach(([px, py]) => {{
     ctx.beginPath();
-    ctx.moveTo(x1 * sx, y1 * sy);
-    ctx.lineTo(x2 * sx, y2 * sy);
-    ctx.strokeStyle = wallColor(wall);
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
+    ctx.moveTo(px + nx * tickLen, py + ny * tickLen);
+    ctx.lineTo(px - nx * tickLen, py - ny * tickLen);
     ctx.stroke();
   }});
-  // Room labels at centroids
-  ctx.font = '12px -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ROOMS.forEach(r => {{
-    const cx = r.centroid_px[0] * sx;
-    const cy = r.centroid_px[1] * sy;
-    const txt = r.id;
-    const w = ctx.measureText(txt).width + 8;
-    ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(cx - w/2, cy - 9, w, 18);
-    ctx.fillStyle = roomColor(r.id);
-    ctx.fillText(txt, cx, cy);
+}}
+
+function drawAllWindows(sx, sy, active_wall_idx) {{
+  if (!HAS_WINDOWS) return;
+  WALLS.forEach((wall, i) => {{
+    const wins = wall.windows || [];
+    if (!wins.length) return;
+    const isActive = (i === active_wall_idx);
+    const color = isActive ? WIN_COLOR_ACTIVE : WIN_COLOR;
+    const tick  = isActive ? 10 : 7;
+    ctx.globalAlpha = isActive ? 1.0 : 0.7;
+    wins.forEach(win => drawWindowBar(win, sx, sy, color, tick));
   }});
+  ctx.globalAlpha = 1.0;
+}}
+
+// ── Draw all walls in their room colors (only when we have rooms) ─────────
+function drawAllWalls() {{
+  if (!HAS_ROOMS && !HAS_WINDOWS) return;
+  syncCanvas();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const {{ sx, sy }} = scale();
+  if (HAS_ROOMS) {{
+    WALLS.forEach(wall => {{
+      const [x1, y1, x2, y2] = wall.px_coords;
+      ctx.beginPath();
+      ctx.moveTo(x1 * sx, y1 * sy);
+      ctx.lineTo(x2 * sx, y2 * sy);
+      ctx.strokeStyle = wallColor(wall);
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }});
+    // Room labels at centroids
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ROOMS.forEach(r => {{
+      const cx = r.centroid_px[0] * sx;
+      const cy = r.centroid_px[1] * sy;
+      const txt = r.id;
+      const w = ctx.measureText(txt).width + 8;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(cx - w/2, cy - 9, w, 18);
+      ctx.fillStyle = roomColor(r.id);
+      ctx.fillText(txt, cx, cy);
+    }});
+  }}
+  drawAllWindows(sx, sy, -1);
 }}
 
 // ── Build wall list ────────────────────────────────────────────────────────
@@ -388,11 +441,15 @@ WALLS.forEach((wall, i) => {{
   const roomTag = HAS_ROOMS
     ? `<span class="room-chip" style="background:${{c}}22;color:${{c}};border-color:${{c}}55">${{wall.room_id ?? '—'}}</span>`
     : '';
+  const winCount = (wall.windows || []).length;
+  const winTag = (HAS_WINDOWS && winCount > 0)
+    ? `<span class="room-chip" style="background:#00e5ff18;color:#00e5ff;border-color:#00e5ff44">${{winCount}}W</span>`
+    : '';
   item.innerHTML = `
     <div class="wall-icon">${{arrowSVG(wall.facing, c)}}</div>
     <div class="wall-info">
       <div class="wall-name">${{wall.name}}</div>
-      <div class="wall-length">${{wall.length}}${{roomTag}}</div>
+      <div class="wall-length">${{wall.length}}${{roomTag}}${{winTag}}</div>
     </div>
     <div class="wall-id">${{wall.id}}</div>`;
 
@@ -485,20 +542,10 @@ function highlight(idx, item) {{
     ctx.stroke();
   }});
 
-  // Length label — centred on the wall midpoint
-  const mx = (px1 + px2) / 2, my = (py1 + py2) / 2;
-  const txt = wall.length;
-  ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  const tw = ctx.measureText(txt).width;
-  const pad = 6, bh = 20;
-  ctx.fillStyle = 'rgba(0,0,0,0.72)';
-  ctx.beginPath();
-  roundRect(mx - tw/2 - pad, my - bh/2, tw + pad*2, bh, 4);
-  ctx.fill();
-  ctx.fillStyle = c;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(txt, mx, my);
+  // Windows on this wall — drawn on top of the highlight
+  if (HAS_WINDOWS) {{
+    drawAllWindows(sx, sy, idx);
+  }}
 
   // Active state on list item
   document.querySelectorAll('.wall-item').forEach(el => el.classList.remove('active'));

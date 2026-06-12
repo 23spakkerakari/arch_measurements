@@ -164,6 +164,7 @@ def cv_analyze():
 
     result = analyze_page(
         image, scale, dpi, roi=roi, doorway_close_ft=doorway_close_ft,
+        crop_mode=roi is not None,
     )
 
     # Convert the wall_pair_mask temp file to an inline base64 data-URL so the

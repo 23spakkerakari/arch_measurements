@@ -819,22 +819,18 @@ def _filter_wall_segments(
     img_h: int,
     max_span_frac: float = 0.38,
     roi: Optional[dict] = None,
+    min_overlap_frac: float = 0.25,
 ) -> list[tuple]:
     """Drop title-block/grid segments outside the building footprint."""
     kept = []
     for x1, y1, x2, y2 in segments:
-        mx, my = (x1 + x2) / 2, (y1 + y2) / 2
         if roi:
-            xf, yf = mx / img_w, my / img_h
-            if (
-                xf < roi["x0_pct"]
-                or xf > roi["x1_pct"]
-                or yf < roi["y0_pct"]
-                or yf > roi["y1_pct"]
-            ):
+            if _segment_overlap_frac(x1, y1, x2, y2, roi, img_w, img_h) < min_overlap_frac:
                 continue
-        elif _point_in_exclusion(mx, my, img_w, img_h):
-            continue
+        else:
+            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+            if _point_in_exclusion(mx, my, img_w, img_h):
+                continue
         # Use the axis-aligned extent for span check: a north exterior wall can
         # be wider than min(w,h) in a landscape ROI crop.
         is_horiz = abs(x2 - x1) >= abs(y2 - y1)
@@ -2353,6 +2349,133 @@ def detect_wall_at_point(
 
 # ─── Main pipeline ──────────────────────────────────────────────────────────
 
+def _pad_roi(roi: dict, pad_frac: float = 0.04) -> dict:
+    """Symmetric fractional pad, clamped to [0, 1]."""
+    return {
+        "x0_pct": max(0.0, roi["x0_pct"] - pad_frac),
+        "y0_pct": max(0.0, roi["y0_pct"] - pad_frac),
+        "x1_pct": min(1.0, roi["x1_pct"] + pad_frac),
+        "y1_pct": min(1.0, roi["y1_pct"] + pad_frac),
+        "method": roi.get("method", "user-roi"),
+    }
+
+
+def _union_roi(a: dict, b: dict) -> dict:
+    """Axis-aligned union of two fractional ROIs."""
+    return {
+        "x0_pct": min(a["x0_pct"], b["x0_pct"]),
+        "y0_pct": min(a["y0_pct"], b["y0_pct"]),
+        "x1_pct": max(a["x1_pct"], b["x1_pct"]),
+        "y1_pct": max(a["y1_pct"], b["y1_pct"]),
+    }
+
+
+def _expand_roi_from_hint(
+    image: np.ndarray,
+    roi_hint: dict,
+    px_per_unit: float,
+    pad_frac: float = 0.04,
+) -> dict:
+    """
+    Expand a user-drawn ROI hint to the full building ink envelope.
+
+    Scans wall-pair ink in the hint's horizontal band so a box drawn on the
+    office block still includes the warehouse below (TRDI). Title block ink is
+    suppressed via apply_margins=True on the scout preprocess pass.
+    """
+    full_h, full_w = image.shape[:2]
+    # Do not blank sheet margins here — the south warehouse wall often sits in
+    # the bottom margin band and apply_margins would clip it before we crop.
+    _, wall_mask = preprocess(image, px_per_unit=px_per_unit, apply_margins=False)
+
+    pad_x = int(full_w * pad_frac)
+    pad_y = int(full_h * pad_frac)
+    sx0 = max(0, int(roi_hint["x0_pct"] * full_w) - pad_x)
+    sx1 = min(full_w, int(roi_hint["x1_pct"] * full_w) + pad_x)
+
+    band = wall_mask[:, sx0:sx1]
+    ink_rows = np.where((band > 0).any(axis=1))[0]
+    if len(ink_rows) == 0:
+        print(
+            "  [pipeline] roi expand: no wall ink in hint x-band — using padded hint",
+            file=sys.stderr,
+        )
+        return _pad_roi(roi_hint, pad_frac)
+
+    by0 = max(0, int(ink_rows[0]) - pad_y)
+    by1 = min(full_h, int(ink_rows[-1]) + 1 + pad_y)
+
+    sub = wall_mask[by0:by1, sx0:sx1]
+    ink_cols = np.where((sub > 0).any(axis=0))[0]
+    if len(ink_cols) == 0:
+        return _pad_roi(roi_hint, pad_frac)
+
+    bx0 = max(0, sx0 + int(ink_cols[0]) - pad_x)
+    bx1 = min(full_w, sx0 + int(ink_cols[-1]) + 1 + pad_x)
+
+    expanded = {
+        "x0_pct": bx0 / full_w,
+        "y0_pct": by0 / full_h,
+        "x1_pct": bx1 / full_w,
+        "y1_pct": by1 / full_h,
+        "method": "auto-expanded",
+    }
+    print(
+        f"  [pipeline] roi expand: hint "
+        f"({roi_hint['x0_pct']:.0%}–{roi_hint['x1_pct']:.0%} × "
+        f"{roi_hint['y0_pct']:.0%}–{roi_hint['y1_pct']:.0%}) → "
+        f"({expanded['x0_pct']:.0%}–{expanded['x1_pct']:.0%} × "
+        f"{expanded['y0_pct']:.0%}–{expanded['y1_pct']:.0%})",
+        file=sys.stderr,
+    )
+    return expanded
+
+
+def _roi_full_to_crop(
+    roi_full: dict,
+    roi_offset: tuple[int, int],
+    full_w: int,
+    full_h: int,
+    crop_w: int,
+    crop_h: int,
+) -> dict:
+    """Map a full-image fractional ROI into crop-image fractional coords."""
+    ox, oy = roi_offset
+    return {
+        "x0_pct": max(0.0, (roi_full["x0_pct"] * full_w - ox) / crop_w),
+        "y0_pct": max(0.0, (roi_full["y0_pct"] * full_h - oy) / crop_h),
+        "x1_pct": min(1.0, (roi_full["x1_pct"] * full_w - ox) / crop_w),
+        "y1_pct": min(1.0, (roi_full["y1_pct"] * full_h - oy) / crop_h),
+    }
+
+
+def _segment_overlap_frac(
+    x1: float, y1: float, x2: float, y2: float,
+    roi: dict, img_w: int, img_h: int,
+) -> float:
+    """Fraction of segment length inside an axis-aligned fractional ROI."""
+    rx0 = roi["x0_pct"] * img_w
+    rx1 = roi["x1_pct"] * img_w
+    ry0 = roi["y0_pct"] * img_h
+    ry1 = roi["y1_pct"] * img_h
+    seg_len = pixel_length(x1, y1, x2, y2)
+    if seg_len < 1:
+        return 0.0
+    if abs(x2 - x1) >= abs(y2 - y1):
+        sy = (y1 + y2) / 2
+        if sy < ry0 or sy > ry1:
+            return 0.0
+        sx0, sx1 = min(x1, x2), max(x1, x2)
+        overlap = max(0.0, min(sx1, rx1) - max(sx0, rx0))
+        return overlap / seg_len
+    sx = (x1 + x2) / 2
+    if sx < rx0 or sx > rx1:
+        return 0.0
+    sy0, sy1 = min(y1, y2), max(y1, y2)
+    overlap = max(0.0, min(sy1, ry1) - max(sy0, ry0))
+    return overlap / seg_len
+
+
 def _crop_to_roi(image: np.ndarray, roi: dict) -> tuple[np.ndarray, tuple[int, int], int, int]:
     """Crop to user box; return (crop, (offset_x, offset_y), full_w, full_h)."""
     full_h, full_w = image.shape[:2]
@@ -2435,18 +2558,37 @@ def analyze_page(
     crop_mode: bool = False,
     px_per_unit_override: Optional[float] = None,
 ) -> dict:
-    full_w = image.shape[1]
-    full_h = image.shape[0]
+    sheet_w = image.shape[1]
+    sheet_h = image.shape[0]
     roi_offset = (0, 0)
-    if roi:
-        image, roi_offset, full_w, full_h = _crop_to_roi(image, roi)
+    roi_hint_pct = None
+    analysis_roi_pct = None
+    effective_roi_crop = None
 
-    # Parse scale first so px_per_unit is available for scale-adaptive parameters.
+    # Parse scale on the full sheet so px_per_unit is available for ROI expansion.
     cal = parse_scale(scale_str, dpi, output_unit="ft")
     px_per_unit = float(px_per_unit_override) if px_per_unit_override else cal["px_per_unit"]
     unit_label = cal["unit_label"]
     is_metric = unit_label == "m"
     area_unit = f"{unit_label}²"
+
+    if roi:
+        roi_hint_pct = {
+            "x0_pct": roi["x0_pct"],
+            "y0_pct": roi["y0_pct"],
+            "x1_pct": roi["x1_pct"],
+            "y1_pct": roi["y1_pct"],
+            "method": roi.get("method", "user-roi"),
+        }
+        roi = _expand_roi_from_hint(image, roi_hint_pct, px_per_unit)
+        analysis_roi_pct = dict(roi)
+        image, roi_offset, full_w, full_h = _crop_to_roi(image, roi)
+        crop_h, crop_w = image.shape[:2]
+        effective_roi_crop = _roi_full_to_crop(
+            analysis_roi_pct, roi_offset, full_w, full_h, crop_w, crop_h,
+        )
+    else:
+        full_w, full_h = sheet_w, sheet_h
 
     calibration_issues = []
     if not crop_mode:
@@ -2500,7 +2642,7 @@ def analyze_page(
     if contour is None:
         return {"error": "No building footprint found"}
 
-    eps = 0.006 if roi else 0.001
+    eps = 0.002 if roi else 0.001
     polygon = simplify_polygon(contour, epsilon_factor=eps)
     analyze_page._last_polygon = polygon
     img_h, img_w = image.shape[:2]
@@ -2535,6 +2677,8 @@ def analyze_page(
         "y1_pct": min(1.0, float(ys_poly.max() + pad) / img_h),
     }
     filter_roi = _expand_poly_roi(poly_roi, wall_pair_mask, img_w, img_h) if user_roi else poly_roi
+    if user_roi and effective_roi_crop is not None:
+        filter_roi = _union_roi(filter_roi, effective_roi_crop)
     # ROI crops often fill the box: north exterior walls legitimately span ~100 %
     # of crop width and were dropped by the old 0.95 × min(w,h) cap.
     max_span_frac = 1.0 if user_roi else 0.95
@@ -2838,6 +2982,8 @@ def analyze_page(
         # crop-image coords before querying the mask.
         "mask_roi_offset": list(roi_offset),
         "calibration": calibration,
+        "roi_hint_pct": roi_hint_pct,
+        "analysis_roi_pct": analysis_roi_pct,
     }
 
 

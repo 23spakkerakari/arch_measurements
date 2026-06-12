@@ -377,6 +377,8 @@ function cvResultToAnalysis(cv) {
     mask_cache_path: cv.mask_cache_path || null,
     mask_base64: cv.mask_base64 || null,
     mask_roi_offset: cv.mask_roi_offset || [0, 0],
+    roi_hint_pct: cv.roi_hint_pct || null,
+    analysis_roi_pct: cv.analysis_roi_pct || null,
     _coordSpace: 'cv-px',
     _source: 'preprocess',
   };

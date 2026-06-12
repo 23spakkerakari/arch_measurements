@@ -106,24 +106,54 @@ function drawCanvas() {
     const poly = data.footprint_polygon_pct;
     const fp = data.footprint_bbox_cv || data.footprint_bbox;
     if (appState.layers.dims) {
-      ctx.strokeStyle = data._userRoi ? 'rgba(0, 200, 120, 0.9)' : 'rgba(255, 60, 60, 0.75)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([6, 4]);
-      if (poly && poly.length >= 3) {
-        ctx.beginPath();
-        ctx.moveTo(poly[0][0] * W, poly[0][1] * H);
-        for (let i = 1; i < poly.length; i++) {
-          ctx.lineTo(poly[i][0] * W, poly[i][1] * H);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      } else if (fp && fp.x0_pct != null) {
+      // User hint (green) — drawn before analysis.
+      const hint = data._userRoiHint || appState.buildingRoi;
+      if (hint && hint.x0_pct != null) {
+        ctx.strokeStyle = 'rgba(0, 200, 120, 0.95)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 5]);
         ctx.strokeRect(
-          fp.x0_pct * W, fp.y0_pct * H,
-          (fp.x1_pct - fp.x0_pct) * W, (fp.y1_pct - fp.y0_pct) * H
+          hint.x0_pct * W, hint.y0_pct * H,
+          (hint.x1_pct - hint.x0_pct) * W, (hint.y1_pct - hint.y0_pct) * H
         );
+        ctx.setLineDash([]);
       }
-      ctx.setLineDash([]);
+
+      // Auto-expanded analysis envelope (subtle cyan).
+      const expanded = data.analysis_roi_pct;
+      if (expanded && expanded.x0_pct != null) {
+        ctx.strokeStyle = 'rgba(80, 200, 255, 0.65)';
+        ctx.lineWidth = 1.25;
+        ctx.setLineDash([4, 6]);
+        ctx.strokeRect(
+          expanded.x0_pct * W, expanded.y0_pct * H,
+          (expanded.x1_pct - expanded.x0_pct) * W,
+          (expanded.y1_pct - expanded.y0_pct) * H
+        );
+        ctx.setLineDash([]);
+      }
+
+      // Detected footprint polygon (red) when no user ROI workflow.
+      if (!data._userRoi) {
+        ctx.strokeStyle = 'rgba(255, 60, 60, 0.75)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        if (poly && poly.length >= 3) {
+          ctx.beginPath();
+          ctx.moveTo(poly[0][0] * W, poly[0][1] * H);
+          for (let i = 1; i < poly.length; i++) {
+            ctx.lineTo(poly[i][0] * W, poly[i][1] * H);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        } else if (fp && fp.x0_pct != null) {
+          ctx.strokeRect(
+            fp.x0_pct * W, fp.y0_pct * H,
+            (fp.x1_pct - fp.x0_pct) * W, (fp.y1_pct - fp.y0_pct) * H
+          );
+        }
+        ctx.setLineDash([]);
+      }
     }
 
     const dimLines = data.dimension_lines || [];

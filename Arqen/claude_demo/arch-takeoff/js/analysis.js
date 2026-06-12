@@ -250,6 +250,7 @@ async function startAnalysis() {
 
     let parsed = await runCvAnalyze(sourceUrl, scaleStr, dpi, appState.buildingRoi);
     parsed = applyUserRoiToResult(parsed);
+    updateExpandedRoiStatus(parsed);
     clearInterval(logTimer);
 
     // Map geometric room cells to plan text labels, then tag walls

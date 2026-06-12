@@ -151,27 +151,41 @@ function updateRoiStatus() {
 }
 
 function applyUserRoiToResult(parsed) {
-  const roi = appState.buildingRoi;
-  if (!roi) return parsed;
-  parsed.footprint_bbox = { ...roi };
-  parsed.footprint_bbox_cv = { ...roi };
-  parsed.footprint_polygon_pct = [
-    [roi.x0_pct, roi.y0_pct],
-    [roi.x1_pct, roi.y0_pct],
-    [roi.x1_pct, roi.y1_pct],
-    [roi.x0_pct, roi.y1_pct],
-  ];
-  const inRoi = (w) => {
-    const mx = (w.x1_pct + w.x2_pct) / 2;
-    const my = (w.y1_pct + w.y2_pct) / 2;
-    return mx >= roi.x0_pct && mx <= roi.x1_pct && my >= roi.y0_pct && my <= roi.y1_pct;
-  };
-  parsed.walls = (parsed.walls || []).filter(w =>
-    inRoi(w) && (w.length_raw || 0) >= 8
-  );
-  parsed.dimension_lines = (parsed.dimension_lines || []).filter(dl =>
-    inRoi({ x1_pct: dl.x1_pct, y1_pct: dl.y1_pct, x2_pct: dl.x2_pct, y2_pct: dl.y2_pct })
-  );
+  const hint = appState.buildingRoi;
+  if (!hint) return parsed;
+
+  parsed._userRoiHint = { ...hint };
   parsed._userRoi = true;
+
+  // Server auto-expands the hint to the detected building envelope; keep that
+  // footprint for display and do not re-filter walls by the drawn box.
+  if (parsed.analysis_roi_pct) {
+    const ar = parsed.analysis_roi_pct;
+    parsed.footprint_bbox = {
+      x0_pct: ar.x0_pct,
+      y0_pct: ar.y0_pct,
+      x1_pct: ar.x1_pct,
+      y1_pct: ar.y1_pct,
+      method: ar.method || 'auto-expanded',
+    };
+    parsed.footprint_bbox_cv = { ...parsed.footprint_bbox };
+    parsed.footprint_polygon_pct = [
+      [ar.x0_pct, ar.y0_pct],
+      [ar.x1_pct, ar.y0_pct],
+      [ar.x1_pct, ar.y1_pct],
+      [ar.x0_pct, ar.y1_pct],
+    ];
+  }
+
   return parsed;
+}
+
+function updateExpandedRoiStatus(parsed) {
+  const el = document.getElementById('roi-status');
+  if (!el || !parsed?.analysis_roi_pct) return;
+  const ar = parsed.analysis_roi_pct;
+  const w = ((ar.x1_pct - ar.x0_pct) * 100).toFixed(0);
+  const h = ((ar.y1_pct - ar.y0_pct) * 100).toFixed(0);
+  el.textContent = `Expanded to detected building footprint (${w}% × ${h}% of sheet).`;
+  el.classList.add('ok');
 }

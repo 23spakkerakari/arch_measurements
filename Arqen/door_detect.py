@@ -418,7 +418,7 @@ def detect_doors(
     max_ft = DOOR_MAX_FT_CROP if crop_mode else DOOR_MAX_FT
     min_gap_px = min_ft / to_ft * px_per_unit
     max_gap_px = max_ft / to_ft * px_per_unit
-    open_gap_max = 0.20 if crop_mode else OPEN_GAP_MAX_INK_FRAC
+    open_gap_max = 0.25 if crop_mode else OPEN_GAP_MAX_INK_FRAC
     # Wall-pair strokes sit up to ~0.75 units off the centerline (see
     # wall_pair_gap_range); the band must cover both faces.
     band_half = max(4, int(math.ceil(0.75 * px_per_unit)))

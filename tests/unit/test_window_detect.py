@@ -201,15 +201,12 @@ class TestInkMask:
 
 
 class TestPartialSill:
-    def test_partial_sill_accepted_when_gap_is_open(self):
+    def test_partial_sill_rejected_without_full_cover(self):
         mask, ink, walls = _sill_gap_setup(gap_px=72)
-        # Sill covers ~50% of gap span — below 0.60 full threshold.
         ink[:] = 0
         gap_lo = 400
-        gap_hi = gap_lo + 72
         ink[199:202, gap_lo:gap_lo + 36] = 255
-        windows = detect_windows(walls, mask, ink, PPU)
-        assert len(windows) == 1
+        assert detect_windows(walls, mask, ink, PPU) == []
 
 
 class TestSpanMergeDedup:
@@ -231,21 +228,20 @@ class TestSpanMergeDedup:
 
 
 class TestSpanRefinement:
-    def test_bbox_tighter_than_open_gap_run(self):
+    def test_bbox_matches_gap_span(self):
         mask = np.zeros(SHAPE, dtype=np.uint8)
         gap_lo, gap_hi = 300, 372
         sym_lo, sym_hi = 320, 352
         _draw_pair(mask, True, 200, 100, gap_lo)
         _draw_pair(mask, True, 200, gap_hi, 700)
         ink = np.zeros(SHAPE, dtype=np.uint8)
-        ink[199:202, sym_lo:sym_hi] = 255
-        ink[197:204, sym_lo - 2] = 255
-        ink[197:204, sym_hi + 1] = 255
+        ink[199:202, gap_lo:gap_hi] = 255
         walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
         windows = detect_windows(walls, mask, ink, PPU)
         assert len(windows) == 1
         x0, _, x1, _ = windows[0]["bbox_px"]
-        assert x1 - x0 <= gap_hi - gap_lo
+        assert x0 == pytest.approx(gap_lo, abs=2)
+        assert x1 == pytest.approx(gap_hi, abs=2)
 
 
 class TestDimensionRejection:

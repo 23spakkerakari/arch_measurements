@@ -1,0 +1,11 @@
+{
+  "id": "window_takeoff_regression",
+  "description": "Template for capturing real-plan window detection regressions. Copy and fill ground_truth.json after annotating failing windows.",
+  "pdf": null,
+  "scale": "3/8in=1ft",
+  "dpi": 150,
+  "page": 0,
+  "doorway_close_ft": 2.5,
+  "roi": null,
+  "image_size_px": [0, 0]
+}

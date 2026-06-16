@@ -37,6 +37,8 @@ OPEN_GAP_MAX_INK_FRAC = 0.15
 # A raw-ink row/column covering at least this fraction of the gap span,
 # parallel to the wall axis, is a window sill.
 SILL_COVER_FRAC = 0.60
+SILL_COVER_FRAC_PARTIAL = 0.40
+SILL_STRONG_GAP_FRAC = 0.08
 
 
 def ink_mask_from_image(image: np.ndarray) -> np.ndarray:
@@ -112,11 +114,76 @@ def _gap_is_open(
     return float(profile.sum()) / n <= max_ink_frac
 
 
+def _gap_mean_ink_frac(
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    rect: tuple[int, int, int, int],
+    inset_px: int = 2,
+) -> float:
+    """Mean fraction of along-axis positions with wall-pair ink in the gap band."""
+    x0, y0, x1, y1 = rect
+    if horiz:
+        x0, x1 = x0 + inset_px, x1 - inset_px
+    else:
+        y0, y1 = y0 + inset_px, y1 - inset_px
+    region = _crop(wall_pair_mask, (x0, y0, x1, y1))
+    if region.size == 0:
+        return 1.0
+    profile = (region > 0).any(axis=0 if horiz else 1)
+    if profile.size == 0:
+        return 1.0
+    return float(profile.sum()) / profile.size
+
+
+def _sill_cover_profile(
+    ink_mask: np.ndarray,
+    horiz: bool,
+    rect: tuple[int, int, int, int],
+    inset_px: int = 2,
+) -> tuple[float, str]:
+    """Return (max_cover, evidence_detail) for sill ink parallel to the wall."""
+    x0, y0, x1, y1 = rect
+    if horiz:
+        x0, x1 = x0 + inset_px, x1 - inset_px
+    else:
+        y0, y1 = y0 + inset_px, y1 - inset_px
+    region = _crop(ink_mask, (x0, y0, x1, y1))
+    if region.size == 0:
+        return 0.0, "none"
+
+    cover = (region > 0).mean(axis=1 if horiz else 0)
+    if cover.size == 0:
+        return 0.0, "none"
+
+    max_cover = float(cover.max())
+    if max_cover >= SILL_COVER_FRAC:
+        return max_cover, "sill"
+
+    # Partial sill when the wall-pair gap is very open.
+    gap_frac = _gap_mean_ink_frac(
+        np.zeros_like(ink_mask), horiz, rect, inset_px=inset_px,
+    )
+    # gap_frac above uses empty mask — recompute from caller context in has_sill.
+
+    # Triple-line: two moderate rows plus one stronger row (CAD window symbol).
+    strong_rows = int(np.sum(cover >= SILL_COVER_FRAC_PARTIAL))
+    if strong_rows >= 2 and max_cover >= SILL_COVER_FRAC_PARTIAL:
+        return max_cover, "sill+triple"
+
+    if max_cover >= SILL_COVER_FRAC_PARTIAL:
+        return max_cover, "sill+partial"
+
+    return max_cover, "none"
+
+
 def _gap_has_sill(
     ink_mask: Optional[np.ndarray],
     horiz: bool,
     rect: tuple[int, int, int, int],
     inset_px: int = 2,
+    *,
+    wall_pair_mask: Optional[np.ndarray] = None,
+    gap_open_frac: Optional[float] = None,
 ) -> bool:
     """True when a stroke parallel to the wall axis spans most of the gap."""
     if ink_mask is None:
@@ -129,9 +196,160 @@ def _gap_has_sill(
     region = _crop(ink_mask, (x0, y0, x1, y1))
     if region.size == 0:
         return False
-    # For a horizontal wall the sill is a near-full row; for vertical, a column.
+
     cover = (region > 0).mean(axis=1 if horiz else 0)
-    return bool(cover.size) and float(cover.max()) >= SILL_COVER_FRAC
+    if cover.size == 0:
+        return False
+
+    max_cover = float(cover.max())
+    if max_cover >= SILL_COVER_FRAC:
+        return True
+
+    if gap_open_frac is None and wall_pair_mask is not None:
+        gap_open_frac = _gap_mean_ink_frac(wall_pair_mask, horiz, rect, inset_px)
+
+    # Accept partial sill when the wall-pair band is clearly open.
+    if (
+        max_cover >= SILL_COVER_FRAC_PARTIAL
+        and gap_open_frac is not None
+        and gap_open_frac <= SILL_STRONG_GAP_FRAC
+    ):
+        return True
+
+    # Triple-line window symbol: multiple parallel strokes in the gap band.
+    strong_rows = int(np.sum(cover >= SILL_COVER_FRAC_PARTIAL))
+    if strong_rows >= 2 and max_cover >= SILL_COVER_FRAC_PARTIAL:
+        return True
+
+    return False
+
+
+def gap_sill_evidence(
+    ink_mask: Optional[np.ndarray],
+    horiz: bool,
+    rect: tuple[int, int, int, int],
+    *,
+    wall_pair_mask: Optional[np.ndarray] = None,
+) -> tuple[bool, str, float]:
+    """Return (has_sill, evidence_detail, max_cover) for debug / window emit."""
+    if ink_mask is None:
+        return False, "none", 0.0
+    gap_open = (
+        _gap_mean_ink_frac(wall_pair_mask, horiz, rect)
+        if wall_pair_mask is not None
+        else None
+    )
+    has = _gap_has_sill(
+        ink_mask, horiz, rect,
+        wall_pair_mask=wall_pair_mask,
+        gap_open_frac=gap_open,
+    )
+    max_cover, detail = _sill_cover_profile(ink_mask, horiz, rect)
+    if has and detail == "none":
+        detail = "sill+partial" if max_cover >= SILL_COVER_FRAC_PARTIAL else "sill"
+    return has, detail, max_cover
+
+
+def _gap_has_bilateral_break(
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    rect: tuple[int, int, int, int],
+    inset_px: int = 2,
+    max_ink_frac: float = OPEN_GAP_MAX_INK_FRAC,
+) -> bool:
+    """True when both wall-pair strokes show an opening across the gap span."""
+    x0, y0, x1, y1 = rect
+    if horiz:
+        x0, x1 = x0 + inset_px, x1 - inset_px
+    else:
+        y0, y1 = y0 + inset_px, y1 - inset_px
+    region = _crop(wall_pair_mask, (x0, y0, x1, y1))
+    if region.size == 0:
+        return False
+
+    min_open_frac = max(0.35, 1.0 - max_ink_frac)
+
+    if horiz:
+        h = region.shape[0]
+        if h < 3:
+            return _gap_is_open(wall_pair_mask, horiz, rect, inset_px, max_ink_frac)
+        q = max(1, h // 4)
+        band_top = region[:q, :]
+        band_bot = region[-q:, :]
+        prof_top = (band_top > 0).any(axis=0)
+        prof_bot = (band_bot > 0).any(axis=0)
+    else:
+        w = region.shape[1]
+        if w < 3:
+            return _gap_is_open(wall_pair_mask, horiz, rect, inset_px, max_ink_frac)
+        q = max(1, w // 4)
+        band_top = region[:, :q]
+        band_bot = region[:, -q:]
+        prof_top = (band_top > 0).any(axis=1)
+        prof_bot = (band_bot > 0).any(axis=1)
+
+    n = prof_top.size
+    if n == 0:
+        return False
+    open_top = float((~prof_top).sum()) / n
+    open_bot = float((~prof_bot).sum()) / n
+    return open_top >= min_open_frac and open_bot >= min_open_frac
+
+
+def _looks_like_dimension_line(
+    ink_mask: np.ndarray,
+    horiz: bool,
+    rect: tuple[int, int, int, int],
+    inset_px: int = 2,
+    *,
+    wall_pair_mask: Optional[np.ndarray] = None,
+) -> bool:
+    """True when ink in the gap looks like a dimension string, not a window."""
+    x0, y0, x1, y1 = rect
+    if horiz:
+        x0, x1 = x0 + inset_px, x1 - inset_px
+    else:
+        y0, y1 = y0 + inset_px, y1 - inset_px
+    region = _crop(ink_mask, (x0, y0, x1, y1))
+    if region.size == 0:
+        return False
+
+    if horiz:
+        row_cover = (region > 0).mean(axis=1)
+        along = (region > 0).any(axis=0)
+        peak_rows = int(np.sum(row_cover > 0.05))
+    else:
+        row_cover = (region > 0).mean(axis=0)
+        along = (region > 0).any(axis=1)
+        peak_rows = int(np.sum(row_cover > 0.05))
+
+    if along.size < 4:
+        return False
+
+    max_along = float(along.mean())
+    edge = max(2, along.size // 8)
+    edge_cover = float(np.maximum(along[:edge], along[-edge:]).mean()) if along.size >= edge * 2 else 0.0
+    center_cover = float(along[edge:-edge].mean()) if along.size > edge * 2 else float(along.mean())
+    max_row_cover = float(row_cover.max()) if row_cover.size else 0.0
+
+    # Single-row stroke spanning most of the gap — dimension unless the
+    # wall-pair band is clearly open (thin window sill in a real opening).
+    if peak_rows <= 1 and max_row_cover >= 0.85:
+        if wall_pair_mask is not None:
+            gap_open = _gap_mean_ink_frac(wall_pair_mask, horiz, rect, inset_px)
+            if gap_open <= SILL_STRONG_GAP_FRAC:
+                return False
+        return True
+
+    # Dimension: thin parallel line, high center cover, no side jambs.
+    if (
+        peak_rows <= 2
+        and max_along >= 0.55
+        and edge_cover < 0.20
+        and center_cover >= 0.35
+    ):
+        return True
+    return False
 
 
 def _merged_interval_gaps(
@@ -200,7 +418,7 @@ def detect_doors(
     max_ft = DOOR_MAX_FT_CROP if crop_mode else DOOR_MAX_FT
     min_gap_px = min_ft / to_ft * px_per_unit
     max_gap_px = max_ft / to_ft * px_per_unit
-    open_gap_max = 0.25 if crop_mode else OPEN_GAP_MAX_INK_FRAC
+    open_gap_max = 0.20 if crop_mode else OPEN_GAP_MAX_INK_FRAC
     # Wall-pair strokes sit up to ~0.75 units off the centerline (see
     # wall_pair_gap_range); the band must cover both faces.
     band_half = max(4, int(math.ceil(0.75 * px_per_unit)))
@@ -248,7 +466,10 @@ def detect_doors(
                     max_ink_frac=open_gap_max,
                 ):
                     continue
-                if _gap_has_sill(ink_mask, horiz, rect):
+                if _gap_has_sill(
+                    ink_mask, horiz, rect,
+                    wall_pair_mask=wall_pair_mask,
+                ):
                     continue
 
                 gap_px = span_hi - span_lo

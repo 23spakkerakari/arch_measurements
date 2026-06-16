@@ -206,7 +206,17 @@ polygon_to_segments()
 | Symbol | CV behavior | Module |
 |--------|-------------|--------|
 | **Doors** | Collinear wall-gap detection (1.5–5 ft); sill gaps rejected | `Arqen/door_detect.py` → `doors[]` |
-| **Windows** | Exterior-wall sill-line detection (2–8 ft); in-segment + gap strategies | `Arqen/window_detect.py` → `windows[]` |
+| **Windows** | Exterior-wall sill-line detection (2–8 ft); in-segment + gap strategies; symbol-aware bbox refinement; bilateral wall-pair break; dimension-line rejection; span merge dedup | `Arqen/window_detect.py` → `windows[]` |
+
+**Window detection details** (`window_detect.py`):
+
+- Scans **exterior** sub-segments only (`is_exterior: true` from room split).
+- **Strategy 1:** open runs along a wall span in `wall_pair_mask` + sill in raw ink.
+- **Strategy 2:** collinear sub-segment gaps (same geometry as doors, sill required).
+- **Sill:** full row/column cover ≥60%, or partial (≥40%) when gap is very open, or triple-line CAD symbol.
+- **Post-filters:** bilateral wall-pair break, dimension-line rejection, door dedup, along-wall span merge dedup.
+- **BBox:** span snapped to jamb/sill ink; thickness from actual wall-pair strokes.
+- **Debug:** `python Arqen/debug_windows.py --image plan.png --scale "3/8in=1ft" --dpi 150 --out debug_runs/windows`
 | **Fixtures** | Not detected | — |
 
 Both opening detectors run after `snap_wall_endpoints()` inside `analyze_page()`. Footprint and room morphology still **bridge** openings for topology — detection uses final wall segments + raw ink, not the bridged footprint contour.

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from window_detect import detect_windows, ink_mask_from_image
+from window_detect import detect_window_candidates, detect_windows, ink_mask_from_image
 
 pytestmark = pytest.mark.unit
 
@@ -198,3 +198,74 @@ class TestInkMask:
         mask = ink_mask_from_image(img)
         assert mask[15, 25] == 255
         assert mask[40, 40] == 0
+
+
+class TestPartialSill:
+    def test_partial_sill_accepted_when_gap_is_open(self):
+        mask, ink, walls = _sill_gap_setup(gap_px=72)
+        # Sill covers ~50% of gap span — below 0.60 full threshold.
+        ink[:] = 0
+        gap_lo = 400
+        gap_hi = gap_lo + 72
+        ink[199:202, gap_lo:gap_lo + 36] = 255
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+
+
+class TestSpanMergeDedup:
+    def test_overlapping_candidates_merge_to_one(self):
+        """Two detections on the same axis/span collapse to a single window."""
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_px = 72
+        gap_lo, gap_hi = 300, 300 + gap_px
+        _draw_pair(mask, True, 200, 100, gap_lo)
+        _draw_pair(mask, True, 200, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[199:202, gap_lo:gap_hi] = 255
+        walls = [
+            _wall("w1", [100, 200, gap_lo + 10, 200], is_exterior=True),
+            _wall("w2", [gap_hi - 10, 200, 700, 200], is_exterior=True),
+        ]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+
+
+class TestSpanRefinement:
+    def test_bbox_tighter_than_open_gap_run(self):
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_lo, gap_hi = 300, 372
+        sym_lo, sym_hi = 320, 352
+        _draw_pair(mask, True, 200, 100, gap_lo)
+        _draw_pair(mask, True, 200, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[199:202, sym_lo:sym_hi] = 255
+        ink[197:204, sym_lo - 2] = 255
+        ink[197:204, sym_hi + 1] = 255
+        walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+        x0, _, x1, _ = windows[0]["bbox_px"]
+        assert x1 - x0 <= gap_hi - gap_lo
+
+
+class TestDimensionRejection:
+    def test_dimension_line_in_gap_rejected(self):
+        from door_detect import _gap_rect, _looks_like_dimension_line
+
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 200, 100, 700)  # continuous wall — not an opening
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[200, 300:372] = 255
+        band_half = max(4, int(np.ceil(0.75 * PPU)))
+        rect = _gap_rect(True, 200, 300, 372, band_half)
+        assert _looks_like_dimension_line(ink, True, rect, wall_pair_mask=mask)
+
+
+class TestDebugCandidates:
+    def test_candidates_include_reject_reasons(self):
+        mask, ink, walls = _sill_gap_setup()
+        ink[:] = 0
+        candidates = detect_window_candidates(walls, mask, ink, PPU)
+        assert candidates
+        assert any(c["status"] == "rejected" for c in candidates)
+        assert any(c.get("reject_reason") == "no_sill" for c in candidates)

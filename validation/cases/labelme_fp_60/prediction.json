@@ -896,7 +896,14 @@
         3973,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R3",
+        "R5",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w30",
@@ -911,7 +918,13 @@
         6774,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R2",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w31",
@@ -926,7 +939,14 @@
         8708,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w32",
@@ -941,7 +961,13 @@
         10668,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w39",
@@ -956,7 +982,14 @@
         3468,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R7",
+        "R8"
+      ],
+      "is_shared": true
     },
     {
       "id": "w40",
@@ -971,7 +1004,14 @@
         4552,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R8",
+        "R9"
+      ],
+      "is_shared": true
     },
     {
       "id": "w41",
@@ -986,7 +1026,14 @@
         5690,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R9",
+        "R10"
+      ],
+      "is_shared": true
     },
     {
       "id": "w42",
@@ -1001,7 +1048,14 @@
         6909,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R10",
+        "R11"
+      ],
+      "is_shared": true
     },
     {
       "id": "w43",
@@ -1016,7 +1070,13 @@
         7971,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R11"
+      ],
+      "is_shared": true
     },
     {
       "id": "w44",
@@ -1031,7 +1091,14 @@
         8952,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R12",
+        "R13"
+      ],
+      "is_shared": true
     },
     {
       "id": "w45",
@@ -1046,7 +1113,10 @@
         10668,
         2538
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w59",
@@ -1061,7 +1131,10 @@
         201,
         3591
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w61",
@@ -1076,7 +1149,12 @@
         425,
         4198
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R6",
+      "room_ids": [
+        "R6"
+      ],
+      "is_shared": false
     },
     {
       "id": "w63",
@@ -1091,7 +1169,12 @@
         679,
         2109
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R4",
+      "room_ids": [
+        "R4"
+      ],
+      "is_shared": false
     },
     {
       "id": "w71",
@@ -1106,7 +1189,13 @@
         2029,
         2059
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R3",
+        "R4"
+      ],
+      "is_shared": true
     },
     {
       "id": "w72",
@@ -1121,7 +1210,13 @@
         2029,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R7"
+      ],
+      "is_shared": true
     },
     {
       "id": "w73",
@@ -1136,7 +1231,13 @@
         3183,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R3",
+        "R5"
+      ],
+      "is_shared": true
     },
     {
       "id": "w74",
@@ -1151,7 +1252,13 @@
         3183,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R7",
+        "R8"
+      ],
+      "is_shared": true
     },
     {
       "id": "w75",
@@ -1166,7 +1273,13 @@
         4329,
         2134
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R5",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w76",
@@ -1181,7 +1294,13 @@
         4329,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R8",
+        "R9"
+      ],
+      "is_shared": true
     },
     {
       "id": "w80",
@@ -1196,7 +1315,12 @@
         5200,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R2",
+      "room_ids": [
+        "R2"
+      ],
+      "is_shared": false
     },
     {
       "id": "w82",
@@ -1211,7 +1335,13 @@
         5476,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R9",
+        "R10"
+      ],
+      "is_shared": true
     },
     {
       "id": "w87",
@@ -1226,7 +1356,13 @@
         6626,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R10",
+        "R11"
+      ],
+      "is_shared": true
     },
     {
       "id": "w89",
@@ -1241,7 +1377,10 @@
         7250,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w105",
@@ -1256,7 +1395,12 @@
         8952,
         3366
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R13",
+      "room_ids": [
+        "R13"
+      ],
+      "is_shared": false
     },
     {
       "id": "w107",
@@ -1271,7 +1415,12 @@
         9389,
         2083
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R1",
+      "room_ids": [
+        "R1"
+      ],
+      "is_shared": false
     },
     {
       "id": "w108",
@@ -1286,7 +1435,13 @@
         9389,
         3713
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R14"
+      ],
+      "is_shared": true
     }
   ],
   "doors": [
@@ -1459,6 +1614,24 @@
       "host_wall_id": "w1.s1",
       "bbox_px": [
         40,
+        2543,
+        170,
+        2763
+      ],
+      "center_px": [
+        105.0,
+        2653.0
+      ],
+      "width": "2.56 ft",
+      "width_raw": 2.56,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win2",
+      "host_wall_id": "w1.s1",
+      "bbox_px": [
+        40,
         3414,
         170,
         3722
@@ -1473,7 +1646,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win2",
+      "id": "win3",
       "host_wall_id": "w1.s1",
       "bbox_px": [
         40,
@@ -1491,7 +1664,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win3",
+      "id": "win4",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         652,
@@ -1509,7 +1682,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win4",
+      "id": "win5",
       "host_wall_id": "w3.s1",
       "bbox_px": [
         816,
@@ -1527,7 +1700,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win5",
+      "id": "win6",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         899,
@@ -1545,7 +1718,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win6",
+      "id": "win7",
       "host_wall_id": "w4.s1",
       "bbox_px": [
         1106,
@@ -1563,7 +1736,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win7",
+      "id": "win8",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         1458,
@@ -1581,7 +1754,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win8",
+      "id": "win9",
       "host_wall_id": "w5.s1",
       "bbox_px": [
         2094,
@@ -1599,7 +1772,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win9",
+      "id": "win10",
       "host_wall_id": "w14.s3",
       "bbox_px": [
         2874,
@@ -1617,7 +1790,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win10",
+      "id": "win11",
       "host_wall_id": "w5.s2",
       "bbox_px": [
         3248,
@@ -1635,7 +1808,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win11",
+      "id": "win12",
       "host_wall_id": "w14.s2",
       "bbox_px": [
         3777,
@@ -1653,7 +1826,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win12",
+      "id": "win13",
       "host_wall_id": "w5.s3",
       "bbox_px": [
         4394,
@@ -1671,43 +1844,43 @@
       "evidence": "sill"
     },
     {
-      "id": "win13",
+      "id": "win14",
       "host_wall_id": "w14.s1",
       "bbox_px": [
-        4948,
+        4961,
         1180,
         5135,
         1310
       ],
       "center_px": [
-        5041.5,
+        5048.0,
         1245.0
       ],
-      "width": "2.17 ft",
-      "width_raw": 2.17,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win14",
-      "host_wall_id": "w13.s1",
-      "bbox_px": [
-        5265,
-        763,
-        5731,
-        893
-      ],
-      "center_px": [
-        5498.0,
-        828.0
-      ],
-      "width": "5.42 ft",
-      "width_raw": 5.42,
+      "width": "2.02 ft",
+      "width_raw": 2.02,
       "is_exterior": true,
       "evidence": "sill"
     },
     {
       "id": "win15",
+      "host_wall_id": "w13.s1",
+      "bbox_px": [
+        5302,
+        763,
+        5679,
+        893
+      ],
+      "center_px": [
+        5490.5,
+        828.0
+      ],
+      "width": "4.38 ft",
+      "width_raw": 4.38,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win16",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         5541,
@@ -1725,7 +1898,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win16",
+      "id": "win17",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         6013,
@@ -1743,7 +1916,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win17",
+      "id": "win18",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         6280,
@@ -1761,25 +1934,25 @@
       "evidence": "sill"
     },
     {
-      "id": "win18",
+      "id": "win19",
       "host_wall_id": "w12.s2",
       "bbox_px": [
-        6356,
+        6405,
         1191,
         6605,
         1321
       ],
       "center_px": [
-        6480.5,
+        6505.0,
         1256.0
       ],
-      "width": "2.90 ft",
-      "width_raw": 2.9,
+      "width": "2.33 ft",
+      "width_raw": 2.33,
       "is_exterior": true,
       "evidence": "sill"
     },
     {
-      "id": "win19",
+      "id": "win20",
       "host_wall_id": "w5.s5",
       "bbox_px": [
         6691,
@@ -1797,7 +1970,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win20",
+      "id": "win21",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         6644,
@@ -1815,43 +1988,43 @@
       "evidence": "sill"
     },
     {
-      "id": "win21",
+      "id": "win22",
       "host_wall_id": "w5.s5",
       "bbox_px": [
         7147,
         3301,
-        7349,
+        7348,
         3431
       ],
       "center_px": [
-        7248.0,
+        7247.5,
         3366.0
       ],
-      "width": "2.35 ft",
-      "width_raw": 2.35,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win22",
-      "host_wall_id": "w12.s2",
-      "bbox_px": [
-        7338,
-        1191,
-        7755,
-        1321
-      ],
-      "center_px": [
-        7546.5,
-        1256.0
-      ],
-      "width": "4.85 ft",
-      "width_raw": 4.85,
+      "width": "2.34 ft",
+      "width_raw": 2.34,
       "is_exterior": true,
       "evidence": "sill"
     },
     {
       "id": "win23",
+      "host_wall_id": "w12.s2",
+      "bbox_px": [
+        7346,
+        1191,
+        7755,
+        1321
+      ],
+      "center_px": [
+        7550.5,
+        1256.0
+      ],
+      "width": "4.76 ft",
+      "width_raw": 4.76,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win24",
       "host_wall_id": "w5.s6",
       "bbox_px": [
         7807,
@@ -1869,7 +2042,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win24",
+      "id": "win25",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         7794,
@@ -1887,7 +2060,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win25",
+      "id": "win26",
       "host_wall_id": "w5.s6",
       "bbox_px": [
         8281,
@@ -1905,7 +2078,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win26",
+      "id": "win27",
       "host_wall_id": "w12.s1",
       "bbox_px": [
         8474,
@@ -1923,7 +2096,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win27",
+      "id": "win28",
       "host_wall_id": "w11.s1",
       "bbox_px": [
         9165,
@@ -1941,7 +2114,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win28",
+      "id": "win29",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         9354,
@@ -1959,25 +2132,25 @@
       "evidence": "sill"
     },
     {
-      "id": "win29",
+      "id": "win30",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         9378,
-        3718,
+        3719,
         9508,
-        4016
+        4015
       ],
       "center_px": [
         9443.0,
         3867.0
       ],
-      "width": "3.47 ft",
-      "width_raw": 3.47,
+      "width": "3.44 ft",
+      "width_raw": 3.44,
       "is_exterior": true,
       "evidence": "sill"
     },
     {
-      "id": "win30",
+      "id": "win31",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         9378,
@@ -1995,7 +2168,7 @@
       "evidence": "sill"
     },
     {
-      "id": "win31",
+      "id": "win32",
       "host_wall_id": "w9.s1",
       "bbox_px": [
         9511,
@@ -2013,25 +2186,25 @@
       "evidence": "sill"
     },
     {
-      "id": "win32",
+      "id": "win33",
       "host_wall_id": "w9.s1",
       "bbox_px": [
-        9832,
+        9914,
         1939,
-        10355,
+        10337,
         2069
       ],
       "center_px": [
-        10093.5,
+        10125.5,
         2004.0
       ],
-      "width": "6.08 ft",
-      "width_raw": 6.08,
+      "width": "4.92 ft",
+      "width_raw": 4.92,
       "is_exterior": true,
       "evidence": "sill"
     },
     {
-      "id": "win33",
+      "id": "win34",
       "host_wall_id": "w8.s2",
       "bbox_px": [
         10603,
@@ -2049,38 +2222,38 @@
       "evidence": "sill"
     },
     {
-      "id": "win34",
-      "host_wall_id": "w8.s1",
-      "bbox_px": [
-        10603,
-        3000,
-        10733,
-        3282
-      ],
-      "center_px": [
-        10668.0,
-        3141.0
-      ],
-      "width": "3.28 ft",
-      "width_raw": 3.28,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
       "id": "win35",
       "host_wall_id": "w8.s1",
       "bbox_px": [
         10603,
-        4089,
+        3015,
         10733,
-        4373
+        3281
       ],
       "center_px": [
         10668.0,
-        4231.0
+        3148.0
       ],
-      "width": "3.30 ft",
-      "width_raw": 3.3,
+      "width": "3.09 ft",
+      "width_raw": 3.09,
+      "is_exterior": true,
+      "evidence": "sill"
+    },
+    {
+      "id": "win36",
+      "host_wall_id": "w8.s1",
+      "bbox_px": [
+        10603,
+        4090,
+        10733,
+        4367
+      ],
+      "center_px": [
+        10668.0,
+        4228.5
+      ],
+      "width": "3.22 ft",
+      "width_raw": 3.22,
       "is_exterior": true,
       "evidence": "sill"
     }
@@ -2116,5 +2289,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 34.84
+  "runtime_s": 16.37
 }

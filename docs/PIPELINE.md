@@ -211,9 +211,11 @@ polygon_to_segments()
 **Window detection details** (`window_detect.py`):
 
 - Scans **exterior** sub-segments only (`is_exterior: true` from room split).
-- **Strategy 1:** open runs along a wall span in `wall_pair_mask` + full sill (≥60% cover) in raw ink.
-- **Strategy 2:** collinear sub-segment gaps (same geometry as doors, sill + open-gap verification).
-- **Dedup:** merge overlapping along-wall spans on the same axis; center-proximity dedup.
+- **Strategy 1:** open runs along a wall span in `wall_pair_mask` + tiered sill evidence (full / triple-line / partial on open gap).
+- **Strategy 2:** collinear sub-segment gaps (open-gap verification + sill).
+- **FP guards:** dimension-line rejection when no bilateral wall break; collinear gaps require open ink.
+- **Split:** oversized or multi-jamb runs split on wall-pair ink peaks before acceptance.
+- **Dedup:** merge only overlapping spans on the same axis (not adjacent windows); center-proximity dedup.
 - **Debug:** `python Arqen/debug_windows.py --image plan.png --scale "3/8in=1ft" --dpi 150 --out debug_runs/windows`
 | **Fixtures** | Not detected | — |
 

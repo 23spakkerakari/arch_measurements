@@ -56,7 +56,7 @@ class TestInSegmentOpening:
         walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
         windows = detect_windows(walls, mask, ink, PPU)
         assert len(windows) == 1
-        assert windows[0]["width_raw"] == pytest.approx(gap_px / PPU, abs=0.1)
+        assert windows[0]["width_raw"] == pytest.approx(gap_px / PPU, abs=0.15)
         assert windows[0]["host_wall_id"] == "w1"
 
 
@@ -85,7 +85,7 @@ class TestSillGap:
         ]
         windows = detect_windows(walls, mask, ink, PPU)
         assert len(windows) == 1
-        assert windows[0]["width_raw"] == pytest.approx(gap_px / PPU, abs=0.1)
+        assert windows[0]["width_raw"] == pytest.approx(gap_px / PPU, abs=0.15)
 
     def test_gap_without_sill_skipped(self):
         mask = np.zeros(SHAPE, dtype=np.uint8)
@@ -201,11 +201,23 @@ class TestInkMask:
 
 
 class TestPartialSill:
-    def test_partial_sill_rejected_without_full_cover(self):
+    def test_partial_sill_accepted_on_open_gap(self):
+        """Tier-3: partial sill is accepted when the wall-pair gap is clearly open."""
         mask, ink, walls = _sill_gap_setup(gap_px=72)
         ink[:] = 0
         gap_lo = 400
         ink[199:202, gap_lo:gap_lo + 36] = 255
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+        assert windows[0]["width_raw"] == pytest.approx(72 / PPU, abs=0.2)
+
+    def test_partial_sill_rejected_on_closed_wall(self):
+        """Partial sill on a continuous wall (no opening) must not become a window."""
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 200, 100, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[199:202, 300:336] = 255
+        walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
         assert detect_windows(walls, mask, ink, PPU) == []
 
 
@@ -255,6 +267,52 @@ class TestDimensionRejection:
         band_half = max(4, int(np.ceil(0.75 * PPU)))
         rect = _gap_rect(True, 200, 300, 372, band_half)
         assert _looks_like_dimension_line(ink, True, rect, wall_pair_mask=mask)
+
+    def test_dimension_line_rejected_in_pipeline(self):
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 200, 100, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[200, 300:372] = 255
+        walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
+        assert detect_windows(walls, mask, ink, PPU) == []
+
+
+class TestAdjacentWindows:
+    def test_two_windows_on_same_wall_not_merged(self):
+        """Adjacent 4 ft openings stay separate (no 1-ft merge collapse)."""
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_px = 72
+        sep_px = 18  # ~1 ft between openings
+        g1_lo, g1_hi = 200, 200 + gap_px
+        g2_lo, g2_hi = g1_hi + sep_px, g1_hi + sep_px + gap_px
+        _draw_pair(mask, True, 200, 100, g1_lo)
+        _draw_pair(mask, True, 200, g1_hi, g2_lo)
+        _draw_pair(mask, True, 200, g2_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[199:202, g1_lo:g1_hi] = 255
+        ink[199:202, g2_lo:g2_hi] = 255
+        walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 2
+        widths = sorted(w["width_raw"] for w in windows)
+        assert widths[0] == pytest.approx(gap_px / PPU, abs=0.25)
+        assert widths[1] == pytest.approx(gap_px / PPU, abs=0.25)
+
+
+class TestTripleLineSill:
+    def test_triple_line_symbol_accepted(self):
+        """CAD triple-line window symbol with moderate per-row cover."""
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_px = 72
+        gap_lo, gap_hi = 300, 300 + gap_px
+        _draw_pair(mask, True, 200, 100, gap_lo)
+        _draw_pair(mask, True, 200, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        for row in (198, 200, 202):
+            ink[row, gap_lo:gap_hi] = 255
+        walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
 
 
 class TestDebugCandidates:

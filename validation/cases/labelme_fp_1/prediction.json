@@ -1617,7 +1617,8 @@
       "width": "2.45 ft",
       "width_raw": 2.45,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win2",
@@ -1635,7 +1636,8 @@
       "width": "2.45 ft",
       "width_raw": 2.45,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win3",
@@ -1653,7 +1655,8 @@
       "width": "3.14 ft",
       "width_raw": 3.14,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win4",
@@ -1671,7 +1674,8 @@
       "width": "4.82 ft",
       "width_raw": 4.82,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win5",
@@ -1689,7 +1693,8 @@
       "width": "2.95 ft",
       "width_raw": 2.95,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win6",
@@ -1707,7 +1712,8 @@
       "width": "3.07 ft",
       "width_raw": 3.07,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win7",
@@ -1725,7 +1731,8 @@
       "width": "6.39 ft",
       "width_raw": 6.39,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win8",
@@ -1743,7 +1750,8 @@
       "width": "3.77 ft",
       "width_raw": 3.77,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win9",
@@ -1761,7 +1769,8 @@
       "width": "6.61 ft",
       "width_raw": 6.61,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win10",
@@ -1779,7 +1788,8 @@
       "width": "2.43 ft",
       "width_raw": 2.43,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win11",
@@ -1797,7 +1807,8 @@
       "width": "5.09 ft",
       "width_raw": 5.09,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win12",
@@ -1815,28 +1826,11 @@
       "width": "4.04 ft",
       "width_raw": 4.04,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win13",
-      "host_wall_id": "w11.s1",
-      "bbox_px": [
-        3978,
-        4096,
-        4062,
-        4244
-      ],
-      "center_px": [
-        4020.0,
-        4170.0
-      ],
-      "width": "2.64 ft",
-      "width_raw": 2.64,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win14",
       "host_wall_id": "w12.s1",
       "bbox_px": [
         4288,
@@ -1851,10 +1845,11 @@
       "width": "5.16 ft",
       "width_raw": 5.16,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win15",
+      "id": "win14",
       "host_wall_id": "w12.s1",
       "bbox_px": [
         4727,
@@ -1869,10 +1864,11 @@
       "width": "3.34 ft",
       "width_raw": 3.34,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win16",
+      "id": "win15",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         4884,
@@ -1887,10 +1883,11 @@
       "width": "6.57 ft",
       "width_raw": 6.57,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win17",
+      "id": "win16",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         4884,
@@ -1905,10 +1902,11 @@
       "width": "2.34 ft",
       "width_raw": 2.34,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win18",
+      "id": "win17",
       "host_wall_id": "w12.s1",
       "bbox_px": [
         4946,
@@ -1923,10 +1921,11 @@
       "width": "2.02 ft",
       "width_raw": 2.02,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win19",
+      "id": "win18",
       "host_wall_id": "w14.s1",
       "bbox_px": [
         5114,
@@ -1941,7 +1940,8 @@
       "width": "4.18 ft",
       "width_raw": 4.18,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -1975,5 +1975,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 6.43
+  "runtime_s": 8.14
 }

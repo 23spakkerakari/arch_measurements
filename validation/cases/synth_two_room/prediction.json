@@ -258,7 +258,8 @@
       "width": "4.00 ft",
       "width_raw": 4.0,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win2",
@@ -276,7 +277,8 @@
       "width": "4.00 ft",
       "width_raw": 4.0,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     }
   ],
   "mask_roi_offset": [
@@ -297,5 +299,5 @@
   },
   "roi_hint_pct": null,
   "analysis_roi_pct": null,
-  "runtime_s": 0.5
+  "runtime_s": 0.55
 }

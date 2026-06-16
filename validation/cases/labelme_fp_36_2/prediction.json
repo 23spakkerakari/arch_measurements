@@ -315,7 +315,12 @@
         2513,
         517
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R1",
+      "room_ids": [
+        "R1"
+      ],
+      "is_shared": false
     },
     {
       "id": "w16",
@@ -330,7 +335,12 @@
         2286,
         1219
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R1",
+      "room_ids": [
+        "R1"
+      ],
+      "is_shared": false
     },
     {
       "id": "w17",
@@ -345,7 +355,12 @@
         993,
         1219
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R1",
+      "room_ids": [
+        "R1"
+      ],
+      "is_shared": false
     },
     {
       "id": "w19",
@@ -360,7 +375,13 @@
         2286,
         1238
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     },
     {
       "id": "w20",
@@ -375,31 +396,18 @@
         2447,
         1238
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R2",
+      "room_ids": [
+        "R2"
+      ],
+      "is_shared": false
     }
   ],
   "doors": [],
   "windows": [
     {
       "id": "win1",
-      "host_wall_id": "w1.s1",
-      "bbox_px": [
-        934,
-        272,
-        982,
-        493
-      ],
-      "center_px": [
-        958.0,
-        382.5
-      ],
-      "width": "6.91 ft",
-      "width_raw": 6.91,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win2",
       "host_wall_id": "w8.s1",
       "bbox_px": [
         1052,
@@ -414,64 +422,30 @@
       "width": "6.88 ft",
       "width_raw": 6.88,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win3",
+      "id": "win2",
       "host_wall_id": "w8.s1",
       "bbox_px": [
-        1306,
-        493,
-        1429,
-        541
-      ],
-      "center_px": [
-        1367.5,
-        517.0
-      ],
-      "width": "3.84 ft",
-      "width_raw": 3.84,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win4",
-      "host_wall_id": "w8.s1",
-      "bbox_px": [
-        1435,
-        493,
-        1523,
-        541
-      ],
-      "center_px": [
-        1479.0,
-        517.0
-      ],
-      "width": "2.75 ft",
-      "width_raw": 2.75,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win5",
-      "host_wall_id": "w8.s1",
-      "bbox_px": [
-        1527,
+        1356,
         493,
         1749,
         541
       ],
       "center_px": [
-        1638.0,
+        1552.5,
         517.0
       ],
-      "width": "6.94 ft",
-      "width_raw": 6.94,
+      "width": "12.27 ft",
+      "width_raw": 12.27,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "symbol",
+      "confidence": 0.6
     },
     {
-      "id": "win6",
+      "id": "win3",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1887,
@@ -486,25 +460,8 @@
       "width": "7.00 ft",
       "width_raw": 7.0,
       "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win7",
-      "host_wall_id": "w6.s1",
-      "bbox_px": [
-        2424,
-        308,
-        2472,
-        493
-      ],
-      "center_px": [
-        2448.0,
-        400.5
-      ],
-      "width": "5.78 ft",
-      "width_raw": 5.78,
-      "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -538,5 +495,5 @@
     "y1_pct": 0.9632892804698973,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.95
+  "runtime_s": 0.53
 }

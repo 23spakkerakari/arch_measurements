@@ -43,6 +43,58 @@ WINDOW_MAX_FT_CROP = 8.0
 SPAN_REFINE_MIN_FRAC = 0.80
 JAMB_INK_PEAK_FRAC = 0.30
 
+# Multi-cue acceptance scoring (Window Accuracy V2, Phase 1).
+# A candidate is accepted when its confidence >= CONF_TAU. The score combines
+# independent cues so a strong sill can compensate for a weak opening signal
+# and vice-versa, while requiring corroboration rejects lone strokes (dimension
+# strings, annotations) that the binary sill gate used to admit.
+SILL_RAMP_LO = 0.25          # sill cover below this contributes nothing
+SILL_RAMP_HI = SILL_COVER_FRAC  # 0.60: full-strength sill
+W_SILL = 0.50                # weight of the sill-cover cue
+W_OPEN = 0.30                # wall-pair band reads as an open gap
+W_BILATERAL = 0.22           # both wall strokes break across the span
+W_TRIPLE_BONUS = 0.08        # CAD triple-line window symbol
+W_DIM_PENALTY = 0.45         # looks like a dimension string (no bilateral break)
+
+# Envelope / wall-flank gating (Window Accuracy V2, Phase 2).
+# A real window is an opening *in a wall*: the double-stroke wall ink must
+# continue on both sides of the gap. Phantom exterior sub-segments from an
+# overshooting footprint polygon run across whitespace/borders with no flanking
+# wall, so this gate removes their false positives without touching real
+# windows (whose host wall continues past the jambs).
+FLANK_COVER_FRAC = 0.50      # min along-axis wall-ink coverage in a flank probe
+FLANK_PROBE_FT = 0.75        # probe length on each side of the gap (feet)
+
+# Recall unlock (Window Accuracy V2, Phase 3).
+# Windows only ever scanned is_exterior walls, so perimeter host walls that the
+# Hough supplement tagged interior were undetectable. A mis-tagged perimeter
+# wall is still the outermost wall on its side, so it lies on the building
+# envelope (axis extremes over *all* walls); genuine interior walls sit inside.
+# The Phase 2 flank gate + sill requirement keep precision on the extra scans.
+ENVELOPE_TOL_FT = 2.0        # axis distance to the building envelope edge (feet)
+
+# Symbol-on-wall detection (Window Symbol Recall V3).
+# Some plans draw windows as periodic glyph markers on a continuous centerline
+# glazing line *without* breaking the wall, so the opening-based strategies
+# never fire. The signature is feature ink -- present in ink_mask, absent from
+# wall_pair_mask (so wall strokes and crossing walls are excluded) -- sustained
+# in a thin band at the wall axis while the wall pair stays continuous. Plain
+# walls have an empty centre channel (measured ~0 on FP-only cases), so a
+# run-level coverage gate keeps precision.
+GLAZE_BAND_FT = 0.25         # centre-channel half-width (feet)
+SYMBOL_MARKER_FRAC = 0.28    # per-column centre-channel density marking a glyph
+SYMBOL_MARKER_MIN_FT = 0.15  # min along-wall extent of a marker blob (feet)
+SYMBOL_MARKER_MAX_FT = 1.50  # max along-wall extent of a marker blob (feet)
+SYMBOL_MARKER_GAP_FT = 0.40  # bridge tiny breaks within one marker blob (feet)
+SYMBOL_CONFIDENCE = 0.6      # fixed acceptance confidence for symbol candidates
+# Windows of this convention are drawn as periodic glyph markers on the wall
+# centreline. A lone on-axis blob is ambiguous (text, fixture, junction); a
+# regularly-spaced *series* is an unmistakable window run. Requiring several
+# markers with consistent spacing is the core precision guard -- plain walls and
+# FP-only plans have no such periodic on-axis series.
+SYMBOL_MIN_MARKERS = 3       # min markers on a wall to accept the series
+SYMBOL_SPACING_CV_MAX = 0.55  # max coeff. of variation of marker spacings
+
 __all__ = [
     "detect_windows",
     "detect_window_candidates",
@@ -265,6 +317,98 @@ def _open_runs_along_wall(
     return runs
 
 
+def _symbol_runs_along_wall(
+    wall_pair_mask: np.ndarray,
+    ink_mask: np.ndarray,
+    horiz: bool,
+    axis: float,
+    span_lo: float,
+    span_hi: float,
+    band_half: int,
+    min_gap_px: float,
+    max_gap_px: float,
+    end_inset_px: int,
+    px_per_unit: float,
+) -> list[tuple[float, float]]:
+    """Per-window spans for periodic glyph markers on a continuous centre-channel.
+
+    Some plans draw windows as a regularly-spaced series of compact markers on
+    the wall centreline (the wall pair never breaks). Detect on-axis feature
+    blobs (present in ``ink_mask``, absent from ``wall_pair_mask`` so the wall
+    strokes and crossing walls drop out); a series of >= ``SYMBOL_MIN_MARKERS``
+    with consistent spacing is emitted as one window per marker.
+    """
+    lo = int(round(span_lo)) + end_inset_px
+    hi = int(round(span_hi)) - end_inset_px
+    if hi - lo < min_gap_px:
+        return []
+
+    chan = min(max(band_half - 1, 1), max(2, int(round(GLAZE_BAND_FT * px_per_unit))))
+    a = int(round(axis))
+    feat = (ink_mask > 0) & (wall_pair_mask == 0)
+    if horiz:
+        region = feat[a - chan:a + chan + 1, lo:hi]
+        prof = region.mean(axis=0) if region.size else None
+    else:
+        region = feat[lo:hi, a - chan:a + chan + 1]
+        prof = region.mean(axis=1) if region.size else None
+    if prof is None or prof.size == 0:
+        return []
+
+    centers = _marker_centers(prof, lo, px_per_unit)
+    if len(centers) < SYMBOL_MIN_MARKERS:
+        return []
+
+    spacings = np.diff(centers)
+    mean_sp = float(spacings.mean())
+    if mean_sp <= 0:
+        return []
+    cv = float(spacings.std() / mean_sp)
+    if cv > SYMBOL_SPACING_CV_MAX:
+        return []
+
+    # Emit one window per marker, tiling the series at the half-spacing so the
+    # spans centre on the glyphs and stay within the window-width band.
+    half = max(min_gap_px / 2.0, min(mean_sp / 2.0, max_gap_px / 2.0))
+    spans: list[tuple[float, float]] = []
+    for c in centers:
+        spans.append((c - half, c + half))
+    return spans
+
+
+def _marker_centers(prof: np.ndarray, offset: int, px_per_unit: float) -> list[float]:
+    """Centres (in image coords) of compact on-axis marker blobs in ``prof``."""
+    present = prof >= SYMBOL_MARKER_FRAC
+    bridge = max(0, int(round(SYMBOL_MARKER_GAP_FT * px_per_unit)))
+    min_w = max(1, int(round(SYMBOL_MARKER_MIN_FT * px_per_unit)))
+    max_w = max(min_w, int(round(SYMBOL_MARKER_MAX_FT * px_per_unit)))
+
+    centers: list[float] = []
+    n = present.size
+    i = 0
+    while i < n:
+        if not present[i]:
+            i += 1
+            continue
+        j = i
+        gap = 0
+        last = i
+        while j < n:
+            if present[j]:
+                last = j
+                gap = 0
+            else:
+                gap += 1
+                if gap > bridge:
+                    break
+            j += 1
+        width = last - i + 1
+        if min_w <= width <= max_w:
+            centers.append(offset + (i + last) / 2.0)
+        i = j
+    return centers
+
+
 def _refine_window_span(
     ink_mask: np.ndarray,
     horiz: bool,
@@ -336,13 +480,135 @@ def _make_window(
         "width": f"{width_units:.2f} {unit_label}",
         "width_raw": round(width_units, 2),
         "is_exterior": True,
-        "evidence": evidence_detail if evidence_detail in ("sill",) else "sill",
+        "evidence": evidence_detail if evidence_detail in ("sill", "symbol") else "sill",
         "_horiz": horiz,
         "_axis": axis,
         "_span_lo": span_lo,
         "_span_hi": span_hi,
         "_strategy": host_wall.get("_detect_strategy", ""),
     }
+
+
+def _wall_axis_span(wall: dict) -> Optional[tuple[bool, float, float, float]]:
+    """(horiz, axis, span_lo, span_hi) for a wall, or None if degenerate."""
+    coords = wall.get("px_coords")
+    if not coords or len(coords) < 4:
+        return None
+    horiz = _orient(coords)
+    if horiz is None:
+        return None
+    x1, y1, x2, y2 = coords
+    if horiz:
+        return True, (y1 + y2) / 2.0, min(x1, x2), max(x1, x2)
+    return False, (x1 + x2) / 2.0, min(y1, y2), max(y1, y2)
+
+
+def _building_envelope(walls: list[dict]) -> Optional[tuple[float, float, float, float]]:
+    """(x_lo, x_hi, y_lo, y_hi) from axis extremes over all walls.
+
+    The outermost wall on each side defines the building edge regardless of its
+    exterior/interior tag, so perimeter walls mis-tagged interior still land on
+    this envelope while true interior walls fall inside it.
+    """
+    h_axes, v_axes = [], []
+    for w in walls:
+        info = _wall_axis_span(w)
+        if info is None:
+            continue
+        horiz, axis, _, _ = info
+        (h_axes if horiz else v_axes).append(axis)
+    if not h_axes or not v_axes:
+        return None
+    return min(v_axes), max(v_axes), min(h_axes), max(h_axes)
+
+
+def _on_building_envelope(
+    horiz: bool, axis: float,
+    envelope: Optional[tuple[float, float, float, float]],
+    tol: float,
+) -> bool:
+    if envelope is None:
+        return False
+    x_lo, x_hi, y_lo, y_hi = envelope
+    if horiz:
+        return abs(axis - y_lo) <= tol or abs(axis - y_hi) <= tol
+    return abs(axis - x_lo) <= tol or abs(axis - x_hi) <= tol
+
+
+def _opening_flanked_by_wall(
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    axis: float,
+    run_lo: float,
+    run_hi: float,
+    band_half: int,
+    probe_px: int,
+) -> bool:
+    """True when double-stroke wall ink continues on both sides of the gap.
+
+    Distinguishes a real opening in a wall from a low-ink run over whitespace
+    on a phantom exterior sub-segment (overshooting footprint polygon).
+    """
+    if probe_px <= 0:
+        return True
+
+    def _flank_cover(lo: float, hi: float) -> float:
+        """Fraction of along-axis positions in the probe that carry wall ink."""
+        if hi <= lo:
+            return 0.0
+        if horiz:
+            y0, y1 = int(round(axis - band_half)), int(round(axis + band_half))
+            region = _crop(wall_pair_mask, (int(round(lo)), y0, int(round(hi)), y1))
+            along_axis = 0
+        else:
+            x0, x1 = int(round(axis - band_half)), int(round(axis + band_half))
+            region = _crop(wall_pair_mask, (x0, int(round(lo)), x1, int(round(hi)))) 
+            along_axis = 1
+        if region.size == 0:
+            return 0.0
+        present = (region > 0).any(axis=along_axis)
+        return float(present.mean()) if present.size else 0.0
+
+    left = _flank_cover(run_lo - probe_px, run_lo)
+    right = _flank_cover(run_hi, run_hi + probe_px)
+    return left >= FLANK_COVER_FRAC and right >= FLANK_COVER_FRAC
+
+
+def _window_confidence(
+    sill_cover: float,
+    evidence_detail: str,
+    gap_open: bool,
+    bilateral: bool,
+    is_dimension: bool,
+) -> tuple[float, dict]:
+    """Weighted multi-cue confidence in [~0, 1] plus a per-cue breakdown.
+
+    Decoupled from the binary tiers in ``gap_sill_evidence`` so acceptance can
+    trade sill strength against opening corroboration; calibrated against the
+    validation set (see ``validation/window_metrics.py``).
+    """
+    sill_c = (sill_cover - SILL_RAMP_LO) / (SILL_RAMP_HI - SILL_RAMP_LO)
+    sill_c = max(0.0, min(1.0, sill_c))
+
+    score = W_SILL * sill_c
+    if gap_open:
+        score += W_OPEN
+    if bilateral:
+        score += W_BILATERAL
+    if evidence_detail == "sill+triple":
+        score += W_TRIPLE_BONUS
+    if is_dimension and not bilateral:
+        score -= W_DIM_PENALTY
+
+    cues = {
+        "sill_cover": round(float(sill_cover), 3),
+        "sill_component": round(sill_c, 3),
+        "gap_open": bool(gap_open),
+        "bilateral": bool(bilateral),
+        "evidence_detail": evidence_detail,
+        "dimension_penalty": bool(is_dimension and not bilateral),
+    }
+    return score, cues
 
 
 def _near_any(center: list[float], others: list[list[float]], dist: float) -> bool:
@@ -419,6 +685,120 @@ def _merge_span_dedup(
     return merged
 
 
+def _symbol_perp_extends(
+    ink_mask: np.ndarray,
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    axis: float,
+    run_lo: float,
+    run_hi: float,
+    band_half: int,
+) -> bool:
+    """True when centre-channel ink continues far perpendicular (a crossing wall).
+
+    A window glyph is confined to the wall band; a perpendicular interior wall
+    meeting the host keeps going past it, so feature ink persists well beyond
+    the band on at least one side.
+    """
+    feat = (ink_mask > 0) & (wall_pair_mask == 0)
+    lo, hi = int(round(run_lo)), int(round(run_hi))
+    near = band_half
+    far0 = 2 * band_half
+    far1 = 4 * band_half
+    a = int(round(axis))
+
+    def cover(c0: int, c1: int) -> float:
+        """Fraction of perpendicular positions in the slab reached by feature ink.
+
+        Reduced with ``any`` along the wall so a thin crossing line still scores
+        high (it touches every perpendicular position it passes through).
+        """
+        if horiz:
+            region = _crop(feat.astype(np.uint8), (lo, c0, hi, c1))
+            if region.size == 0:
+                return 0.0
+            return float((region > 0).any(axis=1).mean())  # perp = rows
+        region = _crop(feat.astype(np.uint8), (c0, lo, c1, hi))
+        if region.size == 0:
+            return 0.0
+        return float((region > 0).any(axis=0).mean())       # perp = cols
+
+    near_cov = max(cover(a - near, a), cover(a, a + near))
+    far_cov = max(cover(a - far1, a - far0), cover(a + far0, a + far1))
+    return far_cov >= 0.30 and far_cov >= 0.6 * max(near_cov, 1e-6)
+
+
+def _evaluate_symbol_candidate(
+    record: dict,
+    horiz: bool,
+    axis: float,
+    run_lo: float,
+    run_hi: float,
+    band_half: int,
+    host_wall: dict,
+    wall_pair_mask: np.ndarray,
+    ink_mask: np.ndarray,
+    px_per_unit: float,
+    unit_label: str,
+    open_gap_max: float,
+    door_centers: list[list[float]],
+    door_dedup_dist: float,
+    strategy: str,
+) -> dict:
+    """Acceptance for symbol-on-wall candidates (continuous wall, no open gap)."""
+    rect = record["bbox_px"]
+
+    # The glyph rides a continuous wall; if the band reads open, this is an
+    # opening and belongs to the opening-based strategies (avoid double-count).
+    if _gap_is_open(wall_pair_mask, horiz, tuple(rect), max_ink_frac=open_gap_max):
+        record["status"] = "rejected"
+        record["reject_reason"] = "not_symbol_open_gap"
+        return record
+
+    # Reject dimension strings sitting beside the wall.
+    if _looks_like_dimension_line(ink_mask, horiz, tuple(rect), wall_pair_mask=wall_pair_mask):
+        record["status"] = "rejected"
+        record["reject_reason"] = "dimension_line"
+        return record
+
+    # The host wall must continue on both sides (this is an in-wall glyph).
+    probe_px = max(band_half, int(round(FLANK_PROBE_FT * px_per_unit)))
+    if not _opening_flanked_by_wall(
+        wall_pair_mask, horiz, axis, run_lo, run_hi, band_half, probe_px,
+    ):
+        record["status"] = "rejected"
+        record["reject_reason"] = "no_wall_flank"
+        return record
+
+    # Reject perpendicular crossing walls (feature ink extends past the band).
+    if _symbol_perp_extends(
+        ink_mask, wall_pair_mask, horiz, axis, run_lo, run_hi, band_half,
+    ):
+        record["status"] = "rejected"
+        record["reject_reason"] = "crossing_wall"
+        return record
+
+    record["confidence"] = SYMBOL_CONFIDENCE
+    record["cues"] = {"evidence_detail": "symbol"}
+    wall_tag = {**host_wall, "_detect_strategy": strategy}
+    cand = _make_window(
+        horiz, axis, run_lo, run_hi, band_half,
+        wall_tag, px_per_unit, unit_label,
+        ink_mask=None,
+        evidence_detail="symbol",
+    )
+    cand["confidence"] = SYMBOL_CONFIDENCE
+    if _near_any(cand["center_px"], door_centers, door_dedup_dist):
+        record["status"] = "rejected"
+        record["reject_reason"] = "near_door"
+        record["window"] = cand
+        return record
+
+    record["window"] = cand
+    record["evidence_detail"] = "symbol"
+    return record
+
+
 def _evaluate_candidate(
     horiz: bool,
     axis: float,
@@ -438,6 +818,8 @@ def _evaluate_candidate(
     *,
     strategy: str,
     require_open_check: bool,
+    strict_open: bool = False,
+    symbol: bool = False,
 ) -> dict:
     """Build accepted/rejected candidate record for detect + debug."""
     gap_px = run_hi - run_lo
@@ -459,35 +841,69 @@ def _evaluate_candidate(
         record["reject_reason"] = "width_out_of_range"
         return record
 
+    if symbol:
+        return _evaluate_symbol_candidate(
+            record, horiz, axis, run_lo, run_hi, band_half, host_wall,
+            wall_pair_mask, ink_mask, px_per_unit, unit_label,
+            open_gap_max, door_centers, door_dedup_dist, strategy,
+        )
+
     has_sill, evidence_detail, sill_cover = gap_sill_evidence(
         ink_mask, horiz, rect, wall_pair_mask=wall_pair_mask,
     )
-    if not has_sill:
-        record["status"] = "rejected"
-        record["reject_reason"] = "no_sill"
-        return record
-
     bilateral = _gap_has_bilateral_break(
         wall_pair_mask, horiz, rect, max_ink_frac=open_gap_max,
     )
     gap_open = _gap_is_open(
         wall_pair_mask, horiz, rect, max_ink_frac=open_gap_max,
     )
+    is_dimension = _looks_like_dimension_line(
+        ink_mask, horiz, rect, wall_pair_mask=wall_pair_mask,
+    )
 
-    if require_open_check:
-        if not gap_open:
-            record["status"] = "rejected"
-            record["reject_reason"] = "ink_not_open"
-            return record
-    elif (
-        _looks_like_dimension_line(
-            ink_mask, horiz, rect, wall_pair_mask=wall_pair_mask,
-        )
-        and not bilateral
-    ):
+    confidence, cues = _window_confidence(
+        sill_cover, evidence_detail, gap_open, bilateral, is_dimension,
+    )
+    record["confidence"] = round(confidence, 3)
+    record["cues"] = cues
+
+    # A usable sill is required (tiered detector encodes full / triple /
+    # partial-on-very-open-gap). Note: many real windows do not register as an
+    # open gap in wall_pair_mask, so opening evidence is scored, not required.
+    if not has_sill:
+        record["status"] = "rejected"
+        record["reject_reason"] = "no_sill"
+        return record
+
+    # Collinear gaps are only proposed when two real sub-segments flank the
+    # span, so a filled (un-open) gap there is a hard contradiction. Interior
+    # envelope walls (Phase 3) are riskier, so they also require opening
+    # corroboration: an open band or a bilateral stroke break.
+    if require_open_check and not gap_open:
+        record["status"] = "rejected"
+        record["reject_reason"] = "ink_not_open"
+        return record
+    if strict_open and not (gap_open or bilateral):
+        record["status"] = "rejected"
+        record["reject_reason"] = "ink_not_open"
+        return record
+
+    if cues["dimension_penalty"]:
         record["status"] = "rejected"
         record["reject_reason"] = "dimension_line"
         return record
+
+    # In-segment openings must sit in a real wall: double-stroke ink has to
+    # continue on both sides of the gap. Collinear gaps already have two real
+    # flanking sub-segments by construction.
+    if not require_open_check:
+        probe_px = max(band_half, int(round(FLANK_PROBE_FT * px_per_unit)))
+        if not _opening_flanked_by_wall(
+            wall_pair_mask, horiz, axis, run_lo, run_hi, band_half, probe_px,
+        ):
+            record["status"] = "rejected"
+            record["reject_reason"] = "no_wall_flank"
+            return record
 
     wall_tag = {**host_wall, "_detect_strategy": strategy}
     cand = _make_window(
@@ -496,6 +912,7 @@ def _evaluate_candidate(
         ink_mask=ink_mask,
         evidence_detail=evidence_detail,
     )
+    cand["confidence"] = round(confidence, 3)
     if _near_any(cand["center_px"], door_centers, door_dedup_dist):
         record["status"] = "rejected"
         record["reject_reason"] = "near_door"
@@ -539,22 +956,19 @@ def detect_window_candidates(
 
     candidates: list[dict] = []
 
+    # Phase 3: scan exterior walls plus interior walls that sit on the building
+    # envelope (perimeter walls the Hough supplement mis-tagged as interior).
+    envelope = _building_envelope(walls)
+    envelope_tol = max(band_half, ENVELOPE_TOL_FT * px_per_unit)
+
     for wall in walls:
-        if not wall.get("is_exterior"):
+        info = _wall_axis_span(wall)
+        if info is None:
             continue
-        coords = wall.get("px_coords")
-        if not coords or len(coords) < 4:
+        horiz, axis, span_lo, span_hi = info
+        exterior = bool(wall.get("is_exterior"))
+        if not exterior and not _on_building_envelope(horiz, axis, envelope, envelope_tol):
             continue
-        horiz = _orient(coords)
-        if horiz is None:
-            continue
-        x1, y1, x2, y2 = coords
-        if horiz:
-            axis = (y1 + y2) / 2.0
-            span_lo, span_hi = min(x1, x2), max(x1, x2)
-        else:
-            axis = (x1 + x2) / 2.0
-            span_lo, span_hi = min(y1, y2), max(y1, y2)
 
         raw_runs = _open_runs_along_wall(
             wall_pair_mask, horiz, axis, span_lo, span_hi,
@@ -572,6 +986,23 @@ def detect_window_candidates(
                 min_gap_px, max_gap_px,
                 strategy="in_segment",
                 require_open_check=False,
+                strict_open=not exterior,
+            ))
+
+        # Symbol-on-wall: periodic glyphs on a continuous centreline glazing line.
+        symbol_spans = _symbol_runs_along_wall(
+            wall_pair_mask, ink_mask, horiz, axis, span_lo, span_hi,
+            band_half, min_gap_px, max_gap_px, end_inset_px, px_per_unit,
+        )
+        for run_lo, run_hi in symbol_spans:
+            candidates.append(_evaluate_candidate(
+                horiz, axis, run_lo, run_hi, band_half, wall,
+                wall_pair_mask, ink_mask, px_per_unit, unit_label,
+                open_gap_max, door_centers, door_dedup_dist,
+                min_gap_px, max_gap_px,
+                strategy="symbol_on_wall",
+                require_open_check=False,
+                symbol=True,
             ))
 
     groups: dict[bool, list[tuple[float, float, float, dict]]] = {True: [], False: []}

@@ -365,7 +365,13 @@
         915,
         758
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     },
     {
       "id": "w11",
@@ -380,7 +386,12 @@
         813,
         1789
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R2",
+      "room_ids": [
+        "R2"
+      ],
+      "is_shared": false
     },
     {
       "id": "w12",
@@ -395,7 +406,13 @@
         262,
         2115
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     },
     {
       "id": "w18",
@@ -410,7 +427,13 @@
         813,
         2115
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     }
   ],
   "doors": [],
@@ -431,7 +454,8 @@
       "width": "6.08 ft",
       "width_raw": 6.08,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win2",
@@ -449,7 +473,8 @@
       "width": "7.55 ft",
       "width_raw": 7.55,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win3",
@@ -467,7 +492,8 @@
       "width": "3.78 ft",
       "width_raw": 3.78,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win4",
@@ -485,7 +511,8 @@
       "width": "2.00 ft",
       "width_raw": 2.0,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win5",
@@ -503,7 +530,8 @@
       "width": "2.04 ft",
       "width_raw": 2.04,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win6",
@@ -521,7 +549,8 @@
       "width": "4.98 ft",
       "width_raw": 4.98,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -555,5 +584,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.69
+  "runtime_s": 0.35
 }

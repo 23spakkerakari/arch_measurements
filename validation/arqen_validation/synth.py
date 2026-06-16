@@ -427,8 +427,101 @@ def render_corridor_plan(
     )
 
 
+def _window_marker(img: np.ndarray, cx: int, cy: int, size: int) -> None:
+    """Filled glyph marker (small square with a tiny open centre) on the wall axis."""
+    h = max(2, size // 2)
+    cv2.rectangle(img, (cx - h, cy - h), (cx + h, cy + h), (0, 0, 0), -1)
+    cv2.rectangle(img, (cx - 1, cy - 1), (cx + 1, cy + 1), (255, 255, 255), -1)
+
+
+def render_symbol_window_plan(
+    px_per_unit: float = DEFAULT_PX_PER_FT,
+    scale_str: str = DEFAULT_SCALE_STR,
+    dpi: int = DEFAULT_DPI,
+) -> SyntheticPlan:
+    """Rectangular building whose east wall carries windows as a glyph series.
+
+    Unlike ``render_two_room_plan`` (windows as gap+sill openings), here the
+    east exterior wall stays continuous and the windows are drawn as a regularly
+    spaced series of compact markers on the wall centreline -- the convention
+    the ``symbol_on_wall`` strategy targets. The opening-based strategies cannot
+    see these (the wall pair never breaks), so this fixture isolates the symbol
+    detector.
+    """
+    if px_per_unit != DEFAULT_PX_PER_FT:
+        raise ValueError("render_symbol_window_plan currently supports px_per_unit=18 only")
+
+    sheet_w, sheet_h = 2200, 1500
+    img = _new_sheet(sheet_w, sheet_h)
+
+    g = int(round(1.0 * px_per_unit))         # exterior wall thickness: 18 px
+    x0, y0, x1, y1 = 180, 220, 1260, 940      # outer faces (60 ft x 40 ft)
+    ix0, iy0, ix1, iy1 = x0 + g, y0 + g, x1 - g, y1 - g
+
+    # Continuous double-stroke exterior box (no openings broken into it).
+    cv2.rectangle(img, (x0, y0), (x1, y1), (0, 0, 0), STROKE)
+    cv2.rectangle(img, (ix0, iy0), (ix1, iy1), (0, 0, 0), STROKE)
+
+    half = g / 2.0
+    east_axis = int(round(x1 - half))         # 1251: east wall centreline
+    marker_size = int(round(0.6 * px_per_unit))  # ~11 px glyph
+    spacing = int(round(5.0 * px_per_unit))   # 90 px (5 ft) on-centre
+    first_y = 360
+    n_markers = 5
+    windows = []
+    for wi in range(n_markers):
+        my = first_y + wi * spacing
+        _window_marker(img, east_axis, my, marker_size)
+        windows.append({
+            "id": f"win{wi + 1}",
+            "host_wall_id": "ext_e",
+            "bbox_px": [ix1, my - spacing // 2, x1, my + spacing // 2],
+            "center_px": [float(east_axis), float(my)],
+        })
+
+    # Dimension string (annotation ink the pipeline must reject).
+    _dimension_string(img, (x0, 1040), (x1, 1040), "60'-0\"")
+
+    gt = {
+        "id": "synth_symbol_window",
+        "scale": scale_str,
+        "image_size_px": [sheet_w, sheet_h],
+        "rooms": [
+            {"id": "R1", "bbox_px": [ix0, iy0, ix1, iy1],
+             "area_raw": round((ix1 - ix0) * (iy1 - iy0) / px_per_unit ** 2, 1)},
+        ],
+        "walls": [
+            {"id": "ext_n", "px_coords": [x0, y0 + half, x1, y0 + half],
+             "facing": "North", "is_exterior": True,
+             "length_raw": round((x1 - x0) / px_per_unit, 2)},
+            {"id": "ext_s", "px_coords": [x0, y1 - half, x1, y1 - half],
+             "facing": "South", "is_exterior": True,
+             "length_raw": round((x1 - x0) / px_per_unit, 2)},
+            {"id": "ext_w", "px_coords": [x0 + half, y0, x0 + half, y1],
+             "facing": "West", "is_exterior": True,
+             "length_raw": round((y1 - y0) / px_per_unit, 2)},
+            {"id": "ext_e", "px_coords": [x1 - half, y0, x1 - half, y1],
+             "facing": "East", "is_exterior": True,
+             "length_raw": round((y1 - y0) / px_per_unit, 2)},
+        ],
+        "doors": [],
+        "windows": windows,
+        "labels": [],
+        "dimensions": [
+            {"id": "dim1", "text": "60'-0\"", "value_raw": 60.0, "unit": "ft",
+             "center_px": [(x0 + x1) / 2.0, 1040.0]},
+        ],
+    }
+
+    return SyntheticPlan(
+        name="synth_symbol_window", image=img, scale_str=scale_str, dpi=dpi,
+        px_per_unit=px_per_unit, ground_truth=gt,
+    )
+
+
 ALL_PLANS = {
     "synth_two_room": render_two_room_plan,
     "synth_l_shape": render_l_shape_plan,
     "synth_corridor": render_corridor_plan,
+    "synth_symbol_window": render_symbol_window_plan,
 }

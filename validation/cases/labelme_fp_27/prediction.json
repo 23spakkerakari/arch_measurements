@@ -481,7 +481,8 @@
       "width": "2.91 ft",
       "width_raw": 2.91,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win2",
@@ -499,7 +500,8 @@
       "width": "2.53 ft",
       "width_raw": 2.53,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win3",
@@ -517,28 +519,11 @@
       "width": "6.36 ft",
       "width_raw": 6.36,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
       "id": "win4",
-      "host_wall_id": "w2.s1",
-      "bbox_px": [
-        264,
-        2463,
-        556,
-        2563
-      ],
-      "center_px": [
-        410.0,
-        2513.0
-      ],
-      "width": "4.42 ft",
-      "width_raw": 4.42,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win5",
       "host_wall_id": "w3.s1",
       "bbox_px": [
         752,
@@ -553,10 +538,11 @@
       "width": "5.68 ft",
       "width_raw": 5.68,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win6",
+      "id": "win5",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1158,
@@ -571,10 +557,11 @@
       "width": "6.41 ft",
       "width_raw": 6.41,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win7",
+      "id": "win6",
       "host_wall_id": "w3.s2",
       "bbox_px": [
         1243,
@@ -589,10 +576,11 @@
       "width": "6.41 ft",
       "width_raw": 6.41,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win8",
+      "id": "win7",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1627,
@@ -607,10 +595,11 @@
       "width": "2.62 ft",
       "width_raw": 2.62,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win9",
+      "id": "win8",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1812,
@@ -625,10 +614,11 @@
       "width": "2.12 ft",
       "width_raw": 2.12,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win10",
+      "id": "win9",
       "host_wall_id": "w3.s3",
       "bbox_px": [
         1784,
@@ -643,10 +633,11 @@
       "width": "5.39 ft",
       "width_raw": 5.39,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win11",
+      "id": "win10",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1964,
@@ -661,10 +652,11 @@
       "width": "2.79 ft",
       "width_raw": 2.79,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win12",
+      "id": "win11",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         2208,
@@ -679,10 +671,11 @@
       "width": "6.41 ft",
       "width_raw": 6.41,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win13",
+      "id": "win12",
       "host_wall_id": "w3.s4",
       "bbox_px": [
         2246,
@@ -697,10 +690,11 @@
       "width": "6.30 ft",
       "width_raw": 6.3,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win14",
+      "id": "win13",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         2729,
@@ -715,10 +709,11 @@
       "width": "6.41 ft",
       "width_raw": 6.41,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win15",
+      "id": "win14",
       "host_wall_id": "w5.s1",
       "bbox_px": [
         4150,
@@ -733,7 +728,8 @@
       "width": "3.38 ft",
       "width_raw": 3.38,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     }
   ],
   "mask_roi_offset": [
@@ -767,5 +763,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 1.86
+  "runtime_s": 2.0
 }

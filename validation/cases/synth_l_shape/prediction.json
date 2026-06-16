@@ -240,7 +240,13 @@
         695,
         780
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     },
     {
       "id": "w8",
@@ -255,7 +261,13 @@
         1231,
         780
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     }
   ],
   "doors": [
@@ -297,5 +309,5 @@
   },
   "roi_hint_pct": null,
   "analysis_roi_pct": null,
-  "runtime_s": 1.0
+  "runtime_s": 0.53
 }

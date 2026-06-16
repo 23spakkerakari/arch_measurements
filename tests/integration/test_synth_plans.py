@@ -239,6 +239,35 @@ class TestCorridorAccuracy:
         assert doors["precision"] >= 0.99
 
 
+@pytest.fixture(scope="module")
+def symbol_window_result(symbol_window_plan):
+    return _analyze(symbol_window_plan)
+
+
+@pytest.fixture(scope="module")
+def symbol_window_report(symbol_window_plan, symbol_window_result):
+    from arqen_validation.score import score_prediction
+
+    return score_prediction(symbol_window_plan.ground_truth, symbol_window_result)
+
+
+class TestSymbolWindowAccuracy:
+    def test_no_error(self, symbol_window_result):
+        assert "error" not in symbol_window_result
+
+    def test_windows_detected_as_symbols(self, symbol_window_result):
+        # The east wall stays continuous, so these are only findable via the
+        # symbol-on-wall strategy (no gap+sill opening to detect).
+        wins = symbol_window_result.get("windows", [])
+        assert wins, "no windows detected on the glyph-series wall"
+        assert any(w.get("evidence") == "symbol" for w in wins)
+
+    def test_window_recall_and_precision(self, symbol_window_report):
+        wins = symbol_window_report["categories"]["windows"]
+        assert wins["recall"] >= 0.8
+        assert wins["precision"] >= 0.99
+
+
 class TestCalibrationGuards:
     def test_wrong_dpi_emits_warning(self, two_room_plan):
         from preprocess import analyze_page

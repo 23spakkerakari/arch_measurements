@@ -294,7 +294,13 @@
         536,
         600
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     }
   ],
   "doors": [],
@@ -315,7 +321,8 @@
       "width": "3.00 ft",
       "width_raw": 3.0,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win2",
@@ -333,7 +340,8 @@
       "width": "4.00 ft",
       "width_raw": 4.0,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win3",
@@ -351,7 +359,8 @@
       "width": "2.73 ft",
       "width_raw": 2.73,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -385,5 +394,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.33
+  "runtime_s": 0.17
 }

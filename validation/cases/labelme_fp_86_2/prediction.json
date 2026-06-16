@@ -220,7 +220,10 @@
         1389,
         195
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w5.s1",
@@ -292,7 +295,10 @@
         650,
         195
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w9",
@@ -307,7 +313,10 @@
         297,
         303
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [],
+      "is_shared": false
     },
     {
       "id": "w1.s1",
@@ -381,5 +390,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.48
+  "runtime_s": 0.24
 }

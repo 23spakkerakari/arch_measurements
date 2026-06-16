@@ -229,6 +229,70 @@ quirk in `validation/arqen_validation/normalize.py` (`20'-6"` parsed to 19.5). *
 - **Tests:** synth cases carry window GT (currently asserting TP==0 — flip
   to recall floors when detection lands).
 
+### 8a. Window Accuracy V2 — scored gate + flank gate + recall unlock — IMPLEMENTED 2026-06-16
+
+Three geometric phases on top of the V1 detector, all gated to never regress
+synth or FP-only cases (measure with `validation/window_metrics.py`):
+
+- **Phase 1 — multi-cue confidence:** `_window_confidence` combines sill cover,
+  open-gap, bilateral break, triple-line and a dimension penalty into a
+  `confidence` field (emitted on every window + candidate). Calibration finding:
+  re-weighting these cues trades precision against recall along the *same*
+  frontier and cannot beat the V1 binary gate, so acceptance is kept
+  F1-neutral and confidence is exposed for ranking/debug.
+- **Phase 2 — wall-flank gate:** `_opening_flanked_by_wall` requires
+  double-stroke wall ink to continue on both sides of the gap (along-axis
+  coverage ≥ 0.50). Removes phantom-segment FPs over whitespace from
+  overshooting footprint polygons. Effect: labeled FP 69 → 56, fp_only FP
+  92 → 88.
+- **Phase 3 — interior-envelope recall unlock:** also scan interior-tagged
+  walls that lie on the building envelope (axis extremes over all walls);
+  these are perimeter walls the Hough supplement mis-tagged. Gated with
+  `strict_open` (open band or bilateral break required) to hold precision.
+- **Measured (LabelMe + synth, fresh pipeline):** labeled micro
+  F1 0.277 → 0.283 (TP 85, FP 69 → 56), all-real F1 0.241 → 0.247,
+  fp_only FP 92 → 88, synth stays 1.0.
+
+### 8b. Window Symbol Recall (V3) — DELIVERED 2026-06-16 (geometric symbol detector)
+
+The deferred Phase 4 "template matching" was reframed and delivered as a
+**geometric** symbol detector after a measurement-first diagnosis (the original
+deferral assumed missing host walls were the binding constraint). Re-probing
+`labelme_fp_20` showed the host walls are present and scanned, but the windows
+are drawn as a **regularly spaced series of glyph markers on a continuous
+centreline** — the wall pair never breaks, so the opening-based strategies
+structurally cannot generate candidates for them.
+
+Implementation (`window_detect.py`, strategy `symbol_on_wall`):
+
+- `_symbol_runs_along_wall` scans a thin centre-channel band of feature ink
+  (`ink_mask` present **and** `wall_pair_mask` absent, so wall strokes and
+  crossing walls drop out) for compact on-axis marker blobs. A series of
+  ≥ `SYMBOL_MIN_MARKERS` (3) with spacing coeff. of variation ≤
+  `SYMBOL_SPACING_CV_MAX` (0.55) is emitted as one window per marker
+  (`evidence: "symbol"`).
+- Precision guards: wall pair must stay continuous (not an open gap — those
+  belong to the opening strategies), wall ink must flank the glyph, dimension
+  strings are rejected, and on-axis ink continuing far perpendicular is rejected
+  as a crossing wall (`_symbol_perp_extends`). The periodic-series requirement is
+  the core guard — plain walls and FP-only plans have an empty centre channel
+  (measured ≈ 0), so they do not fire.
+
+Measured impact (`validation/window_metrics.py --run-pipeline`, vs. the V2
+baseline where the symbol path emits no candidates):
+
+- `labelme_fp_20`: recall 0.12 → **0.26** (9 → 20 TP), precision 0.75 → **0.87**.
+- Labeled aggregate F1 0.283 → **0.311** (TP +10, FP flat at 57).
+- FP-only **not regressed**: 98 → **90** FP (symbol windows merge-dedup with some
+  opening-path FPs).
+- Synth stays **1.0**; a new glyph-on-wall fixture (`render_symbol_window_plan`)
+  asserts the convention is detected end-to-end.
+
+Still bounded: genuine interior-wall / courtyard glazing (e.g. `fp_19`,
+`fp_31_2`) remains out of scope (those walls are not scanned by design), and the
+hatched-band convention (`fp_60`) is handled by the opening path, not this one.
+NCC/ML template matching remains deferred unless the geometric detector plateaus.
+
 ## 9. Dimension extraction
 
 - **Baseline evidence:** dimensions recall 0.00; dimension strings are

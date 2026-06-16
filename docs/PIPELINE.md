@@ -206,16 +206,19 @@ polygon_to_segments()
 | Symbol | CV behavior | Module |
 |--------|-------------|--------|
 | **Doors** | Collinear wall-gap detection (1.5–5 ft); sill gaps rejected | `Arqen/door_detect.py` → `doors[]` |
-| **Windows** | Exterior-wall sill-line detection (2–8 ft); in-segment + gap strategies; strict 60% sill; span merge dedup | `Arqen/window_detect.py` → `windows[]` |
+| **Windows** | Sill-line detection (2–8 ft) on exterior + envelope walls; in-segment + gap strategies; tiered sill; scored confidence; wall-flank gate; span merge dedup | `Arqen/window_detect.py` → `windows[]` |
 
 **Window detection details** (`window_detect.py`):
 
-- Scans **exterior** sub-segments only (`is_exterior: true` from room split).
+- **Eligible walls:** `is_exterior: true` sub-segments **plus** interior-tagged walls that lie on the building envelope (axis extremes over all walls) — recovers perimeter walls the Hough supplement mis-tagged (Window Accuracy V2 Phase 3). Envelope/interior scans require opening corroboration (`strict_open`).
 - **Strategy 1:** open runs along a wall span in `wall_pair_mask` + tiered sill evidence (full / triple-line / partial on open gap).
 - **Strategy 2:** collinear sub-segment gaps (open-gap verification + sill).
-- **FP guards:** dimension-line rejection when no bilateral wall break; collinear gaps require open ink.
+- **Strategy 3 — symbol-on-wall (Window Symbol Recall V3):** windows drawn as a regularly spaced series of glyph markers on a **continuous** centreline (the wall pair never breaks), which the opening strategies structurally cannot see. `_symbol_runs_along_wall` scans a thin centre-channel band of feature ink (`ink_mask` present **and** `wall_pair_mask` absent, so wall strokes and crossing walls drop out) for compact on-axis marker blobs; a series of ≥ 3 markers with consistent spacing (coeff. of variation ≤ 0.55) is emitted as one window per marker (`evidence: "symbol"`). Precision guards: wall pair must stay continuous (not an open gap), wall ink must flank the glyph, dimension strings are rejected, and on-axis ink that continues far perpendicular is rejected as a crossing wall. Plain walls have an empty centre channel (≈ 0 on FP-only cases), so the periodic-series requirement keeps precision.
+- **Scored acceptance (Phase 1):** `_window_confidence` combines sill cover, open-gap, bilateral break, triple-line and a dimension penalty into a `confidence` field on every window + candidate (with a per-cue `cues` breakdown on candidates). Cue re-weighting trades P↔R on the same frontier, so acceptance is kept F1-neutral vs. the binary gate; `confidence` is exposed for ranking/debug.
+- **FP guards:** a usable sill is required; dimension-line rejection when no bilateral wall break; collinear gaps require open ink; **wall-flank gate** (Phase 2) requires double-stroke wall ink to continue on both sides of the gap (along-axis coverage ≥ 0.50), removing phantom-segment false positives over whitespace from overshooting footprint polygons.
 - **Split:** oversized or multi-jamb runs split on wall-pair ink peaks before acceptance.
 - **Dedup:** merge only overlapping spans on the same axis (not adjacent windows); center-proximity dedup.
+- **Measurement:** `python validation/window_metrics.py [--run-pipeline]` prints per-case + aggregate (synth / labeled / fp_only) window P/R/F1, gating that synth + FP-only do not regress.
 - **Debug:** `python Arqen/debug_windows.py --image plan.png --scale "3/8in=1ft" --dpi 150 --out debug_runs/windows`
 | **Fixtures** | Not detected | — |
 

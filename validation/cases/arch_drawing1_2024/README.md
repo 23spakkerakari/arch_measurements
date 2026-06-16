@@ -17,3 +17,13 @@ python validation/run_score.py --case arch_drawing1_2024
 ```
 
 Annotate `windows[]` in `ground_truth.json` before scoring.
+
+## Ground truth status
+
+`ground_truth.json` `windows[]` is currently **empty / pending human annotation**.
+Window positions on this full construction sheet cannot be reliably pixel-located
+by automated inspection, so this case is treated as a qualitative check only.
+Quantitative gating for the Window Accuracy V2 work runs against the
+human-annotated LabelMe cases plus the synthetic plans (see
+`validation/window_metrics.py`). Until GT is filled, this case reports as
+`fp_only` (every prediction counts as a false positive).

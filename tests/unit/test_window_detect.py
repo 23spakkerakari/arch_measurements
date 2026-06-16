@@ -3,7 +3,12 @@
 import numpy as np
 import pytest
 
-from window_detect import detect_window_candidates, detect_windows, ink_mask_from_image
+from window_detect import (
+    _opening_flanked_by_wall,
+    detect_window_candidates,
+    detect_windows,
+    ink_mask_from_image,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -315,6 +320,56 @@ class TestTripleLineSill:
         assert len(windows) == 1
 
 
+class TestSymbolOnWall:
+    """V3: periodic glyph markers on a continuous wall (no opening / sill)."""
+
+    def _setup(self, n_markers=5, spacing=60, first=70, periodic=True, perp=False):
+        axis, lo, hi = 300, 40, 380
+        mask = np.zeros(SHAPE, dtype=np.uint8)   # wall_pair_mask (continuous)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, False, axis, lo, hi, gap=18)
+        _draw_pair(ink, False, axis, lo, hi, gap=18)
+        ys = []
+        for i in range(n_markers):
+            if periodic:
+                my = first + i * spacing
+            else:
+                my = first + int(i * spacing + (12 if i % 2 else 48))
+            ys.append(my)
+            if perp:
+                # long perpendicular bar extending well past the wall band
+                ink[my - 2:my + 3, axis - 60:axis + 61] = 255
+            else:
+                ink[my - 5:my + 6, axis - 5:axis + 6] = 255
+        walls = [_wall("w1", [axis, lo, axis, hi], is_exterior=True)]
+        return mask, ink, walls, ys
+
+    def test_periodic_markers_detected_as_symbols(self):
+        mask, ink, walls, ys = self._setup(n_markers=5)
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) >= 4
+        assert all(w["evidence"] == "symbol" for w in windows)
+        assert all(w["is_exterior"] is True for w in windows)
+
+    def test_plain_continuous_wall_has_no_symbols(self):
+        mask, ink, walls, _ = self._setup(n_markers=0)
+        assert detect_windows(walls, mask, ink, PPU) == []
+
+    def test_too_few_markers_rejected(self):
+        # Two markers do not establish a periodic series.
+        mask, ink, walls, _ = self._setup(n_markers=2)
+        assert detect_windows(walls, mask, ink, PPU) == []
+
+    def test_irregular_spacing_rejected(self):
+        mask, ink, walls, _ = self._setup(n_markers=5, periodic=False)
+        assert detect_windows(walls, mask, ink, PPU) == []
+
+    def test_perpendicular_crossing_bars_rejected(self):
+        # On-axis ink that continues far perpendicular is a crossing wall.
+        mask, ink, walls, _ = self._setup(n_markers=5, perp=True)
+        assert detect_windows(walls, mask, ink, PPU) == []
+
+
 class TestDebugCandidates:
     def test_candidates_include_reject_reasons(self):
         mask, ink, walls = _sill_gap_setup()
@@ -323,3 +378,88 @@ class TestDebugCandidates:
         assert candidates
         assert any(c["status"] == "rejected" for c in candidates)
         assert any(c.get("reject_reason") == "no_sill" for c in candidates)
+
+
+class TestConfidenceScore:
+    """Phase 1: multi-cue confidence is computed and surfaced."""
+
+    def test_accepted_window_carries_confidence(self):
+        mask, ink, walls = _sill_gap_setup(gap_px=72)
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+        assert "confidence" in windows[0]
+        assert windows[0]["confidence"] > 0.0
+
+    def test_candidates_expose_confidence_and_cues(self):
+        mask, ink, walls = _sill_gap_setup(gap_px=72)
+        candidates = detect_window_candidates(walls, mask, ink, PPU)
+        accepted = [c for c in candidates if c["status"] == "accepted"]
+        assert accepted
+        c = accepted[0]
+        assert "confidence" in c
+        cues = c["cues"]
+        for key in ("sill_cover", "sill_component", "gap_open", "bilateral"):
+            assert key in cues
+
+
+class TestFlankGate:
+    """Phase 2: openings must be flanked by continuing wall ink."""
+
+    def test_flank_present_on_real_wall(self):
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_lo, gap_hi = 300, 372
+        _draw_pair(mask, True, 200, 100, gap_lo)
+        _draw_pair(mask, True, 200, gap_hi, 700)
+        assert _opening_flanked_by_wall(
+            mask, True, 200.0, gap_lo, gap_hi, band_half=14, probe_px=20,
+        ) is True
+
+    def test_flank_absent_over_whitespace(self):
+        empty = np.zeros(SHAPE, dtype=np.uint8)
+        assert _opening_flanked_by_wall(
+            empty, True, 200.0, 300, 372, band_half=14, probe_px=20,
+        ) is False
+
+
+class TestInteriorEnvelopeRecovery:
+    """Phase 3: perimeter walls mis-tagged interior are scanned; true interior walls are not."""
+
+    def _rect_walls(self, top_axis, top_exterior):
+        gap_lo, gap_hi = 300, 372
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, top_axis, 100, gap_lo)
+        _draw_pair(mask, True, top_axis, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[top_axis - 1:top_axis + 2, gap_lo:gap_hi] = 255
+        walls = [
+            _wall("top", [100, top_axis, 700, top_axis], is_exterior=top_exterior),
+            _wall("bottom", [100, 380, 700, 380], is_exterior=True),
+            _wall("left", [100, 100, 100, 380], is_exterior=True),
+            _wall("right", [700, 100, 700, 380], is_exterior=True),
+        ]
+        return mask, ink, walls
+
+    def test_perimeter_wall_mistagged_interior_is_recovered(self):
+        # Top wall on the envelope edge (y=100) but tagged interior.
+        mask, ink, walls = self._rect_walls(top_axis=100, top_exterior=False)
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert len(windows) == 1
+        assert windows[0]["host_wall_id"] == "top"
+
+    def test_true_interior_wall_not_scanned(self):
+        # An opening on a mid wall (y=240) inside the envelope [100, 380] is ignored.
+        gap_lo, gap_hi = 300, 372
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 240, 100, gap_lo)
+        _draw_pair(mask, True, 240, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[239:242, gap_lo:gap_hi] = 255
+        walls = [
+            _wall("mid", [100, 240, 700, 240], is_exterior=False),
+            _wall("top", [100, 100, 700, 100], is_exterior=True),
+            _wall("bottom", [100, 380, 700, 380], is_exterior=True),
+            _wall("left", [100, 100, 100, 380], is_exterior=True),
+            _wall("right", [700, 100, 700, 380], is_exterior=True),
+        ]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert all(w["host_wall_id"] != "mid" for w in windows)

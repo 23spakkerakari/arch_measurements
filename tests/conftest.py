@@ -50,3 +50,10 @@ def corridor_plan():
     from arqen_validation.synth import render_corridor_plan
 
     return render_corridor_plan()
+
+
+@pytest.fixture(scope="session")
+def symbol_window_plan():
+    from arqen_validation.synth import render_symbol_window_plan
+
+    return render_symbol_window_plan()

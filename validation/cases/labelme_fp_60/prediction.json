@@ -1614,24 +1614,6 @@
       "host_wall_id": "w1.s1",
       "bbox_px": [
         40,
-        2543,
-        170,
-        2763
-      ],
-      "center_px": [
-        105.0,
-        2653.0
-      ],
-      "width": "2.56 ft",
-      "width_raw": 2.56,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win2",
-      "host_wall_id": "w1.s1",
-      "bbox_px": [
-        40,
         3414,
         170,
         3722
@@ -1643,10 +1625,11 @@
       "width": "3.58 ft",
       "width_raw": 3.58,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win3",
+      "id": "win2",
       "host_wall_id": "w1.s1",
       "bbox_px": [
         40,
@@ -1661,10 +1644,11 @@
       "width": "4.13 ft",
       "width_raw": 4.13,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win4",
+      "id": "win3",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         652,
@@ -1679,10 +1663,11 @@
       "width": "2.23 ft",
       "width_raw": 2.23,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win5",
+      "id": "win4",
       "host_wall_id": "w3.s1",
       "bbox_px": [
         816,
@@ -1697,10 +1682,11 @@
       "width": "2.60 ft",
       "width_raw": 2.6,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win6",
+      "id": "win5",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         899,
@@ -1715,10 +1701,11 @@
       "width": "2.50 ft",
       "width_raw": 2.5,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win7",
+      "id": "win6",
       "host_wall_id": "w4.s1",
       "bbox_px": [
         1106,
@@ -1733,10 +1720,11 @@
       "width": "2.24 ft",
       "width_raw": 2.24,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win8",
+      "id": "win7",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         1458,
@@ -1751,10 +1739,11 @@
       "width": "5.21 ft",
       "width_raw": 5.21,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win9",
+      "id": "win8",
       "host_wall_id": "w5.s1",
       "bbox_px": [
         2094,
@@ -1769,10 +1758,11 @@
       "width": "5.63 ft",
       "width_raw": 5.63,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win10",
+      "id": "win9",
       "host_wall_id": "w14.s3",
       "bbox_px": [
         2874,
@@ -1787,10 +1777,11 @@
       "width": "2.84 ft",
       "width_raw": 2.84,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win11",
+      "id": "win10",
       "host_wall_id": "w5.s2",
       "bbox_px": [
         3248,
@@ -1805,10 +1796,11 @@
       "width": "5.40 ft",
       "width_raw": 5.4,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win12",
+      "id": "win11",
       "host_wall_id": "w14.s2",
       "bbox_px": [
         3777,
@@ -1823,10 +1815,11 @@
       "width": "5.66 ft",
       "width_raw": 5.66,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win13",
+      "id": "win12",
       "host_wall_id": "w5.s3",
       "bbox_px": [
         4394,
@@ -1841,10 +1834,11 @@
       "width": "5.27 ft",
       "width_raw": 5.27,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win14",
+      "id": "win13",
       "host_wall_id": "w14.s1",
       "bbox_px": [
         4961,
@@ -1859,10 +1853,11 @@
       "width": "2.02 ft",
       "width_raw": 2.02,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win15",
+      "id": "win14",
       "host_wall_id": "w13.s1",
       "bbox_px": [
         5302,
@@ -1877,10 +1872,11 @@
       "width": "4.38 ft",
       "width_raw": 4.38,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win16",
+      "id": "win15",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         5541,
@@ -1895,10 +1891,11 @@
       "width": "5.12 ft",
       "width_raw": 5.12,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win17",
+      "id": "win16",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         6013,
@@ -1913,10 +1910,11 @@
       "width": "2.08 ft",
       "width_raw": 2.08,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win18",
+      "id": "win17",
       "host_wall_id": "w5.s4",
       "bbox_px": [
         6280,
@@ -1931,10 +1929,11 @@
       "width": "2.02 ft",
       "width_raw": 2.02,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win19",
+      "id": "win18",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         6405,
@@ -1949,10 +1948,11 @@
       "width": "2.33 ft",
       "width_raw": 2.33,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win20",
+      "id": "win19",
       "host_wall_id": "w5.s5",
       "bbox_px": [
         6691,
@@ -1967,10 +1967,11 @@
       "width": "4.93 ft",
       "width_raw": 4.93,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win21",
+      "id": "win20",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         6644,
@@ -1985,10 +1986,11 @@
       "width": "6.06 ft",
       "width_raw": 6.06,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win22",
+      "id": "win21",
       "host_wall_id": "w5.s5",
       "bbox_px": [
         7147,
@@ -2003,10 +2005,11 @@
       "width": "2.34 ft",
       "width_raw": 2.34,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win23",
+      "id": "win22",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         7346,
@@ -2021,10 +2024,11 @@
       "width": "4.76 ft",
       "width_raw": 4.76,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win24",
+      "id": "win23",
       "host_wall_id": "w5.s6",
       "bbox_px": [
         7807,
@@ -2039,10 +2043,11 @@
       "width": "5.15 ft",
       "width_raw": 5.15,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win25",
+      "id": "win24",
       "host_wall_id": "w12.s2",
       "bbox_px": [
         7794,
@@ -2057,10 +2062,11 @@
       "width": "6.23 ft",
       "width_raw": 6.23,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win26",
+      "id": "win25",
       "host_wall_id": "w5.s6",
       "bbox_px": [
         8281,
@@ -2075,10 +2081,11 @@
       "width": "6.23 ft",
       "width_raw": 6.23,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win27",
+      "id": "win26",
       "host_wall_id": "w12.s1",
       "bbox_px": [
         8474,
@@ -2093,28 +2100,11 @@
       "width": "4.10 ft",
       "width_raw": 4.1,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win28",
-      "host_wall_id": "w11.s1",
-      "bbox_px": [
-        9165,
-        802,
-        9354,
-        932
-      ],
-      "center_px": [
-        9259.5,
-        867.0
-      ],
-      "width": "2.20 ft",
-      "width_raw": 2.2,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win29",
+      "id": "win27",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         9354,
@@ -2129,10 +2119,11 @@
       "width": "4.33 ft",
       "width_raw": 4.33,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win30",
+      "id": "win28",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         9378,
@@ -2147,10 +2138,11 @@
       "width": "3.44 ft",
       "width_raw": 3.44,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win31",
+      "id": "win29",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         9378,
@@ -2165,10 +2157,11 @@
       "width": "3.30 ft",
       "width_raw": 3.3,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win32",
+      "id": "win30",
       "host_wall_id": "w9.s1",
       "bbox_px": [
         9511,
@@ -2183,10 +2176,11 @@
       "width": "2.48 ft",
       "width_raw": 2.48,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win33",
+      "id": "win31",
       "host_wall_id": "w9.s1",
       "bbox_px": [
         9914,
@@ -2201,10 +2195,11 @@
       "width": "4.92 ft",
       "width_raw": 4.92,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win34",
+      "id": "win32",
       "host_wall_id": "w8.s2",
       "bbox_px": [
         10603,
@@ -2219,10 +2214,11 @@
       "width": "6.07 ft",
       "width_raw": 6.07,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win35",
+      "id": "win33",
       "host_wall_id": "w8.s1",
       "bbox_px": [
         10603,
@@ -2237,10 +2233,11 @@
       "width": "3.09 ft",
       "width_raw": 3.09,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
-      "id": "win36",
+      "id": "win34",
       "host_wall_id": "w8.s1",
       "bbox_px": [
         10603,
@@ -2255,7 +2252,8 @@
       "width": "3.22 ft",
       "width_raw": 3.22,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -2289,5 +2287,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 16.37
+  "runtime_s": 18.9
 }

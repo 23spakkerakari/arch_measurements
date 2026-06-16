@@ -1161,7 +1161,13 @@
         3591,
         341
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R1",
+        "R2"
+      ],
+      "is_shared": true
     },
     {
       "id": "w28",
@@ -1176,7 +1182,14 @@
         2581,
         1357
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R2",
+        "R4",
+        "R5"
+      ],
+      "is_shared": true
     },
     {
       "id": "w29",
@@ -1191,7 +1204,13 @@
         3591,
         1357
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R2",
+        "R6"
+      ],
+      "is_shared": true
     },
     {
       "id": "w33",
@@ -1206,7 +1225,15 @@
         2524,
         2175
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R4",
+        "R6",
+        "R7",
+        "R8"
+      ],
+      "is_shared": true
     },
     {
       "id": "w37",
@@ -1221,7 +1248,14 @@
         2524,
         2955
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R8",
+        "R12",
+        "R13"
+      ],
+      "is_shared": true
     },
     {
       "id": "w43",
@@ -1236,7 +1270,14 @@
         1649,
         3444
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R13",
+        "R14",
+        "R15"
+      ],
+      "is_shared": true
     },
     {
       "id": "w48",
@@ -1251,7 +1292,13 @@
         2524,
         3767
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R12",
+        "R15"
+      ],
+      "is_shared": true
     },
     {
       "id": "w55",
@@ -1266,7 +1313,12 @@
         3086,
         4727
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R6",
+      "room_ids": [
+        "R6"
+      ],
+      "is_shared": false
     },
     {
       "id": "w79",
@@ -1281,7 +1333,14 @@
         5081,
         5510
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R16",
+        "R18"
+      ],
+      "is_shared": true
     },
     {
       "id": "w84",
@@ -1296,7 +1355,14 @@
         3713,
         5852
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R18",
+        "R19",
+        "R20"
+      ],
+      "is_shared": true
     },
     {
       "id": "w90",
@@ -1311,7 +1377,13 @@
         2310,
         6655
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R19",
+        "R22"
+      ],
+      "is_shared": true
     },
     {
       "id": "w99",
@@ -1326,7 +1398,12 @@
         730,
         6655
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": "R19",
+      "room_ids": [
+        "R19"
+      ],
+      "is_shared": false
     },
     {
       "id": "w103",
@@ -1341,7 +1418,13 @@
         845,
         5115
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R14",
+        "R15"
+      ],
+      "is_shared": true
     },
     {
       "id": "w108",
@@ -1356,7 +1439,20 @@
         1649,
         3767
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R7",
+        "R8",
+        "R12",
+        "R13",
+        "R15"
+      ],
+      "is_shared": true
     },
     {
       "id": "w112",
@@ -1371,7 +1467,14 @@
         2511,
         5852
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R15",
+        "R18"
+      ],
+      "is_shared": true
     },
     {
       "id": "w114",
@@ -1386,7 +1489,13 @@
         3006,
         6561
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R20",
+        "R22"
+      ],
+      "is_shared": true
     },
     {
       "id": "w115",
@@ -1401,7 +1510,13 @@
         3473,
         3457
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R9"
+      ],
+      "is_shared": true
     },
     {
       "id": "w116",
@@ -1416,7 +1531,13 @@
         3473,
         5510
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R16"
+      ],
+      "is_shared": true
     },
     {
       "id": "w119",
@@ -1431,7 +1552,13 @@
         4269,
         3457
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R9",
+        "R10"
+      ],
+      "is_shared": true
     },
     {
       "id": "w122",
@@ -1446,7 +1573,13 @@
         4326,
         5589
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R16"
+      ],
+      "is_shared": true
     },
     {
       "id": "w123",
@@ -1461,7 +1594,13 @@
         4989,
         3455
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R10",
+        "R11"
+      ],
+      "is_shared": true
     },
     {
       "id": "w125",
@@ -1476,7 +1615,13 @@
         5081,
         5589
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R17"
+      ],
+      "is_shared": true
     },
     {
       "id": "w127",
@@ -1491,7 +1636,13 @@
         5934,
         5755
       ],
-      "is_exterior": false
+      "is_exterior": false,
+      "room_id": null,
+      "room_ids": [
+        "R6",
+        "R17"
+      ],
+      "is_shared": true
     }
   ],
   "doors": [],
@@ -1512,7 +1663,8 @@
       "width": "2.79 ft",
       "width_raw": 2.79,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win2",
@@ -1530,7 +1682,8 @@
       "width": "3.75 ft",
       "width_raw": 3.75,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win3",
@@ -1548,7 +1701,8 @@
       "width": "4.04 ft",
       "width_raw": 4.04,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win4",
@@ -1566,10 +1720,49 @@
       "width": "4.77 ft",
       "width_raw": 4.77,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.5
     },
     {
       "id": "win5",
+      "host_wall_id": "w21.s2",
+      "bbox_px": [
+        3536,
+        608,
+        3646,
+        1734
+      ],
+      "center_px": [
+        3591.0,
+        1171.0
+      ],
+      "width": "15.42 ft",
+      "width_raw": 15.42,
+      "is_exterior": true,
+      "evidence": "symbol",
+      "confidence": 0.6
+    },
+    {
+      "id": "win6",
+      "host_wall_id": "w21.s1",
+      "bbox_px": [
+        3536,
+        1734,
+        3646,
+        2109
+      ],
+      "center_px": [
+        3591.0,
+        1921.5
+      ],
+      "width": "5.14 ft",
+      "width_raw": 5.14,
+      "is_exterior": true,
+      "evidence": "symbol",
+      "confidence": 0.6
+    },
+    {
+      "id": "win7",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         3658,
@@ -1584,10 +1777,11 @@
       "width": "2.21 ft",
       "width_raw": 2.21,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win6",
+      "id": "win8",
       "host_wall_id": "w15.s1",
       "bbox_px": [
         3658,
@@ -1602,10 +1796,11 @@
       "width": "5.19 ft",
       "width_raw": 5.19,
       "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     },
     {
-      "id": "win7",
+      "id": "win9",
       "host_wall_id": "w20.s3",
       "bbox_px": [
         3646,
@@ -1620,43 +1815,8 @@
       "width": "7.78 ft",
       "width_raw": 7.78,
       "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win8",
-      "host_wall_id": "w17.s1",
-      "bbox_px": [
-        6233,
-        4320,
-        6343,
-        4555
-      ],
-      "center_px": [
-        6288.0,
-        4437.5
-      ],
-      "width": "3.22 ft",
-      "width_raw": 3.22,
-      "is_exterior": true,
-      "evidence": "sill"
-    },
-    {
-      "id": "win9",
-      "host_wall_id": "w17.s1",
-      "bbox_px": [
-        6233,
-        4586,
-        6343,
-        4947
-      ],
-      "center_px": [
-        6288.0,
-        4766.5
-      ],
-      "width": "4.95 ft",
-      "width_raw": 4.95,
-      "is_exterior": true,
-      "evidence": "sill"
+      "evidence": "sill",
+      "confidence": 0.72
     }
   ],
   "mask_roi_offset": [
@@ -1690,5 +1850,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 32.23
+  "runtime_s": 18.93
 }

@@ -489,25 +489,6 @@
       "host_wall_id": "w1.s2",
       "bbox_px": [
         164,
-        1824,
-        264,
-        1991
-      ],
-      "center_px": [
-        214.0,
-        1907.5
-      ],
-      "width": "2.53 ft",
-      "width_raw": 2.53,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win3",
-      "host_wall_id": "w1.s2",
-      "bbox_px": [
-        164,
         2043,
         264,
         2463
@@ -523,26 +504,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win4",
-      "host_wall_id": "w3.s1",
-      "bbox_px": [
-        752,
-        2272,
-        1127,
-        2372
-      ],
-      "center_px": [
-        939.5,
-        2322.0
-      ],
-      "width": "5.68 ft",
-      "width_raw": 5.68,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win5",
+      "id": "win3",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1158,
@@ -561,102 +523,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win6",
-      "host_wall_id": "w3.s2",
-      "bbox_px": [
-        1243,
-        2272,
-        1666,
-        2372
-      ],
-      "center_px": [
-        1454.5,
-        2322.0
-      ],
-      "width": "6.41 ft",
-      "width_raw": 6.41,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win7",
-      "host_wall_id": "w7.s2",
-      "bbox_px": [
-        1627,
-        1432,
-        1800,
-        1532
-      ],
-      "center_px": [
-        1713.5,
-        1482.0
-      ],
-      "width": "2.62 ft",
-      "width_raw": 2.62,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win8",
-      "host_wall_id": "w7.s2",
-      "bbox_px": [
-        1812,
-        1432,
-        1952,
-        1532
-      ],
-      "center_px": [
-        1882.0,
-        1482.0
-      ],
-      "width": "2.12 ft",
-      "width_raw": 2.12,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win9",
-      "host_wall_id": "w3.s3",
-      "bbox_px": [
-        1784,
-        2272,
-        2140,
-        2372
-      ],
-      "center_px": [
-        1962.0,
-        2322.0
-      ],
-      "width": "5.39 ft",
-      "width_raw": 5.39,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win10",
-      "host_wall_id": "w7.s2",
-      "bbox_px": [
-        1964,
-        1432,
-        2148,
-        1532
-      ],
-      "center_px": [
-        2056.0,
-        1482.0
-      ],
-      "width": "2.79 ft",
-      "width_raw": 2.79,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win11",
+      "id": "win4",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         2208,
@@ -675,26 +542,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win12",
-      "host_wall_id": "w3.s4",
-      "bbox_px": [
-        2246,
-        2272,
-        2662,
-        2372
-      ],
-      "center_px": [
-        2454.0,
-        2322.0
-      ],
-      "width": "6.30 ft",
-      "width_raw": 6.3,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win13",
+      "id": "win5",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         2729,
@@ -708,25 +556,6 @@
       ],
       "width": "6.41 ft",
       "width_raw": 6.41,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win14",
-      "host_wall_id": "w5.s1",
-      "bbox_px": [
-        4150,
-        2234,
-        4373,
-        2334
-      ],
-      "center_px": [
-        4261.5,
-        2284.0
-      ],
-      "width": "3.38 ft",
-      "width_raw": 3.38,
       "is_exterior": true,
       "evidence": "sill",
       "confidence": 0.72
@@ -763,5 +592,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 2.0
+  "runtime_s": 1.92
 }

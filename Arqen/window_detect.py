@@ -40,8 +40,21 @@ WINDOW_MIN_FT = 2.0
 WINDOW_MAX_FT = 8.0
 WINDOW_MIN_FT_CROP = 2.0
 WINDOW_MAX_FT_CROP = 8.0
+OPEN_GAP_MAX_CROP = 0.25           # crop_mode open-band threshold (unchanged; 0.18 regressed fp_20 recall)
+HORIZ_MAX_FT_CROP = 8.75           # reject oversized horizontal detections in crop_mode
 SPAN_REFINE_MIN_FRAC = 0.80
 JAMB_INK_PEAK_FRAC = 0.30
+JAMB_INK_PEAK_FRAC_CROP = 0.42       # fewer jamb splits on low-px plans (TRDI overall)
+SPLIT_MIN_SEGMENT_FT_CROP = 3.25     # discard tiny split fragments in crop_mode
+TOUCH_MERGE_GAP_FT = 0.35            # merge touching over-split fragments
+OVER_SPLIT_WIDTH_FT = 3.75           # narrow fragment threshold for touch merge
+MERGE_COMBINED_MAX_FT = 10.0         # touch-merge span cap
+MULLION_GAP_MAX_FT_CROP = 4.5        # max gap bridged across a structural mullion (crop_mode)
+MULLION_COMBINED_MAX_FT_CROP = 17.0  # tall curtain-wall span cap after mullion merge
+MULLION_FRAGMENT_MAX_FT_CROP = 7.5   # both fragments must be no wider than this
+MIN_SCAN_WALL_FT_CROP = 5.0          # skip short interior coaxial walls in crop_mode
+HATCH_PEAK_FRAC = 0.20               # feature-ink peak threshold along opening span
+HATCH_LOW_PX_PER_FT = 22.0           # apply east-facade corroboration below this calibration
 
 # Multi-cue acceptance scoring (Window Accuracy V2, Phase 1).
 # A candidate is accepted when its confidence >= CONF_TAU. The score combines
@@ -65,13 +78,13 @@ W_DIM_PENALTY = 0.45         # looks like a dimension string (no bilateral break
 FLANK_COVER_FRAC = 0.50      # min along-axis wall-ink coverage in a flank probe
 FLANK_PROBE_FT = 0.75        # probe length on each side of the gap (feet)
 
-# Recall unlock (Window Accuracy V2, Phase 3).
-# Windows only ever scanned is_exterior walls, so perimeter host walls that the
-# Hough supplement tagged interior were undetectable. A mis-tagged perimeter
-# wall is still the outermost wall on its side, so it lies on the building
-# envelope (axis extremes over *all* walls); genuine interior walls sit inside.
-# The Phase 2 flank gate + sill requirement keep precision on the extra scans.
+# Recall unlock (Window Accuracy V2, Phase 3) + precision guard (Phase 2 fix).
+# Scan only walls that lie on the building envelope (outermost axis on each side),
+# regardless of the is_exterior tag. Perimeter walls mis-tagged interior are
+# recovered; interior walls mis-tagged exterior are suppressed.
+# The flank gate + sill requirement keep precision on envelope scans.
 ENVELOPE_TOL_FT = 2.0        # axis distance to the building envelope edge (feet)
+MIN_ENVELOPE_AXIS_SPAN_PX = 12  # ignore point/degenerate segments when computing envelope
 
 # Symbol-on-wall detection (Window Symbol Recall V3).
 # Some plans draw windows as periodic glyph markers on a continuous centerline
@@ -176,6 +189,7 @@ def _split_run_on_wall_ink_peaks(
     band_half: int,
     min_gap_px: float,
     max_gap_px: float,
+    peak_frac: float = JAMB_INK_PEAK_FRAC,
 ) -> list[tuple[float, float]]:
     """Split a long open run at jamb ink in the wall-pair band."""
     profile, offset = _along_wall_profile(
@@ -187,7 +201,7 @@ def _split_run_on_wall_ink_peaks(
             return [(run_lo, run_hi)]
         return []
     return _split_at_interior_peaks(
-        profile, offset, run_lo, run_hi, min_gap_px, max_gap_px, JAMB_INK_PEAK_FRAC,
+        profile, offset, run_lo, run_hi, min_gap_px, max_gap_px, peak_frac,
     )
 
 
@@ -230,13 +244,16 @@ def _expand_runs(
     band_half: int,
     min_gap_px: float,
     max_gap_px: float,
+    *,
+    jamb_peak_frac: float = JAMB_INK_PEAK_FRAC,
+    split_min_px: Optional[float] = None,
 ) -> list[tuple[float, float]]:
     """Split wide or multi-opening runs into per-window spans."""
     out: list[tuple[float, float]] = []
     for run_lo, run_hi in runs:
         wall_splits = _split_run_on_wall_ink_peaks(
             wall_pair_mask, horiz, axis, run_lo, run_hi,
-            band_half, min_gap_px, max_gap_px,
+            band_half, min_gap_px, max_gap_px, peak_frac=jamb_peak_frac,
         )
         if len(wall_splits) > 1:
             out.extend(wall_splits)
@@ -259,6 +276,9 @@ def _expand_runs(
             out.extend(wall_splits)
         elif min_gap_px <= run_hi - run_lo <= max_gap_px:
             out.append((run_lo, run_hi))
+    if split_min_px is not None and len(out) > 1:
+        large = [(lo, hi) for lo, hi in out if hi - lo >= split_min_px]
+        out = large if large else [max(out, key=lambda t: t[1] - t[0])]
     return out
 
 
@@ -515,7 +535,9 @@ def _building_envelope(walls: list[dict]) -> Optional[tuple[float, float, float,
         info = _wall_axis_span(w)
         if info is None:
             continue
-        horiz, axis, _, _ = info
+        horiz, axis, span_lo, span_hi = info
+        if span_hi - span_lo < MIN_ENVELOPE_AXIS_SPAN_PX:
+            continue
         (h_axes if horiz else v_axes).append(axis)
     if not h_axes or not v_axes:
         return None
@@ -533,6 +555,55 @@ def _on_building_envelope(
     if horiz:
         return abs(axis - y_lo) <= tol or abs(axis - y_hi) <= tol
     return abs(axis - x_lo) <= tol or abs(axis - x_hi) <= tol
+
+
+def _wall_on_building_envelope(
+    wall: dict,
+    envelope: Optional[tuple[float, float, float, float]],
+    tol: float,
+) -> bool:
+    if envelope is None:
+        # Degenerate wall lists (common in unit tests): fall back to the tag.
+        return bool(wall.get("is_exterior"))
+    info = _wall_axis_span(wall)
+    if info is None:
+        return False
+    horiz, axis, _, _ = info
+    return _on_building_envelope(horiz, axis, envelope, tol)
+
+
+def _wall_length_ft(wall: dict, px_per_unit: float) -> float:
+    raw = wall.get("length_raw")
+    if raw is not None:
+        return float(raw)
+    info = _wall_axis_span(wall)
+    if info is None:
+        return 0.0
+    _, _, span_lo, span_hi = info
+    return (span_hi - span_lo) / px_per_unit
+
+
+def _wall_scannable_for_windows(
+    wall: dict,
+    envelope: Optional[tuple[float, float, float, float]],
+    envelope_tol: float,
+    *,
+    crop_mode: bool,
+    px_per_unit: float,
+) -> bool:
+    """Envelope-perimeter gate plus crop_mode guards for coaxial interior stubs."""
+    if not _wall_on_building_envelope(wall, envelope, envelope_tol):
+        return False
+    if crop_mode and not wall.get("is_exterior"):
+        if _wall_length_ft(wall, px_per_unit) < MIN_SCAN_WALL_FT_CROP:
+            return False
+    return True
+
+
+def _parent_wall_id(host_wall_id: Optional[str]) -> str:
+    if not host_wall_id:
+        return ""
+    return host_wall_id.split(".", 1)[0]
 
 
 def _opening_flanked_by_wall(
@@ -611,6 +682,138 @@ def _window_confidence(
     return score, cues
 
 
+def _building_x_span(walls: list[dict]) -> tuple[float, float]:
+    xs: list[float] = []
+    for wall in walls:
+        coords = wall.get("px_coords")
+        if coords and len(coords) >= 4:
+            xs.extend((float(coords[0]), float(coords[2])))
+    if not xs:
+        return 0.0, 0.0
+    return min(xs), max(xs)
+
+
+def _wall_fill_hatch_metrics(
+    ink_mask: np.ndarray,
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    axis: float,
+    run_lo: float,
+    run_hi: float,
+    band_half: int,
+) -> tuple[int, float, float]:
+    """Peak count, mean spacing (px), and spacing CV of feature ink along a span."""
+    rect = _gap_rect(horiz, axis, run_lo, run_hi, band_half)
+    x0, y0, x1, y1 = rect
+    region_ink = _crop(ink_mask, (x0, y0, x1, y1))
+    region_wall = _crop(wall_pair_mask, (x0, y0, x1, y1))
+    if region_ink.size == 0:
+        return 0, 0.0, 99.0
+    feat = (region_ink > 0) & (region_wall == 0)
+    along = feat.mean(axis=0 if horiz else 1)
+    if along.size < 6:
+        return 0, 0.0, 99.0
+
+    peak_idx: list[int] = []
+    for i, val in enumerate(along):
+        if float(val) >= HATCH_PEAK_FRAC:
+            if not peak_idx or i - peak_idx[-1] > 2:
+                peak_idx.append(i)
+            else:
+                peak_idx[-1] = i
+
+    if len(peak_idx) < 2:
+        return len(peak_idx), 0.0, 99.0
+    spacings = np.diff(peak_idx).astype(float)
+    mean_sp = float(spacings.mean())
+    cv = float(spacings.std() / (mean_sp + 1e-6))
+    return len(peak_idx), mean_sp, cv
+
+
+def _is_wall_fill_hatch_pattern(
+    ink_mask: np.ndarray,
+    wall_pair_mask: np.ndarray,
+    horiz: bool,
+    axis: float,
+    run_lo: float,
+    run_hi: float,
+    band_half: int,
+    px_per_unit: float,
+) -> bool:
+    """Repeating wall-fill hatch (CMU/storefront hash) masquerading as window sills."""
+    if not horiz:
+        return False
+    n_peaks, mean_sp_px, cv = _wall_fill_hatch_metrics(
+        ink_mask, wall_pair_mask, horiz, axis, run_lo, run_hi, band_half,
+    )
+    if n_peaks < 3:
+        return False
+    mean_sp_ft = mean_sp_px / px_per_unit
+    if n_peaks >= 5 and mean_sp_ft < 1.25 and cv < 0.70:
+        return True
+    return (
+        n_peaks >= 3
+        and 1.0 <= mean_sp_ft < 1.25
+        and cv < 0.70
+    )
+
+
+def _weak_east_facade_opening(
+    w: dict,
+    walls: list[dict],
+    wall_pair_mask: np.ndarray,
+    px_per_unit: float,
+    band_half: int,
+    open_gap_max: float,
+) -> bool:
+    """Low-px east-facade horizontals need opening corroboration, not sill alone."""
+    if px_per_unit >= HATCH_LOW_PX_PER_FT:
+        return False
+    horiz, axis, lo, hi = _annotate_window_span(w)
+    if not horiz:
+        return False
+    x_lo, x_hi = _building_x_span(walls)
+    span = x_hi - x_lo
+    if span <= 0:
+        return False
+    if w["center_px"][0] <= x_lo + 0.5 * span:
+        return False
+    rect = _gap_rect(horiz, axis, lo, hi, band_half)
+    bilateral = _gap_has_bilateral_break(
+        wall_pair_mask, horiz, rect, max_ink_frac=open_gap_max,
+    )
+    gap_open = _gap_is_open(wall_pair_mask, horiz, rect, max_ink_frac=open_gap_max)
+    return not (bilateral or gap_open)
+
+
+def _crop_mode_precision_filter(
+    windows: list[dict],
+    walls: list[dict],
+    wall_pair_mask: np.ndarray,
+    ink_mask: np.ndarray,
+    px_per_unit: float,
+    *,
+    open_gap_max: float,
+) -> list[dict]:
+    """Crop-mode precision guards for wall hatch and weak east-facade sills."""
+    if not windows or ink_mask is None:
+        return windows
+    band_half = max(4, int(math.ceil(0.75 * px_per_unit)))
+    kept: list[dict] = []
+    for w in windows:
+        horiz, axis, lo, hi = _annotate_window_span(w)
+        if _is_wall_fill_hatch_pattern(
+            ink_mask, wall_pair_mask, horiz, axis, lo, hi, band_half, px_per_unit,
+        ):
+            continue
+        if _weak_east_facade_opening(
+            w, walls, wall_pair_mask, px_per_unit, band_half, open_gap_max,
+        ):
+            continue
+        kept.append(w)
+    return kept
+
+
 def _near_any(center: list[float], others: list[list[float]], dist: float) -> bool:
     cx, cy = center
     return any(math.hypot(cx - o[0], cy - o[1]) < dist for o in others)
@@ -683,6 +886,192 @@ def _merge_span_dedup(
         for k in ("_span_lo", "_span_hi", "_horiz", "_axis", "_strategy"):
             w.pop(k, None)
     return merged
+
+
+def _annotate_window_span(w: dict) -> tuple[bool, float, float, float]:
+    b = w["bbox_px"]
+    horiz = (b[2] - b[0]) >= (b[3] - b[1])
+    if horiz:
+        return horiz, (b[1] + b[3]) / 2.0, float(b[0]), float(b[2])
+    return horiz, (b[0] + b[2]) / 2.0, float(b[1]), float(b[3])
+
+
+def _apply_span_to_window(w: dict, horiz: bool, lo: float, hi: float, px_per_unit: float) -> None:
+    b = w["bbox_px"]
+    if horiz:
+        b[0] = int(round(lo))
+        b[2] = int(round(hi))
+    else:
+        b[1] = int(round(lo))
+        b[3] = int(round(hi))
+    width_units = (hi - lo) / px_per_unit
+    w["width_raw"] = round(width_units, 2)
+    unit = w.get("width", " ft").split()[-1] if w.get("width") else "ft"
+    w["width"] = f"{width_units:.2f} {unit}"
+    w["center_px"] = [(b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0]
+
+
+def _merge_over_split_fragments(
+    windows: list[dict],
+    px_per_unit: float,
+    axis_tol_px: int,
+) -> list[dict]:
+    """Merge touching narrow fragments produced by over-splitting one opening."""
+    sill = [w for w in windows if w.get("evidence") != "symbol"]
+    symbols = [w for w in windows if w.get("evidence") == "symbol"]
+    if len(sill) < 2:
+        return windows
+
+    touch_gap_px = max(2.0, TOUCH_MERGE_GAP_FT * px_per_unit)
+    over_split_px = OVER_SPLIT_WIDTH_FT * px_per_unit
+    max_combined_px = MERGE_COMBINED_MAX_FT * px_per_unit
+
+    def _group_key(w: dict) -> tuple:
+        horiz, axis, lo, hi = _annotate_window_span(w)
+        w["_horiz"] = horiz
+        w["_axis"] = axis
+        w["_span_lo"] = lo
+        w["_span_hi"] = hi
+        axis_key = int(round(axis / max(axis_tol_px, 1)))
+        return horiz, axis_key
+
+    groups: dict[tuple, list[dict]] = {}
+    for w in sill:
+        groups.setdefault(_group_key(w), []).append(w)
+
+    merged: list[dict] = []
+    for group in groups.values():
+        group.sort(key=lambda w: w["_span_lo"])
+        current: Optional[dict] = None
+        for w in group:
+            if current is None:
+                current = w
+                continue
+            gap = w["_span_lo"] - current["_span_hi"]
+            combined = w["_span_hi"] - current["_span_lo"]
+            cur_w = current["_span_hi"] - current["_span_lo"]
+            new_w = w["_span_hi"] - w["_span_lo"]
+            touch_merge = (
+                gap <= touch_gap_px
+                and combined <= max_combined_px
+                and min(cur_w, new_w) <= over_split_px
+            )
+            if touch_merge:
+                lo = min(current["_span_lo"], w["_span_lo"])
+                hi = max(current["_span_hi"], w["_span_hi"])
+                if new_w > cur_w:
+                    current["host_wall_id"] = w.get("host_wall_id", current.get("host_wall_id"))
+                    current["confidence"] = max(
+                        float(current.get("confidence") or 0),
+                        float(w.get("confidence") or 0),
+                    )
+                current["_span_lo"] = lo
+                current["_span_hi"] = hi
+                _apply_span_to_window(current, current["_horiz"], lo, hi, px_per_unit)
+            else:
+                merged.append(current)
+                current = w
+        if current is not None:
+            merged.append(current)
+
+    out = merged + symbols
+    for w in out:
+        for k in ("_horiz", "_axis", "_span_lo", "_span_hi"):
+            w.pop(k, None)
+    return out
+
+
+def _merge_across_mullion_gaps(
+    windows: list[dict],
+    wall_pair_mask: np.ndarray,
+    px_per_unit: float,
+    axis_tol_px: int,
+    *,
+    band_half: int,
+    open_gap_max: float,
+) -> list[dict]:
+    """Bridge adjacent sill fragments split by a structural mullion (crop_mode).
+
+    Low-px plans sometimes split one tall opening at an interior jamb peak while
+    real adjacent windows on the same parent wall stay separated by wider gaps
+    and form a longer combined span than curtain-wall panels allow.
+    """
+    sill = [w for w in windows if w.get("evidence") != "symbol"]
+    symbols = [w for w in windows if w.get("evidence") == "symbol"]
+    if len(sill) < 2:
+        return windows
+
+    gap_max_px = MULLION_GAP_MAX_FT_CROP * px_per_unit
+    combined_max_px = MULLION_COMBINED_MAX_FT_CROP * px_per_unit
+
+    def _group_key(w: dict) -> tuple:
+        horiz, axis, lo, hi = _annotate_window_span(w)
+        w["_horiz"] = horiz
+        w["_axis"] = axis
+        w["_span_lo"] = lo
+        w["_span_hi"] = hi
+        axis_key = int(round(axis / max(axis_tol_px, 1)))
+        parent = _parent_wall_id(w.get("host_wall_id"))
+        return horiz, axis_key, parent
+
+    groups: dict[tuple, list[dict]] = {}
+    for w in sill:
+        groups.setdefault(_group_key(w), []).append(w)
+
+    merged: list[dict] = []
+    for group in groups.values():
+        group.sort(key=lambda w: w["_span_lo"])
+        current: Optional[dict] = None
+        for w in group:
+            if current is None:
+                current = w
+                continue
+            if current["_horiz"]:
+                merged.append(current)
+                current = w
+                continue
+            gap_lo = current["_span_hi"]
+            gap_hi = w["_span_lo"]
+            gap = gap_hi - gap_lo
+            combined = w["_span_hi"] - current["_span_lo"]
+            cur_w = current["_span_hi"] - current["_span_lo"]
+            new_w = w["_span_hi"] - w["_span_lo"]
+            frag_max_px = MULLION_FRAGMENT_MAX_FT_CROP * px_per_unit
+            if not (
+                0 < gap <= gap_max_px
+                and combined <= combined_max_px
+                and cur_w <= frag_max_px
+                and new_w <= frag_max_px
+            ):
+                merged.append(current)
+                current = w
+                continue
+            rect = _gap_rect(
+                current["_horiz"], current["_axis"], gap_lo, gap_hi, band_half,
+            )
+            if _gap_is_open(wall_pair_mask, current["_horiz"], rect, max_ink_frac=open_gap_max):
+                merged.append(current)
+                current = w
+                continue
+            lo = min(current["_span_lo"], w["_span_lo"])
+            hi = max(current["_span_hi"], w["_span_hi"])
+            if (w["_span_hi"] - w["_span_lo"]) > (current["_span_hi"] - current["_span_lo"]):
+                current["host_wall_id"] = w.get("host_wall_id", current.get("host_wall_id"))
+                current["confidence"] = max(
+                    float(current.get("confidence") or 0),
+                    float(w.get("confidence") or 0),
+                )
+            current["_span_lo"] = lo
+            current["_span_hi"] = hi
+            _apply_span_to_window(current, current["_horiz"], lo, hi, px_per_unit)
+        if current is not None:
+            merged.append(current)
+
+    out = merged + symbols
+    for w in out:
+        for k in ("_horiz", "_axis", "_span_lo", "_span_hi"):
+            w.pop(k, None)
+    return out
 
 
 def _symbol_perp_extends(
@@ -947,17 +1336,21 @@ def detect_window_candidates(
     max_ft = WINDOW_MAX_FT_CROP if crop_mode else WINDOW_MAX_FT
     min_gap_px = min_ft / to_ft * px_per_unit
     max_gap_px = max_ft / to_ft * px_per_unit
-    open_gap_max = 0.25 if crop_mode else OPEN_GAP_MAX_INK_FRAC
+    open_gap_max = OPEN_GAP_MAX_CROP if crop_mode else OPEN_GAP_MAX_INK_FRAC
     band_half = max(4, int(math.ceil(0.75 * px_per_unit)))
     end_inset_px = max(band_half, int(0.5 * px_per_unit))
 
     door_centers = [d["center_px"] for d in (doors or []) if d.get("center_px")]
     door_dedup_dist = max(6.0, 0.5 * px_per_unit)
 
+    jamb_peak_frac = JAMB_INK_PEAK_FRAC_CROP if crop_mode else JAMB_INK_PEAK_FRAC
+    split_min_px = (
+        SPLIT_MIN_SEGMENT_FT_CROP / to_ft * px_per_unit if crop_mode else None
+    )
+
     candidates: list[dict] = []
 
-    # Phase 3: scan exterior walls plus interior walls that sit on the building
-    # envelope (perimeter walls the Hough supplement mis-tagged as interior).
+    # Scan envelope-perimeter walls only (see ENVELOPE_TOL_FT).
     envelope = _building_envelope(walls)
     envelope_tol = max(band_half, ENVELOPE_TOL_FT * px_per_unit)
 
@@ -966,9 +1359,11 @@ def detect_window_candidates(
         if info is None:
             continue
         horiz, axis, span_lo, span_hi = info
-        exterior = bool(wall.get("is_exterior"))
-        if not exterior and not _on_building_envelope(horiz, axis, envelope, envelope_tol):
+        if not _wall_scannable_for_windows(
+            wall, envelope, envelope_tol, crop_mode=crop_mode, px_per_unit=px_per_unit,
+        ):
             continue
+        exterior = bool(wall.get("is_exterior"))
 
         raw_runs = _open_runs_along_wall(
             wall_pair_mask, horiz, axis, span_lo, span_hi,
@@ -977,6 +1372,8 @@ def detect_window_candidates(
         runs = _expand_runs(
             wall_pair_mask, ink_mask, horiz, axis, raw_runs,
             band_half, min_gap_px, max_gap_px,
+            jamb_peak_frac=jamb_peak_frac,
+            split_min_px=split_min_px,
         )
         for run_lo, run_hi in runs:
             candidates.append(_evaluate_candidate(
@@ -1007,7 +1404,9 @@ def detect_window_candidates(
 
     groups: dict[bool, list[tuple[float, float, float, dict]]] = {True: [], False: []}
     for w in walls:
-        if not w.get("is_exterior"):
+        if not _wall_scannable_for_windows(
+            w, envelope, envelope_tol, crop_mode=crop_mode, px_per_unit=px_per_unit,
+        ):
             continue
         coords = w.get("px_coords")
         if not coords or len(coords) < 4:
@@ -1039,7 +1438,16 @@ def detect_window_candidates(
             for axis, span_lo, span_hi, wall_a, wall_b in _merged_interval_gaps(
                 cluster, min_gap_px, max_gap_px,
             ):
-                if not (wall_a.get("is_exterior") and wall_b.get("is_exterior")):
+                if not (
+                    _wall_scannable_for_windows(
+                        wall_a, envelope, envelope_tol,
+                        crop_mode=crop_mode, px_per_unit=px_per_unit,
+                    )
+                    and _wall_scannable_for_windows(
+                        wall_b, envelope, envelope_tol,
+                        crop_mode=crop_mode, px_per_unit=px_per_unit,
+                    )
+                ):
                     continue
                 ca, cb = wall_a.get("px_coords", []), wall_b.get("px_coords", [])
                 len_a = math.hypot(ca[2] - ca[0], ca[3] - ca[1]) if len(ca) >= 4 else 0
@@ -1078,6 +1486,24 @@ def detect_windows(
 
     accepted = [c["window"] for c in candidates if c["status"] == "accepted"]
     kept = _merge_span_dedup(accepted, px_per_unit, axis_tol_px)
+    kept = _merge_over_split_fragments(kept, px_per_unit, axis_tol_px)
+    if crop_mode:
+        band_half = max(4, int(math.ceil(0.75 * px_per_unit)))
+        kept = _merge_across_mullion_gaps(
+            kept, wall_pair_mask, px_per_unit, axis_tol_px,
+            band_half=band_half, open_gap_max=OPEN_GAP_MAX_CROP,
+        )
+        kept = [
+            w for w in kept
+            if not (
+                (w["bbox_px"][2] - w["bbox_px"][0]) >= (w["bbox_px"][3] - w["bbox_px"][1])
+                and (w["bbox_px"][2] - w["bbox_px"][0]) / px_per_unit > HORIZ_MAX_FT_CROP
+            )
+        ]
+        kept = _crop_mode_precision_filter(
+            kept, walls, wall_pair_mask, ink_mask, px_per_unit,
+            open_gap_max=OPEN_GAP_MAX_CROP,
+        )
 
     dedup_dist = max(6.0, 0.5 * px_per_unit)
     final: list[dict] = []

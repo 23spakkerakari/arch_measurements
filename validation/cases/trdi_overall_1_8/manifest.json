@@ -1,0 +1,11 @@
+{
+  "id": "trdi_overall_1_8",
+  "description": "TRDI Office and Warehouse overall floor plan (A1.0) at 1/8\" = 1'-0\", rendered at 144 DPI with crop_mode (matches web app). Eight exterior office windows on north and west walls; baseline over-detection regression.",
+  "pdf": "plan.pdf",
+  "page": 0,
+  "scale": "1/8in=1ft",
+  "dpi": 144,
+  "crop_mode": true,
+  "doorway_close_ft": 2.5,
+  "roi": null
+}

@@ -1198,101 +1198,6 @@
   "windows": [
     {
       "id": "win1",
-      "host_wall_id": "w13.s1",
-      "bbox_px": [
-        286,
-        367,
-        462,
-        425
-      ],
-      "center_px": [
-        374.0,
-        396.0
-      ],
-      "width": "4.63 ft",
-      "width_raw": 4.63,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win2",
-      "host_wall_id": "w9.s1",
-      "bbox_px": [
-        340,
-        2696,
-        564,
-        2754
-      ],
-      "center_px": [
-        452.0,
-        2725.0
-      ],
-      "width": "5.89 ft",
-      "width_raw": 5.89,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win3",
-      "host_wall_id": "w9.s2",
-      "bbox_px": [
-        622,
-        2696,
-        756,
-        2754
-      ],
-      "center_px": [
-        689.0,
-        2725.0
-      ],
-      "width": "3.53 ft",
-      "width_raw": 3.53,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win4",
-      "host_wall_id": "w9.s4",
-      "bbox_px": [
-        1315,
-        2696,
-        1545,
-        2754
-      ],
-      "center_px": [
-        1430.0,
-        2725.0
-      ],
-      "width": "6.05 ft",
-      "width_raw": 6.05,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win5",
-      "host_wall_id": "w9.s6",
-      "bbox_px": [
-        2041,
-        2696,
-        2156,
-        2754
-      ],
-      "center_px": [
-        2098.5,
-        2725.0
-      ],
-      "width": "3.03 ft",
-      "width_raw": 3.03,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win6",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         3811,
@@ -1342,5 +1247,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 3.52
+  "runtime_s": 3.15
 }

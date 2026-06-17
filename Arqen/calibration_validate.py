@@ -19,6 +19,10 @@ DPI_MAX_WARN = 600
 PX_PER_FT_MIN_WARN = 3.0
 PX_PER_FT_MAX_WARN = 250.0
 
+# Below this px/ft, footprint/wall tagging and window detection are unreliable on
+# real 1/8" overall sheets (measured on TRDI overall @ 144dpi, ppf=18).
+PX_PER_FT_RELIABILITY_MIN = 30.0
+
 # Footprint span in feet (proposal: 10–500; upper soft limit 800 for commercial).
 SPAN_FT_MIN_WARN = 10.0
 SPAN_FT_MAX_WARN = 800.0
@@ -31,10 +35,10 @@ AREA_FT2_MAX_WARN = 100_000.0
 DPI_ALT_SPAN_MIN_FT = 15.0
 DPI_ALT_SPAN_MAX_FT = 400.0
 
-COMMON_DPIS = (72, 96, 144, 150, 200, 300)
+COMMON_DPIS = (72, 96, 144, 150, 200, 240, 300)
 
 # When multiple DPI values yield a plausible span, prefer these (web/CLI defaults).
-PREFERRED_DPIS = (144, 150, 300, 200, 96, 72)
+PREFERRED_DPIS = (144, 150, 240, 300, 200, 96, 72)
 
 
 @dataclass(frozen=True)
@@ -65,6 +69,50 @@ def validate_dpi(dpi: int) -> list[CalibrationIssue]:
             details={"dpi": dpi, "min": DPI_MIN_WARN, "max": DPI_MAX_WARN},
         ))
     return issues
+
+
+def suggest_min_dpi_for_reliability(scale_str: str, min_px_per_ft: float = PX_PER_FT_RELIABILITY_MIN) -> int | None:
+    """Smallest common DPI where ``parse_scale`` yields at least ``min_px_per_ft``."""
+    for dpi in PREFERRED_DPIS + tuple(d for d in COMMON_DPIS if d not in PREFERRED_DPIS):
+        try:
+            cal = parse_scale(scale_str, dpi, output_unit="ft")
+        except ValueError:
+            continue
+        if cal["px_per_unit"] >= min_px_per_ft:
+            return dpi
+    return None
+
+
+def validate_resolution_reliability(
+    px_per_unit: float,
+    scale_str: str,
+    dpi: int,
+    unit_label: str = "ft",
+) -> list[CalibrationIssue]:
+    """Warn when px/ft is too low for reliable geometry extraction."""
+    if unit_label != "ft":
+        return []
+    if px_per_unit >= PX_PER_FT_RELIABILITY_MIN:
+        return []
+    suggested_dpi = suggest_min_dpi_for_reliability(scale_str)
+    msg = (
+        f"px_per_ft {px_per_unit:.1f} is below the reliability floor "
+        f"({PX_PER_FT_RELIABILITY_MIN:.0f}); wall and window detection may be wrong. "
+        "Re-render at higher DPI or use the enlarged-scale plan sheet."
+    )
+    details: dict = {
+        "px_per_ft": round(px_per_unit, 4),
+        "min_reliable_px_per_ft": PX_PER_FT_RELIABILITY_MIN,
+        "dpi": dpi,
+    }
+    if suggested_dpi is not None:
+        details["suggested_min_dpi"] = suggested_dpi
+    return [CalibrationIssue(
+        code="low_resolution",
+        severity="warning",
+        message=msg,
+        details=details,
+    )]
 
 
 def validate_px_per_unit(px_per_unit: float, unit_label: str = "ft") -> list[CalibrationIssue]:
@@ -264,6 +312,8 @@ def summarize_calibration(
         if issue.code == "dpi_mismatch_suspected":
             suggested_dpi = issue.details.get("suggested_dpi")
             break
+        if issue.code == "low_resolution" and suggested_dpi is None:
+            suggested_dpi = issue.details.get("suggested_min_dpi")
 
     px_key = "px_per_ft" if unit_label == "ft" else "px_per_unit"
 

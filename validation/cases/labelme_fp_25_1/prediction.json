@@ -622,25 +622,6 @@
     },
     {
       "id": "win3",
-      "host_wall_id": "w19",
-      "bbox_px": [
-        3090,
-        728,
-        3280,
-        840
-      ],
-      "center_px": [
-        3185.0,
-        784.0
-      ],
-      "width": "2.57 ft",
-      "width_raw": 2.57,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win4",
       "host_wall_id": "w14.s1",
       "bbox_px": [
         4457,
@@ -659,7 +640,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win5",
+      "id": "win4",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         6795,
@@ -678,7 +659,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win6",
+      "id": "win5",
       "host_wall_id": "w19",
       "bbox_px": [
         8783,
@@ -697,7 +678,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win7",
+      "id": "win6",
       "host_wall_id": "w19",
       "bbox_px": [
         9313,
@@ -747,5 +728,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 11.96
+  "runtime_s": 11.58
 }

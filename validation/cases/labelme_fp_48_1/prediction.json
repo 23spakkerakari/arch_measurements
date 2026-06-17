@@ -499,25 +499,6 @@
       "id": "win4",
       "host_wall_id": "w4.s1",
       "bbox_px": [
-        404,
-        2078,
-        502,
-        2152
-      ],
-      "center_px": [
-        453.0,
-        2115.0
-      ],
-      "width": "2.00 ft",
-      "width_raw": 2.0,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win5",
-      "host_wall_id": "w4.s1",
-      "bbox_px": [
         557,
         2078,
         657,
@@ -534,7 +515,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win6",
+      "id": "win5",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         532,

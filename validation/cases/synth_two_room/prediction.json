@@ -286,7 +286,7 @@
     0
   ],
   "calibration": {
-    "status": "ok",
+    "status": "warning",
     "dpi": 144,
     "px_per_ft": 18.0,
     "footprint_span_ft": [
@@ -294,10 +294,22 @@
       46.83
     ],
     "total_area_raw": 2957.92,
-    "issues": [],
-    "suggested_dpi": null
+    "issues": [
+      {
+        "code": "low_resolution",
+        "severity": "warning",
+        "message": "px_per_ft 18.0 is below the reliability floor (30); wall and window detection may be wrong. Re-render at higher DPI or use the enlarged-scale plan sheet.",
+        "details": {
+          "px_per_ft": 18.0,
+          "min_reliable_px_per_ft": 30.0,
+          "dpi": 144,
+          "suggested_min_dpi": 240
+        }
+      }
+    ],
+    "suggested_dpi": 240
   },
   "roi_hint_pct": null,
   "analysis_roi_pct": null,
-  "runtime_s": 0.55
+  "runtime_s": 0.54
 }

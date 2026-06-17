@@ -1,0 +1,52 @@
+{
+  "id": "trdi_overall_1_8",
+  "scale": "1/8in=1ft",
+  "image_size_px": [4896, 3168],
+  "rooms": [],
+  "walls": [],
+  "doors": [],
+  "windows": [
+    {
+      "id": "window_1",
+      "bbox_px": [2649, 806, 2743, 834],
+      "center_px": [2696, 820]
+    },
+    {
+      "id": "window_2",
+      "bbox_px": [2743, 806, 2864, 834],
+      "center_px": [2803.5, 820]
+    },
+    {
+      "id": "window_3",
+      "bbox_px": [2892, 806, 2979, 834],
+      "center_px": [2935.5, 820]
+    },
+    {
+      "id": "window_4",
+      "bbox_px": [2979, 806, 3048, 834],
+      "center_px": [3013.5, 820]
+    },
+    {
+      "id": "window_5",
+      "bbox_px": [2606, 704, 2634, 806],
+      "center_px": [2620, 755]
+    },
+    {
+      "id": "window_6",
+      "bbox_px": [2606, 850, 2634, 968],
+      "center_px": [2620, 909]
+    },
+    {
+      "id": "window_7",
+      "bbox_px": [2606, 1062, 2634, 1223],
+      "center_px": [2620, 1142.5]
+    },
+    {
+      "id": "window_8",
+      "bbox_px": [2606, 1251, 2634, 1553],
+      "center_px": [2620, 1402]
+    }
+  ],
+  "labels": [],
+  "dimensions": []
+}

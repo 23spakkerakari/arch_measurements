@@ -923,139 +923,6 @@
     },
     {
       "id": "win2",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        301,
-        558,
-        510,
-        634
-      ],
-      "center_px": [
-        405.5,
-        596.0
-      ],
-      "width": "4.18 ft",
-      "width_raw": 4.18,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win3",
-      "host_wall_id": "w2.s1",
-      "bbox_px": [
-        301,
-        1493,
-        510,
-        1569
-      ],
-      "center_px": [
-        405.5,
-        1531.0
-      ],
-      "width": "4.18 ft",
-      "width_raw": 4.18,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win4",
-      "host_wall_id": "w2.s1",
-      "bbox_px": [
-        551,
-        1493,
-        833,
-        1569
-      ],
-      "center_px": [
-        692.0,
-        1531.0
-      ],
-      "width": "5.64 ft",
-      "width_raw": 5.64,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win5",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        590,
-        558,
-        833,
-        634
-      ],
-      "center_px": [
-        711.5,
-        596.0
-      ],
-      "width": "4.86 ft",
-      "width_raw": 4.86,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win6",
-      "host_wall_id": "w2.s1",
-      "bbox_px": [
-        882,
-        1493,
-        1086,
-        1569
-      ],
-      "center_px": [
-        984.0,
-        1531.0
-      ],
-      "width": "4.08 ft",
-      "width_raw": 4.08,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win7",
-      "host_wall_id": "w4.s1",
-      "bbox_px": [
-        1185,
-        2386,
-        1261,
-        2558
-      ],
-      "center_px": [
-        1223.0,
-        2472.0
-      ],
-      "width": "3.44 ft",
-      "width_raw": 3.44,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win8",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        1459,
-        558,
-        1700,
-        634
-      ],
-      "center_px": [
-        1579.5,
-        596.0
-      ],
-      "width": "4.82 ft",
-      "width_raw": 4.82,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win9",
       "host_wall_id": "w5.s1",
       "bbox_px": [
         1487,
@@ -1074,83 +941,7 @@
       "confidence": 0.456
     },
     {
-      "id": "win10",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        1709,
-        558,
-        1988,
-        634
-      ],
-      "center_px": [
-        1848.5,
-        596.0
-      ],
-      "width": "5.58 ft",
-      "width_raw": 5.58,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win11",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        2037,
-        558,
-        2279,
-        634
-      ],
-      "center_px": [
-        2158.0,
-        596.0
-      ],
-      "width": "4.84 ft",
-      "width_raw": 4.84,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win12",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        2288,
-        558,
-        2563,
-        634
-      ],
-      "center_px": [
-        2425.5,
-        596.0
-      ],
-      "width": "5.50 ft",
-      "width_raw": 5.5,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win13",
-      "host_wall_id": "w12.s1",
-      "bbox_px": [
-        2611,
-        558,
-        2814,
-        634
-      ],
-      "center_px": [
-        2712.5,
-        596.0
-      ],
-      "width": "4.06 ft",
-      "width_raw": 4.06,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win14",
+      "id": "win3",
       "host_wall_id": "w10.s2",
       "bbox_px": [
         2899,
@@ -1169,7 +960,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win15",
+      "id": "win4",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         3199,
@@ -1188,7 +979,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win16",
+      "id": "win5",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         3448,
@@ -1207,7 +998,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win17",
+      "id": "win6",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         3766,
@@ -1226,7 +1017,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win18",
+      "id": "win7",
       "host_wall_id": "w78",
       "bbox_px": [
         3803,
@@ -1243,63 +1034,6 @@
       "is_exterior": true,
       "evidence": "sill",
       "confidence": 0.72
-    },
-    {
-      "id": "win19",
-      "host_wall_id": "w9.s1",
-      "bbox_px": [
-        3983,
-        107,
-        4059,
-        389
-      ],
-      "center_px": [
-        4021.0,
-        248.0
-      ],
-      "width": "5.64 ft",
-      "width_raw": 5.64,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win20",
-      "host_wall_id": "w78",
-      "bbox_px": [
-        4040,
-        2588,
-        4145,
-        2664
-      ],
-      "center_px": [
-        4092.5,
-        2626.0
-      ],
-      "width": "2.10 ft",
-      "width_raw": 2.1,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win21",
-      "host_wall_id": "w7.s2",
-      "bbox_px": [
-        4546,
-        1039,
-        4622,
-        1162
-      ],
-      "center_px": [
-        4584.0,
-        1100.5
-      ],
-      "width": "2.46 ft",
-      "width_raw": 2.46,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
     }
   ],
   "mask_roi_offset": [
@@ -1333,5 +1067,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 3.92
+  "runtime_s": 3.73
 }

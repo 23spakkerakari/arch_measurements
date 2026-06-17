@@ -36,6 +36,7 @@ from calibration_validate import (
     validate_dpi,
     validate_footprint_span,
     validate_px_per_unit,
+    validate_resolution_reliability,
     validate_total_area,
 )
 from door_detect import detect_doors, ink_mask_from_image
@@ -2550,6 +2551,48 @@ def _retry_footprint_if_sparse(
     return component_mask, binary
 
 
+def _footprint_failure_response(
+    scale_str: str,
+    dpi: int,
+    px_per_unit: float,
+    unit_label: str,
+    calibration_issues: list,
+) -> dict:
+    """Structured error when footprint isolation fails (common at low px/ft)."""
+    issues = list(calibration_issues)
+    issues.extend(validate_resolution_reliability(px_per_unit, scale_str, dpi, unit_label))
+    calibration = summarize_calibration(
+        issues,
+        dpi=dpi,
+        px_per_unit=px_per_unit,
+        footprint_span_ft=(0.0, 0.0),
+        total_area_raw=0.0,
+        unit_label=unit_label,
+    )
+    if px_per_unit < 30.0:
+        detail = (
+            "Could not isolate a building footprint at this resolution. "
+            "Re-render at higher DPI"
+        )
+        suggested = calibration.get("suggested_dpi")
+        if suggested:
+            detail += f" (try DPI {suggested} or higher)"
+        detail += ", or use the enlarged-scale plan sheet."
+    else:
+        detail = (
+            "Could not isolate a building footprint. Wall strokes may be too thin "
+            "or fragmented for this sheet — try a higher-DPI render, the enlarged-scale "
+            "plan sheet, or a tighter crop around the building."
+        )
+    return {
+        "error": "No building footprint found",
+        "error_detail": detail,
+        "calibration": calibration,
+        "px_per_ft": round(px_per_unit, 2),
+        "detected_scale": scale_str,
+    }
+
+
 def analyze_page(
     image: np.ndarray,
     scale_str: str,
@@ -2596,6 +2639,9 @@ def analyze_page(
     if not crop_mode:
         calibration_issues.extend(validate_dpi(dpi))
     calibration_issues.extend(validate_px_per_unit(px_per_unit, unit_label))
+    calibration_issues.extend(
+        validate_resolution_reliability(px_per_unit, scale_str, dpi, unit_label)
+    )
     for issue in calibration_issues:
         print(f"  {issue_to_log_line(issue)}", file=sys.stderr)
 
@@ -2638,11 +2684,15 @@ def analyze_page(
                 component_mask = alt
 
     if component_mask is None:
-        return {"error": "No building footprint found"}
+        return _footprint_failure_response(
+            scale_str, dpi, px_per_unit, unit_label, calibration_issues,
+        )
 
     contour = find_footprint_contour(component_mask)
     if contour is None:
-        return {"error": "No building footprint found"}
+        return _footprint_failure_response(
+            scale_str, dpi, px_per_unit, unit_label, calibration_issues,
+        )
 
     eps = 0.002 if roi else 0.001
     polygon = simplify_polygon(contour, epsilon_factor=eps)

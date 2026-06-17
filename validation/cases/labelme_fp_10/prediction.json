@@ -1649,63 +1649,6 @@
   "windows": [
     {
       "id": "win1",
-      "host_wall_id": "w3.s1",
-      "bbox_px": [
-        433,
-        3412,
-        637,
-        3522
-      ],
-      "center_px": [
-        535.0,
-        3467.0
-      ],
-      "width": "2.79 ft",
-      "width_raw": 2.79,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win2",
-      "host_wall_id": "w7.s2",
-      "bbox_px": [
-        674,
-        6710,
-        784,
-        6984
-      ],
-      "center_px": [
-        729.0,
-        6847.0
-      ],
-      "width": "3.75 ft",
-      "width_raw": 3.75,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win3",
-      "host_wall_id": "w8.s2",
-      "bbox_px": [
-        1838,
-        6600,
-        2133,
-        6710
-      ],
-      "center_px": [
-        1985.5,
-        6655.0
-      ],
-      "width": "4.04 ft",
-      "width_raw": 4.04,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win4",
       "host_wall_id": "w10.s1",
       "bbox_px": [
         2013,
@@ -1722,101 +1665,6 @@
       "is_exterior": true,
       "evidence": "sill",
       "confidence": 0.5
-    },
-    {
-      "id": "win5",
-      "host_wall_id": "w21.s2",
-      "bbox_px": [
-        3536,
-        608,
-        3646,
-        1734
-      ],
-      "center_px": [
-        3591.0,
-        1171.0
-      ],
-      "width": "15.42 ft",
-      "width_raw": 15.42,
-      "is_exterior": true,
-      "evidence": "symbol",
-      "confidence": 0.6
-    },
-    {
-      "id": "win6",
-      "host_wall_id": "w21.s1",
-      "bbox_px": [
-        3536,
-        1734,
-        3646,
-        2109
-      ],
-      "center_px": [
-        3591.0,
-        1921.5
-      ],
-      "width": "5.14 ft",
-      "width_raw": 5.14,
-      "is_exterior": true,
-      "evidence": "symbol",
-      "confidence": 0.6
-    },
-    {
-      "id": "win7",
-      "host_wall_id": "w15.s1",
-      "bbox_px": [
-        3658,
-        5644,
-        3768,
-        5805
-      ],
-      "center_px": [
-        3713.0,
-        5724.5
-      ],
-      "width": "2.21 ft",
-      "width_raw": 2.21,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win8",
-      "host_wall_id": "w15.s1",
-      "bbox_px": [
-        3658,
-        5900,
-        3768,
-        6279
-      ],
-      "center_px": [
-        3713.0,
-        6089.5
-      ],
-      "width": "5.19 ft",
-      "width_raw": 5.19,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win9",
-      "host_wall_id": "w20.s3",
-      "bbox_px": [
-        3646,
-        2538,
-        4214,
-        2648
-      ],
-      "center_px": [
-        3930.0,
-        2593.0
-      ],
-      "width": "7.78 ft",
-      "width_raw": 7.78,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
     }
   ],
   "mask_roi_offset": [
@@ -1850,5 +1698,5 @@
     "y1_pct": 1.0,
     "method": "auto-expanded"
   },
-  "runtime_s": 18.93
+  "runtime_s": 15.31
 }

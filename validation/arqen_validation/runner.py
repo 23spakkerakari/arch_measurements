@@ -99,7 +99,9 @@ def run_case_pipeline(
         int(manifest.get("dpi", 300)),
         roi=manifest.get("roi"),
         doorway_close_ft=float(manifest.get("doorway_close_ft", 2.5)),
-        crop_mode=bool(manifest.get("labelme_crop")) or bool(manifest.get("roi")),
+        crop_mode=bool(manifest.get("crop_mode"))
+        or bool(manifest.get("labelme_crop"))
+        or bool(manifest.get("roi")),
     )
     runtime = round(time.time() - t0, 2)
 

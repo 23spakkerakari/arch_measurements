@@ -509,25 +509,6 @@
   "windows": [
     {
       "id": "win1",
-      "host_wall_id": "w2.s1",
-      "bbox_px": [
-        949,
-        1102,
-        1013,
-        1283
-      ],
-      "center_px": [
-        981.0,
-        1192.5
-      ],
-      "width": "4.31 ft",
-      "width_raw": 4.31,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win2",
       "host_wall_id": "w22",
       "bbox_px": [
         1037,
@@ -546,7 +527,7 @@
       "confidence": 0.6
     },
     {
-      "id": "win3",
+      "id": "win2",
       "host_wall_id": "w5.s1",
       "bbox_px": [
         1235,
@@ -565,26 +546,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win4",
-      "host_wall_id": "w6.s1",
-      "bbox_px": [
-        1537,
-        1064,
-        1601,
-        1157
-      ],
-      "center_px": [
-        1569.0,
-        1110.5
-      ],
-      "width": "2.21 ft",
-      "width_raw": 2.21,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.5
-    },
-    {
-      "id": "win5",
+      "id": "win3",
       "host_wall_id": "w6.s1",
       "bbox_px": [
         1537,
@@ -603,7 +565,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win6",
+      "id": "win4",
       "host_wall_id": "w7.s1",
       "bbox_px": [
         1538,
@@ -653,5 +615,5 @@
     "y1_pct": 0.9902912621359223,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.62
+  "runtime_s": 0.59
 }

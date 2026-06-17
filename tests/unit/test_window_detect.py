@@ -304,6 +304,69 @@ class TestAdjacentWindows:
         assert widths[1] == pytest.approx(gap_px / PPU, abs=0.25)
 
 
+class TestOverSplitMerge:
+    """Touch-merge narrow fragments on the same wall axis."""
+
+    def test_touching_narrow_fragments_merge(self):
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        gap_lo, gap_hi = 300, 336
+        _draw_pair(mask, True, 200, 100, gap_lo)
+        _draw_pair(mask, True, 200, gap_hi, 400)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[199:202, gap_lo:gap_hi] = 255
+        walls = [
+            _wall("top", [100, 200, 700, 200], is_exterior=True),
+            _wall("bottom", [100, 380, 700, 380], is_exterior=True),
+            _wall("left", [100, 100, 100, 380], is_exterior=True),
+            _wall("right", [700, 100, 700, 380], is_exterior=True),
+        ]
+        # Two accepted windows on same axis: one narrow (2 ft), one wide (4 ft), touching.
+        from window_detect import _make_window, _merge_over_split_fragments
+        axis_tol = max(12, int(0.6 * PPU))
+        a = _make_window(
+            True, 200.0, 300.0, 336.0, 14, walls[0], PPU, "ft",
+        )
+        b = _make_window(
+            True, 200.0, 336.0, 408.0, 14, walls[0], PPU, "ft",
+        )
+        a["_horiz"] = b["_horiz"] = True
+        a["_axis"] = b["_axis"] = 200.0
+        a["_span_lo"], a["_span_hi"] = 300.0, 336.0
+        b["_span_lo"], b["_span_hi"] = 336.0, 408.0
+        merged = _merge_over_split_fragments([a, b], PPU, axis_tol)
+        assert len(merged) == 1
+        assert merged[0]["width_raw"] == pytest.approx(6.0, abs=0.35)
+
+
+class TestMullionGapMerge:
+    """Bridge sill fragments split by a structural mullion (crop_mode)."""
+
+    def test_mullion_split_rejoins(self):
+        from window_detect import _make_window, _merge_across_mullion_gaps
+
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        axis = 200.0
+        # Two vertical openings on the same parent wall with solid mullion ink between.
+        _draw_pair(mask, False, axis, 100, 160)
+        _draw_pair(mask, False, axis, 200, 280)
+        mullion_lo, mullion_hi = 160, 200
+        _draw_pair(mask, False, axis, mullion_lo, mullion_hi, gap=18)
+
+        walls = [_wall("w7.s3", [axis, 100, axis, 280], is_exterior=True)]
+        a = _make_window(False, axis, 100.0, 160.0, 14, walls[0], PPU, "ft")
+        b = _make_window(False, axis, 200.0, 280.0, 14, walls[0], PPU, "ft")
+        a["host_wall_id"] = "w7.s3"
+        b["host_wall_id"] = "w7.s4"
+        axis_tol = max(12, int(0.6 * PPU))
+        band_half = 14
+        merged = _merge_across_mullion_gaps(
+            [a, b], mask, PPU, axis_tol,
+            band_half=band_half, open_gap_max=0.25,
+        )
+        assert len(merged) == 1
+        assert merged[0]["width_raw"] == pytest.approx(10.0, abs=0.35)
+
+
 class TestTripleLineSill:
     def test_triple_line_symbol_accepted(self):
         """CAD triple-line window symbol with moderate per-row cover."""
@@ -318,6 +381,23 @@ class TestTripleLineSill:
         walls = [_wall("w1", [100, 200, 700, 200], is_exterior=True)]
         windows = detect_windows(walls, mask, ink, PPU)
         assert len(windows) == 1
+
+
+class TestWallFillHatch:
+    def test_periodic_hash_detected(self):
+        from window_detect import _is_wall_fill_hatch_pattern
+
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        axis = 200.0
+        lo, hi = 150.0, 350.0
+        _draw_pair(mask, True, axis, 100, 400, gap=18)
+        for x in range(160, 340, 10):
+            ink[int(axis - 5): int(axis + 5), x: x + 2] = 255
+        band_half = 14
+        assert _is_wall_fill_hatch_pattern(
+            ink, mask, True, axis, lo, hi, band_half, PPU,
+        )
 
 
 class TestSymbolOnWall:
@@ -456,6 +536,23 @@ class TestInteriorEnvelopeRecovery:
         ink[239:242, gap_lo:gap_hi] = 255
         walls = [
             _wall("mid", [100, 240, 700, 240], is_exterior=False),
+            _wall("top", [100, 100, 700, 100], is_exterior=True),
+            _wall("bottom", [100, 380, 700, 380], is_exterior=True),
+            _wall("left", [100, 100, 100, 380], is_exterior=True),
+            _wall("right", [700, 100, 700, 380], is_exterior=True),
+        ]
+        windows = detect_windows(walls, mask, ink, PPU)
+        assert all(w["host_wall_id"] != "mid" for w in windows)
+
+    def test_interior_mistagged_exterior_not_scanned(self):
+        gap_lo, gap_hi = 300, 372
+        mask = np.zeros(SHAPE, dtype=np.uint8)
+        _draw_pair(mask, True, 240, 100, gap_lo)
+        _draw_pair(mask, True, 240, gap_hi, 700)
+        ink = np.zeros(SHAPE, dtype=np.uint8)
+        ink[239:242, gap_lo:gap_hi] = 255
+        walls = [
+            _wall("mid", [100, 240, 700, 240], is_exterior=True),
             _wall("top", [100, 100, 700, 100], is_exterior=True),
             _wall("bottom", [100, 380, 700, 380], is_exterior=True),
             _wall("left", [100, 100, 100, 380], is_exterior=True),

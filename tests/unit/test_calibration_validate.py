@@ -6,9 +6,11 @@ from calibration_validate import (
     CalibrationIssue,
     check_dpi_alternatives,
     summarize_calibration,
+    suggest_min_dpi_for_reliability,
     validate_dpi,
     validate_footprint_span,
     validate_px_per_unit,
+    validate_resolution_reliability,
     validate_total_area,
 )
 
@@ -51,6 +53,21 @@ class TestValidatePxPerUnit:
 
     def test_metric_skipped(self):
         assert validate_px_per_unit(100.0, unit_label="m") == []
+
+
+class TestValidateResolutionReliability:
+    def test_18_ppf_warns(self):
+        issues = validate_resolution_reliability(18.0, "1/8in=1ft", 144)
+        assert len(issues) == 1
+        assert issues[0].code == "low_resolution"
+        assert issues[0].severity == "warning"
+        assert issues[0].details["suggested_min_dpi"] == 240
+
+    def test_54_ppf_ok(self):
+        assert validate_resolution_reliability(54.0, "3/8in=1ft", 144) == []
+
+    def test_suggest_min_dpi(self):
+        assert suggest_min_dpi_for_reliability("1/8in=1ft") == 240
 
 
 class TestValidateFootprintSpan:
@@ -164,3 +181,19 @@ class TestSummarizeCalibration:
             total_area_raw=600.0,
         )
         assert out["suggested_dpi"] == 144
+
+    def test_low_resolution_suggested_dpi(self):
+        issue = CalibrationIssue(
+            code="low_resolution",
+            severity="warning",
+            message="test",
+            details={"suggested_min_dpi": 240},
+        )
+        out = summarize_calibration(
+            [issue],
+            dpi=144,
+            px_per_unit=18.0,
+            footprint_span_ft=(60.0, 40.0),
+            total_area_raw=2400.0,
+        )
+        assert out["suggested_dpi"] == 240

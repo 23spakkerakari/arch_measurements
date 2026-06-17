@@ -427,25 +427,6 @@
     },
     {
       "id": "win2",
-      "host_wall_id": "w8.s1",
-      "bbox_px": [
-        1356,
-        493,
-        1749,
-        541
-      ],
-      "center_px": [
-        1552.5,
-        517.0
-      ],
-      "width": "12.27 ft",
-      "width_raw": 12.27,
-      "is_exterior": true,
-      "evidence": "symbol",
-      "confidence": 0.6
-    },
-    {
-      "id": "win3",
       "host_wall_id": "w7.s2",
       "bbox_px": [
         1887,
@@ -495,5 +476,5 @@
     "y1_pct": 0.9632892804698973,
     "method": "auto-expanded"
   },
-  "runtime_s": 0.53
+  "runtime_s": 0.52
 }

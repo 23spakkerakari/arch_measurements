@@ -871,39 +871,20 @@
         777,
         1228,
         863,
-        1576
+        1735
       ],
       "center_px": [
         820.0,
-        1402.0
+        1481.5
       ],
-      "width": "6.19 ft",
-      "width_raw": 6.19,
+      "width": "9.01 ft",
+      "width_raw": 9.01,
       "is_exterior": true,
       "evidence": "sill",
       "confidence": 0.72
     },
     {
       "id": "win2",
-      "host_wall_id": "w2.s2",
-      "bbox_px": [
-        777,
-        1582,
-        863,
-        1735
-      ],
-      "center_px": [
-        820.0,
-        1658.5
-      ],
-      "width": "2.72 ft",
-      "width_raw": 2.72,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win3",
       "host_wall_id": "w2.s3",
       "bbox_px": [
         777,
@@ -922,7 +903,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win4",
+      "id": "win3",
       "host_wall_id": "w1.s4",
       "bbox_px": [
         948,
@@ -941,7 +922,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win5",
+      "id": "win4",
       "host_wall_id": "w1.s4",
       "bbox_px": [
         1163,
@@ -960,7 +941,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win6",
+      "id": "win5",
       "host_wall_id": "w1.s3",
       "bbox_px": [
         1613,
@@ -979,26 +960,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win7",
-      "host_wall_id": "w6.s1",
-      "bbox_px": [
-        1613,
-        1143,
-        1935,
-        1229
-      ],
-      "center_px": [
-        1774.0,
-        1186.0
-      ],
-      "width": "5.72 ft",
-      "width_raw": 5.72,
-      "is_exterior": true,
-      "evidence": "sill",
-      "confidence": 0.72
-    },
-    {
-      "id": "win8",
+      "id": "win6",
       "host_wall_id": "w1.s3",
       "bbox_px": [
         1947,
@@ -1017,7 +979,7 @@
       "confidence": 0.6
     },
     {
-      "id": "win9",
+      "id": "win7",
       "host_wall_id": "w1.s3",
       "bbox_px": [
         2422,
@@ -1036,7 +998,7 @@
       "confidence": 0.5
     },
     {
-      "id": "win10",
+      "id": "win8",
       "host_wall_id": "w4.s1",
       "bbox_px": [
         2584,
@@ -1055,7 +1017,7 @@
       "confidence": 0.72
     },
     {
-      "id": "win11",
+      "id": "win9",
       "host_wall_id": "w1.s2",
       "bbox_px": [
         2943,
@@ -1092,5 +1054,5 @@
   },
   "roi_hint_pct": null,
   "analysis_roi_pct": null,
-  "runtime_s": 5.16
+  "runtime_s": 4.53
 }

@@ -1,0 +1,482 @@
+[
+  {
+    "conf": 0.4,
+    "wall_ft": 1.5,
+    "labeled": {
+      "tp": 415,
+      "fp": 179,
+      "fn": 52,
+      "p": 0.699,
+      "r": 0.889,
+      "f1": 0.782
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 257,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 415,
+      "fp": 436,
+      "fn": 52,
+      "p": 0.488,
+      "r": 0.889,
+      "f1": 0.63
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "p": 0.667,
+      "r": 1.0,
+      "f1": 0.8
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 285.8
+  },
+  {
+    "conf": 0.4,
+    "wall_ft": 3.0,
+    "labeled": {
+      "tp": 431,
+      "fp": 208,
+      "fn": 36,
+      "p": 0.674,
+      "r": 0.923,
+      "f1": 0.779
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 288,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 431,
+      "fp": 496,
+      "fn": 36,
+      "p": 0.465,
+      "r": 0.923,
+      "f1": 0.618
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "p": 0.667,
+      "r": 1.0,
+      "f1": 0.8
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 291.8
+  },
+  {
+    "conf": 0.4,
+    "wall_ft": 0.0,
+    "labeled": {
+      "tp": 446,
+      "fp": 259,
+      "fn": 21,
+      "p": 0.633,
+      "r": 0.955,
+      "f1": 0.761
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 332,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 446,
+      "fp": 591,
+      "fn": 21,
+      "p": 0.43,
+      "r": 0.955,
+      "f1": 0.593
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "p": 0.667,
+      "r": 1.0,
+      "f1": 0.8
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 292.2
+  },
+  {
+    "conf": 0.5,
+    "wall_ft": 1.5,
+    "labeled": {
+      "tp": 393,
+      "fp": 124,
+      "fn": 74,
+      "p": 0.76,
+      "r": 0.842,
+      "f1": 0.799
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 201,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 393,
+      "fp": 325,
+      "fn": 74,
+      "p": 0.547,
+      "r": 0.842,
+      "f1": 0.663
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 291.4
+  },
+  {
+    "conf": 0.5,
+    "wall_ft": 3.0,
+    "labeled": {
+      "tp": 409,
+      "fp": 141,
+      "fn": 58,
+      "p": 0.744,
+      "r": 0.876,
+      "f1": 0.804
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 219,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 409,
+      "fp": 360,
+      "fn": 58,
+      "p": 0.532,
+      "r": 0.876,
+      "f1": 0.662
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 297.1
+  },
+  {
+    "conf": 0.5,
+    "wall_ft": 0.0,
+    "labeled": {
+      "tp": 424,
+      "fp": 167,
+      "fn": 43,
+      "p": 0.717,
+      "r": 0.908,
+      "f1": 0.802
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 235,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 424,
+      "fp": 402,
+      "fn": 43,
+      "p": 0.513,
+      "r": 0.908,
+      "f1": 0.656
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 304.0
+  },
+  {
+    "conf": 0.6,
+    "wall_ft": 1.5,
+    "labeled": {
+      "tp": 362,
+      "fp": 88,
+      "fn": 105,
+      "p": 0.804,
+      "r": 0.775,
+      "f1": 0.79
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 162,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 362,
+      "fp": 250,
+      "fn": 105,
+      "p": 0.592,
+      "r": 0.775,
+      "f1": 0.671
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 249.4
+  },
+  {
+    "conf": 0.6,
+    "wall_ft": 3.0,
+    "labeled": {
+      "tp": 377,
+      "fp": 103,
+      "fn": 90,
+      "p": 0.785,
+      "r": 0.807,
+      "f1": 0.796
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 172,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 377,
+      "fp": 275,
+      "fn": 90,
+      "p": 0.578,
+      "r": 0.807,
+      "f1": 0.674
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 210.3
+  },
+  {
+    "conf": 0.6,
+    "wall_ft": 0.0,
+    "labeled": {
+      "tp": 390,
+      "fp": 118,
+      "fn": 77,
+      "p": 0.768,
+      "r": 0.835,
+      "f1": 0.8
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 181,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 390,
+      "fp": 299,
+      "fn": 77,
+      "p": 0.566,
+      "r": 0.835,
+      "f1": 0.675
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 212.2
+  },
+  {
+    "conf": 0.7,
+    "wall_ft": 1.5,
+    "labeled": {
+      "tp": 328,
+      "fp": 60,
+      "fn": 139,
+      "p": 0.845,
+      "r": 0.702,
+      "f1": 0.767
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 118,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 328,
+      "fp": 178,
+      "fn": 139,
+      "p": 0.648,
+      "r": 0.702,
+      "f1": 0.674
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 211.0
+  },
+  {
+    "conf": 0.7,
+    "wall_ft": 3.0,
+    "labeled": {
+      "tp": 343,
+      "fp": 70,
+      "fn": 124,
+      "p": 0.831,
+      "r": 0.734,
+      "f1": 0.78
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 123,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 343,
+      "fp": 193,
+      "fn": 124,
+      "p": 0.64,
+      "r": 0.734,
+      "f1": 0.684
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 210.3
+  },
+  {
+    "conf": 0.7,
+    "wall_ft": 0.0,
+    "labeled": {
+      "tp": 355,
+      "fp": 74,
+      "fn": 112,
+      "p": 0.828,
+      "r": 0.76,
+      "f1": 0.792
+    },
+    "fp_only": {
+      "tp": 0,
+      "fp": 127,
+      "fn": 0,
+      "p": 0.0,
+      "r": 0.0,
+      "f1": 0.0
+    },
+    "all_real": {
+      "tp": 355,
+      "fp": 201,
+      "fn": 112,
+      "p": 0.638,
+      "r": 0.76,
+      "f1": 0.694
+    },
+    "synth": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "p": 1.0,
+      "r": 1.0,
+      "f1": 1.0
+    },
+    "errors": [
+      "demo_minimal: PDF not found for case: C:\\Users\\jakep\\arch_measurements\\arch_measurements\\validation\\cases\\demo_minimal\\plan.pdf"
+    ],
+    "runtime_s": 213.1
+  }
+]

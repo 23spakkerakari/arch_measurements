@@ -41,6 +41,7 @@ from calibration_validate import (
 )
 from door_detect import detect_doors, ink_mask_from_image
 from window_detect import detect_windows
+from window_detect_ml import detect_windows_ml, fuse_windows, ml_enabled
 from extract_wall_segments_class import extract_wall_segments
 from room_wall_split import (
     assign_interior_walls_to_rooms,
@@ -2969,6 +2970,27 @@ def analyze_page(
     )
     print(f"  [pipeline] window detect: {time.time()-t0:.1f}s ({len(windows)} windows)",
           file=sys.stderr)
+
+    # Hybrid augmentation: classical windows stay the backbone; the ML detector
+    # adds recall and confirms detections. Gated behind ARQEN_WINDOW_ML and a
+    # soft dependency, so this is a no-op unless explicitly enabled with weights
+    # present. ML runs in the same (crop) frame as `image`, so the roi_offset
+    # shift below applies to fused windows uniformly.
+    if ml_enabled():
+        t0 = time.time()
+        ml_windows = detect_windows_ml(
+            image, px_per_unit, unit_label, walls=walls, doors=doors,
+        )
+        before = len(windows)
+        windows = fuse_windows(
+            windows, ml_windows, px_per_unit,
+            axis_tol_px=dedup_axis_tol_px(px_per_unit),
+        )
+        print(
+            f"  [pipeline] window ML fuse: {time.time()-t0:.1f}s "
+            f"({len(ml_windows)} ml, {before} classical -> {len(windows)} fused)",
+            file=sys.stderr,
+        )
 
     if roi_offset != (0, 0):
         ox, oy = roi_offset

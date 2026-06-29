@@ -1,0 +1,9 @@
+# Offline training-only dependencies for the ML window detector.
+# NOT required by the runtime Flask service (Arqen/requirements.txt stays lean).
+# Install only on the machine that trains the model:
+#   pip install -r requirements-train.txt
+#
+# ultralytics pulls in torch/torchvision. On a CPU-only box this still works for
+# fine-tuning a nano model, just slowly; a CUDA GPU (or Colab) is recommended.
+ultralytics>=8.2
+torch>=2.2

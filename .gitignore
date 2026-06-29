@@ -22,6 +22,19 @@ Thumbs.db
 *.log
 .pytest_cache/
 
+# ML window detector — generated dataset + trained weights (large, regenerable).
+# Keep the small shipped weights files tracked; ignore everything else.
+Arqen/ml/dataset/
+Arqen/ml/dataset_v2/
+Arqen/ml/runs/
+Arqen/ml/weights/*
+!Arqen/ml/weights/.gitkeep
+!Arqen/ml/weights/window_yolo.pt
+!Arqen/ml/weights/window_yolo_v2.pt
+*.pt
+!Arqen/ml/weights/window_yolo.pt
+!Arqen/ml/weights/window_yolo_v2.pt
+
 # Pipeline debug captures (ARQEN_DEBUG_DUMP) — large and regenerable.
 # Whitelist only the captures referenced by validation/cases/capture_*.
 Arqen/debug_runs/*
